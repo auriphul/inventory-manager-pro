@@ -1,0 +1,137 @@
+/**
+ * Fullscreen styles for Inventory Manager Pro
+ */
+
+/* Full screen layout */
+body.inventory-fullscreen {
+    margin-top: 32px; /* Compensate for admin bar being hidden */
+    /* height: 100vh; */
+    /* overflow: hidden; */
+}
+
+/* Hide admin bar */
+body.inventory-fullscreen #wpadminbar {
+    display: none !important;
+}
+
+/* Hide page header, footer, sidebar elements from theme */
+body.inventory-fullscreen #masthead,
+body.inventory-fullscreen header,
+body.inventory-fullscreen .site-header,
+body.inventory-fullscreen #colophon, 
+body.inventory-fullscreen footer,
+body.inventory-fullscreen .site-footer,
+body.inventory-fullscreen #secondary,
+body.inventory-fullscreen .sidebar,
+body.inventory-fullscreen .widget-area {
+    display: none !important;
+}
+
+/* Full width content */
+body.inventory-fullscreen #content,
+body.inventory-fullscreen .site-content,
+body.inventory-fullscreen .content-area,
+body.inventory-fullscreen .entry-content,
+body.inventory-fullscreen main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Make the inventory manager fill the screen */
+body.inventory-fullscreen .inventory-manager {
+    /* height: 100vh;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    background: #f1f1f1; */
+}
+
+/* Add some app-like chrome at the top */
+body.inventory-fullscreen .inventory-manager-header {
+    background: #23282d;
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+}
+
+body.inventory-fullscreen .inventory-manager-header h1 {
+    color: #fff;
+    margin: 0;
+    font-size: 1.5em;
+}
+
+body.inventory-fullscreen .inventory-manager-header .toggle-fullscreen {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+body.inventory-fullscreen .inventory-manager-header .toggle-fullscreen:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Main content styles */
+body.inventory-fullscreen .inventory-manager-content {
+    padding: 20px;
+    height: calc(100vh - 50px); /* Account for header */
+    overflow-y: auto;
+}
+
+/* Modified tab styles to look more like an app UI */
+body.inventory-fullscreen .inventory-manager .nav-tabs {
+    background: #fff;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    padding: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body.inventory-fullscreen .inventory-manager .nav-tabs li {
+    flex: 1;
+    text-align: center;
+}
+
+body.inventory-fullscreen .inventory-manager .nav-tabs a {
+    border-radius: 3px;
+    padding: 12px 15px;
+}
+
+body.inventory-fullscreen .inventory-manager .nav-tabs li.active a {
+    background: #0073aa;
+    color: #fff;
+    border-color: #0073aa;
+}
+
+/* Cards for content sections */
+body.inventory-fullscreen .inventory-manager .inventory-table,
+body.inventory-fullscreen .inventory-manager .inventory-form,
+body.inventory-fullscreen .inventory-manager .filters-row {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+    body.inventory-fullscreen {
+        margin-top: -46px; /* Adjust for mobile admin bar height */
+    }
+    
+    body.inventory-fullscreen .inventory-manager-header {
+        padding: 10px;
+    }
+    
+    body.inventory-fullscreen .inventory-manager-header h1 {
+        font-size: 1.2em;
+    }
+}
