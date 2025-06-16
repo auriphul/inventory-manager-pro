@@ -623,18 +623,13 @@ class Inventory_Database {
                 }
 
                 // Get movements for this batch
+                $batch_id = intval($batch->id);
                 $movements_query = "SELECT m.*, 
-                                  DATE_FORMAT(m.date_created, '%d/%m/%Y %H:%i') as date_time,
-                                  CASE 
-                                    WHEN m.quantity > 0 THEN m.quantity 
-                                    ELSE NULL 
-                                  END as stock_in,
-                                  CASE 
-                                    WHEN m.quantity < 0 THEN ABS(m.quantity) 
-                                    ELSE NULL 
-                                  END as stock_out
-                                  FROM {$wpdb->prefix}inventory_stock_movements m
-                                  WHERE m.batch_id = %d";
+                DATE_FORMAT(m.date_created, '%d/%m/%Y %H:%i') as date_time,
+                CASE WHEN m.quantity > 0 THEN m.quantity ELSE NULL END as stock_in,
+                CASE WHEN m.quantity < 0 THEN ABS(m.quantity) ELSE NULL END as stock_out
+                FROM {$wpdb->prefix}inventory_stock_movements m
+                WHERE m.batch_id = $batch_id";
 
                 // Period filter
                 $movements_args = array($batch->id);
@@ -642,40 +637,37 @@ class Inventory_Database {
                 if (!empty($args['period'])) {
                     switch ($args['period']) {
                         case 'today':
-                            $movements_query .= " AND DATE(m.date_created) = CURDATE() ";
-                            $movements_query .= ' ';
+                            $movements_query .= " AND DATE(m.date_created) = CURDATE()";
                             break;
                         case 'yesterday':
-                            $movements_query .= " AND DATE(m.date_created) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) ";
-                            $movements_query .= ' ';
+                            $movements_query .= " AND DATE(m.date_created) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
                             break;
                         case 'this_week':
-                            $movements_query .= " AND YEARWEEK(m.date_created) = YEARWEEK(CURDATE()) ";
-                            $movements_query .= ' ';
+                            $movements_query .= " AND YEARWEEK(m.date_created, 1) = YEARWEEK(CURDATE(), 1)";
                             break;
                         case 'last_week':
-                            $movements_query .= " AND YEARWEEK(m.date_created) = YEARWEEK(DATE_SUB(CURDATE(), INTERVAL 1 WEEK)) ";
+                            $movements_query .= " AND YEARWEEK(m.date_created, 1) = YEARWEEK(CURDATE() - INTERVAL 1 WEEK, 1)";
                             break;
                         case 'this_month':
-                            $movements_query .= " AND MONTH(m.date_created) = MONTH(CURDATE()) AND YEAR(m.date_created) = YEAR(CURDATE()) ";
+                            $movements_query .= " AND MONTH(m.date_created) = MONTH(CURDATE()) AND YEAR(m.date_created) = YEAR(CURDATE())";
                             break;
                         case 'last_month':
-                            $movements_query .= " AND MONTH(m.date_created) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(m.date_created) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) ";
+                            $movements_query .= " AND MONTH(m.date_created) = MONTH(CURDATE() - INTERVAL 1 MONTH) AND YEAR(m.date_created) = YEAR(CURDATE() - INTERVAL 1 MONTH)";
                             break;
                         case 'last_3_months':
-                            $movements_query .= " AND m.date_created >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH) ";
+                            $movements_query .= " AND m.date_created >= CURDATE() - INTERVAL 3 MONTH";
                             break;
                         case 'last_6_months':
-                            $movements_query .= " AND m.date_created >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) ";
+                            $movements_query .= " AND m.date_created >= CURDATE() - INTERVAL 6 MONTH";
                             break;
                         case 'this_year':
-                            $movements_query .= " AND YEAR(m.date_created) = YEAR(CURDATE()) ";
+                            $movements_query .= " AND YEAR(m.date_created) = YEAR(CURDATE())";
                             break;
                     }
                 }
 
                 $movements_query .= " ORDER BY m.date_created DESC";
-                $batch->movements = $wpdb->get_results($wpdb->prepare($movements_query, $batch->id));
+                $batch->movements = $wpdb->get_results($movements_query);
             }
             // Add product to result
             $result[] = array(
