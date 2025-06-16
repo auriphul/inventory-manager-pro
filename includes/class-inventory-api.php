@@ -331,12 +331,43 @@ class Inventory_API {
 		$adjustment_reference = sanitize_text_field( $params['adjustment_reference'] );
 
 		// Get adjustment type label
-		$adjustment_types = get_option( 'inventory_manager_adjustment_types', array() );
-		$adjustment_label = '';
+                // Fetch adjustment types with defaults in case none are saved
+                $default_types     = array(
+                        'damages'       => array(
+                                'label'       => __( 'Damages', 'inventory-manager-pro' ),
+                                'calculation' => 'deduct',
+                        ),
+                        'received_more' => array(
+                                'label'       => __( 'Received MORE', 'inventory-manager-pro' ),
+                                'calculation' => 'add',
+                        ),
+                        'received_less' => array(
+                                'label'       => __( 'Received LESS', 'inventory-manager-pro' ),
+                                'calculation' => 'deduct',
+                        ),
+                        'free_samples'  => array(
+                                'label'       => __( 'Free Samples', 'inventory-manager-pro' ),
+                                'calculation' => 'deduct',
+                        ),
+                );
 
-		if ( isset( $adjustment_types[ $adjustment_type ] ) ) {
-			$adjustment_label = $adjustment_types[ $adjustment_type ]['label'];
-		}
+                $adjustment_types = get_option( 'inventory_manager_adjustment_types', $default_types );
+                $adjustment_label  = '';
+                $calculation       = 'add';
+
+                if ( isset( $adjustment_types[ $adjustment_type ] ) ) {
+                        $adjustment_label = $adjustment_types[ $adjustment_type ]['label'];
+                        if ( isset( $adjustment_types[ $adjustment_type ]['calculation'] ) ) {
+                                $calculation = $adjustment_types[ $adjustment_type ]['calculation'];
+                        }
+                }
+
+                // Adjust quantity based on calculation type
+                if ( 'deduct' === $calculation ) {
+                        $adjustment_qty = -abs( $adjustment_qty );
+                } else {
+                        $adjustment_qty = abs( $adjustment_qty );
+                }
 
 		// Create reference with type label
 		$reference = $adjustment_label . ': ' . $adjustment_reference;
