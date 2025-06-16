@@ -13,6 +13,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Get expiry ranges
 $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 ?>
+<style>
+	.expiry-expired{
+		background-color:<?php echo $expiry_ranges['expired']['color'];?> !important;
+		color:<?php echo $expiry_ranges['expired']['text_color'];?> !important;
+	}
+	.expiry-less1{
+		background-color:<?php echo $expiry_ranges['less_1']['color'];?> !important;
+		color:<?php echo $expiry_ranges['less_1']['text_color'];?> !important;
+	}
+	.expiry-1-3{
+		background-color:<?php echo $expiry_ranges['1_3']['color'];?> !important;
+		color:<?php echo $expiry_ranges['1_3']['text_color'];?> !important;
+	}
+	.expiry-3-6{
+		background-color:<?php echo $expiry_ranges['3_6']['color'];?> !important;
+		color:<?php echo $expiry_ranges['3_6']['text_color'];?> !important;
+	}
+	.expiry-6plus{
+		background-color:<?php echo $expiry_ranges['6_plus']['color'];?> !important;
+		color:<?php echo $expiry_ranges['6_plus']['text_color'];?> !important;
+	}
+</style>
 
 <div class="inventory-manager-overview">
 	<div class="filters-row">
