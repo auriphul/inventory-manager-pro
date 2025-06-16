@@ -36,32 +36,12 @@ class Inventory_Settings {
 			array( $this, 'render_settings_page' )
 		);
 
-		add_submenu_page(
-			'inventory-manager',
-			__( 'Dashboard', 'inventory-manager-pro' ),
-			__( 'Dashboard', 'inventory-manager-pro' ),
-			'manage_inventory',
-			'inventory-manager-dashboard',
-			array( $this, 'redirect_to_dashboard' )
-		);
-	}
+        }
 
-	/**
-	 * Redirect to frontend dashboard.
-	 */
-	public function redirect_to_dashboard() {
-		$dashboard_url = get_permalink( get_option( 'inventory_dashboard_page_id' ) );
-
-		if ( $dashboard_url ) {
-			wp_redirect( $dashboard_url );
-			exit;
-		}
-
-		echo '<div class="wrap">';
-		echo '<h1>' . __( 'Inventory Manager Dashboard', 'inventory-manager-pro' ) . '</h1>';
-		echo '<p>' . __( 'Dashboard page not found. Please check your settings.', 'inventory-manager-pro' ) . '</p>';
-		echo '</div>';
-	}
+        /**
+         * Redirect to frontend dashboard.
+         */
+        public function redirect_to_dashboard() {}
 
 	/**
 	 * Register settings.

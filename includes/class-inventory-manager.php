@@ -56,8 +56,11 @@ class Inventory_Manager {
 		// The class responsible for defining API endpoints.
 		require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-api.php';
 
-		// The class responsible for defining all shortcodes.
-		require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-shortcodes.php';
+                // The class responsible for defining all shortcodes.
+                require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-shortcodes.php';
+
+                // Admin dashboard handler.
+                require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-admin-dashboard.php';
 
 		// The class responsible for integrating with WooCommerce.
 		require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-woocommerce.php';
@@ -91,9 +94,13 @@ class Inventory_Manager {
 		$this->loader->add_action( 'admin_enqueue_scripts', $this, 'enqueue_admin_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $this, 'enqueue_admin_scripts' );
 
-		$settings = new Inventory_Settings( $this );
-		$this->loader->add_action( 'admin_menu', $settings, 'add_settings_page' );
-		$this->loader->add_action( 'admin_init', $settings, 'register_settings' );
+                $settings = new Inventory_Settings( $this );
+                $this->loader->add_action( 'admin_menu', $settings, 'add_settings_page' );
+                $this->loader->add_action( 'admin_init', $settings, 'register_settings' );
+
+                $dashboard = new Inventory_Admin_Dashboard( $this );
+                $this->loader->add_action( 'admin_menu', $dashboard, 'register_menu' );
+                $this->loader->add_action( 'admin_enqueue_scripts', $dashboard, 'enqueue_scripts' );
 	}
 
 	/**
