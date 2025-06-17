@@ -152,21 +152,57 @@
         // Product summary
         html += '<div class="product-summary">';
         
+        // Totals and averages
+        let totalStock = 0;
+        let totalStockCost = 0;
+        let totalLandedCost = 0;
+        let weightedUnitCost = 0;
+        let weightedFreight = 0;
+
+        $.each(product.batches, function(index, batch) {
+            const qty = parseFloat(batch.stock_qty);
+            const unitCost = parseFloat(batch.unit_cost) || 0;
+            const freightMarkup = parseFloat(batch.freight_markup) || 0;
+
+            totalStock += qty;
+            totalStockCost += unitCost * qty;
+            totalLandedCost += unitCost * freightMarkup * qty;
+            weightedUnitCost += unitCost * qty;
+            weightedFreight += freightMarkup * qty;
+        });
+
+        const avgUnitCost = totalStock ? (weightedUnitCost / totalStock) : 0;
+        const avgFreight = totalStock ? (weightedFreight / totalStock) : 0;
+
         // Total batches
         html += '<div class="batch-count">';
         html += '<span class="label">Batches</span>';
         html += '<span class="value">' + product.batches.length + '</span>';
         html += '</div>';
-        
-        // Total stock
-        let totalStock = 0;
-        $.each(product.batches, function(index, batch) {
-            totalStock += parseFloat(batch.stock_qty);
-        });
-        
+
         html += '<div class="total-stock">';
-        html += '<span class="label">Total Stock</span>';
-        html += '<span class="value">' + totalStock + '</span>';
+        html += '<span class="label">Total Stock Qty</span>';
+        html += '<span class="value">' + totalStock.toFixed(2) + '</span>';
+        html += '</div>';
+
+        html += '<div class="avg-unit-cost">';
+        html += '<span class="label">Avg Unit Cost</span>';
+        html += '<span class="value">' + avgUnitCost.toFixed(2) + '</span>';
+        html += '</div>';
+
+        html += '<div class="total-stock-cost">';
+        html += '<span class="label">Total Stock Cost</span>';
+        html += '<span class="value">' + totalStockCost.toFixed(2) + '</span>';
+        html += '</div>';
+
+        html += '<div class="avg-freight">';
+        html += '<span class="label">Avg Freight Markup</span>';
+        html += '<span class="value">' + avgFreight.toFixed(2) + '</span>';
+        html += '</div>';
+
+        html += '<div class="total-landed-cost">';
+        html += '<span class="label">Total Landed Cost</span>';
+        html += '<span class="value">' + totalLandedCost.toFixed(2) + '</span>';
         html += '</div>';
         
         html += '</div>'; // End product-summary
