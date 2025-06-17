@@ -244,6 +244,28 @@
         html += '<span class="label">Expiry</span>';
         html += '<span class="value">' + (batch.expiry_formatted || 'N/A') + '</span>';
         html += '</div>';
+
+        // Newly requested fields
+        html += '<div class="batch-unit-cost">';
+        html += '<span class="label">Unit Cost</span>';
+        html += '<span class="value">' + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-stock-cost">';
+        html += '<span class="label">Stock Cost</span>';
+        html += '<span class="value">' + (batch.stock_cost_formatted || parseFloat(batch.stock_cost || 0).toFixed(2)) + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-freight">';
+        html += '<span class="label">Freight Markup</span>';
+        html += '<span class="value">' + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-landed-cost">';
+        html += '<span class="label">Landed Cost</span>';
+        html += '<span class="value">' + (batch.landed_cost_formatted || parseFloat(batch.landed_cost || 0).toFixed(2)) + '</span>';
+        html += '</div>';
+
         html += '</div>'; // End batch-header
         
         // Batch details

@@ -105,6 +105,26 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <span class="label"><?php _e( 'Expiry', 'inventory-manager-pro' ); ?></span>
                 <span class="value">{{expiry_formatted}}</span>
             </div>
+
+            <div class="batch-unit-cost">
+                <span class="label"><?php _e( 'Unit Cost', 'inventory-manager-pro' ); ?></span>
+                <span class="value">{{unit_cost}}</span>
+            </div>
+
+            <div class="batch-stock-cost">
+                <span class="label"><?php _e( 'Stock Cost', 'inventory-manager-pro' ); ?></span>
+                <span class="value">{{stock_cost_formatted}}</span>
+            </div>
+
+            <div class="batch-freight">
+                <span class="label"><?php _e( 'Freight Markup', 'inventory-manager-pro' ); ?></span>
+                <span class="value">{{freight_markup}}</span>
+            </div>
+
+            <div class="batch-landed-cost">
+                <span class="label"><?php _e( 'Landed Cost', 'inventory-manager-pro' ); ?></span>
+                <span class="value">{{landed_cost_formatted}}</span>
+            </div>
         </div>
         
         <div class="batch-details" style="display: none;">
