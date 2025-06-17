@@ -482,7 +482,7 @@ class Inventory_Database {
      *
      * @param int $batch_id Batch ID.
      * @param float $quantity Quantity to adjust (positive to add, negative to subtract).
-     * @param string $movement_type Type of movement (e.g., 'adjustment', 'invoice').
+     * @param string $movement_type Type of movement (e.g., 'adjustment', 'woo_order_placed').
      * @param string $reference Reference for the movement.
      * @return bool|WP_Error True on success or WP_Error on failure.
      */
