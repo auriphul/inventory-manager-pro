@@ -142,15 +142,20 @@ class Inventory_Manager_WooCommerce {
                        'woocommerce_order_placed',
                        $order_id
                );
+
+               if ( $item_id ) {
+                       wc_update_order_item_meta( $item_id, '_selected_batch_id', $batch_id );
+               }
        }
 
 	/**
 	 * Deduct stock based on method (closest expiry or FIFO).
 	 */
-	private function deduct_stock_by_method( $sku, $qty, $method, $order_id, $item_id ) {
-		global $wpdb;
+       private function deduct_stock_by_method( $sku, $qty, $method, $order_id, $item_id ) {
+               global $wpdb;
 
-		$remaining_qty = $qty;
+               $remaining_qty = $qty;
+               $selected_batch_id = 0;
 
 		// Get batches based on method
 		if ( $method === 'closest_expiry' ) {
@@ -176,12 +181,16 @@ class Inventory_Manager_WooCommerce {
 		}
 
 		// Deduct from batches until quantity is satisfied
-		foreach ( $batches as $batch ) {
-			if ( $remaining_qty <= 0 ) {
-				break;
-			}
+               foreach ( $batches as $batch ) {
+                       if ( $remaining_qty <= 0 ) {
+                               break;
+                       }
 
-			$deduct_qty = min( $remaining_qty, $batch->stock_qty );
+                       $deduct_qty = min( $remaining_qty, $batch->stock_qty );
+
+                       if ( ! $selected_batch_id ) {
+                               $selected_batch_id = $batch->id;
+                       }
 
                        $this->db->update_batch_quantity(
                                $batch->id,
@@ -191,7 +200,11 @@ class Inventory_Manager_WooCommerce {
                        );
 
                        $remaining_qty -= $deduct_qty;
-		}
+               }
+
+               if ( $selected_batch_id ) {
+                       wc_update_order_item_meta( $item_id, '_selected_batch_id', $selected_batch_id );
+               }
 
 		// Handle backorders if remaining quantity
 		if ( $remaining_qty > 0 ) {
