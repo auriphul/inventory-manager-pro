@@ -7,10 +7,12 @@
  */
 
 class Inventory_Manager_WooCommerce {
-	private $plugin;
+       private $plugin;
+       private $db;
 
-	public function __construct( $plugin ) {
-		$this->plugin = $plugin;
+       public function __construct( $plugin ) {
+               $this->plugin = $plugin;
+               $this->db     = new Inventory_Database();
 
                // Order processing
                add_action( 'woocommerce_checkout_order_processed', array( $this, 'checkout_order_stock_reduction' ), 10, 3 );
@@ -133,48 +135,14 @@ class Inventory_Manager_WooCommerce {
 	/**
 	 * Deduct stock from specific batch.
 	 */
-	private function deduct_stock_from_batch( $batch_id, $qty, $order_id, $item_id ) {
-		global $wpdb;
-
-		// Get batch info
-		$batch = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}inventory_batches WHERE id = %d",
-				$batch_id
-			)
-		);
-
-		if ( ! $batch ) {
-			return;
-		}
-
-               // Create WooCommerce order movement
-               $wpdb->insert(
-                       $wpdb->prefix . 'inventory_stock_movements',
-                       array(
-                               'batch_id'      => $batch_id,
-                               'movement_type' => 'woocommerce_order_placed',
-                               'reference'     => 'order_' . $order_id,
-                               'quantity'      => -1 * $qty, // Negative for deduction
-                               'date_created'  => current_time( 'mysql' ),
-                               'created_by'    => get_current_user_id(),
-                       )
+       private function deduct_stock_from_batch( $batch_id, $qty, $order_id, $item_id ) {
+               $this->db->update_batch_quantity(
+                       $batch_id,
+                       -1 * $qty,
+                       'woocommerce_order_placed',
+                       'order_' . $order_id
                );
-
-		// Update batch stock quantity
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE {$wpdb->prefix}inventory_batches 
-            SET stock_qty = stock_qty - %f 
-            WHERE id = %d",
-				$qty,
-				$batch_id
-			)
-		);
-
-		// Update product stock
-		$this->update_product_stock( $batch->product_id );
-	}
+       }
 
 	/**
 	 * Deduct stock based on method (closest expiry or FIFO).
@@ -215,31 +183,14 @@ class Inventory_Manager_WooCommerce {
 
 			$deduct_qty = min( $remaining_qty, $batch->stock_qty );
 
-                       // Create WooCommerce order movement
-                       $wpdb->insert(
-                               $wpdb->prefix . 'inventory_stock_movements',
-                               array(
-                                       'batch_id'      => $batch->id,
-                                       'movement_type' => 'woocommerce_order_placed',
-                                       'reference'     => 'order_' . $order_id,
-                                       'quantity'      => -1 * $deduct_qty, // Negative for deduction
-                                       'date_created'  => current_time( 'mysql' ),
-                                       'created_by'    => get_current_user_id(),
-                               )
+                       $this->db->update_batch_quantity(
+                               $batch->id,
+                               -1 * $deduct_qty,
+                               'woocommerce_order_placed',
+                               'order_' . $order_id
                        );
 
-			// Update batch stock quantity
-			$wpdb->query(
-				$wpdb->prepare(
-					"UPDATE {$wpdb->prefix}inventory_batches 
-                SET stock_qty = stock_qty - %f 
-                WHERE id = %d",
-					$deduct_qty,
-					$batch->id
-				)
-			);
-
-			$remaining_qty -= $deduct_qty;
+                       $remaining_qty -= $deduct_qty;
 		}
 
 		// Handle backorders if remaining quantity
@@ -258,11 +209,8 @@ class Inventory_Manager_WooCommerce {
 			}
 		}
 
-		// Update product stock
-		if ( isset( $batch ) ) {
-			$this->update_product_stock( $batch->product_id );
-		}
-	}
+               // Update product stock handled in update_batch_quantity
+       }
 
 	/**
 	 * Update WooCommerce product stock based on batch quantities.
