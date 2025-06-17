@@ -291,7 +291,7 @@
     function exportData() {
         // Prepare export params
         const params = {
-            format: 'csv', // Default to CSV
+            format: $('.export-format').val() || 'csv',
             type: 'overview',
             sku: '',
             search: state.filters.search,

@@ -74,8 +74,12 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 			<label><input type="checkbox" class="toggle-column" data-column="landed_cost" checked> <?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?></label>
 		</div>
 		
-		<div class="actions">
-			<button class="button export-btn"><?php _e( 'EXPORT', 'inventory-manager-pro' ); ?></button>
+                <div class="actions">
+                        <select class="export-format">
+                                <option value="csv">CSV</option>
+                                <option value="xls">XLS</option>
+                        </select>
+                        <button class="button export-btn"><?php _e( 'EXPORT', 'inventory-manager-pro' ); ?></button>
 			<div class="search-box">
 				<input type="text" placeholder="<?php _e( 'Search...', 'inventory-manager-pro' ); ?>">
 				<button class="search-btn"><?php _e( 'Search', 'inventory-manager-pro' ); ?></button>

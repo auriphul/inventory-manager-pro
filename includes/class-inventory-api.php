@@ -468,9 +468,15 @@ class Inventory_API {
 			foreach ( $batches as $batch ) {
 				$row = array();
 
-				foreach ( array_keys( $columns ) as $column_key ) {
-					$row[ $column_key ] = isset( $batch->$column_key ) ? $batch->$column_key : '';
-				}
+                                foreach ( array_keys( $columns ) as $column_key ) {
+                                        if ( 'stock_cost_formatted' === $column_key ) {
+                                                $row[ $column_key ] = isset( $batch->stock_cost ) ? $batch->stock_cost : '';
+                                        } elseif ( 'landed_cost_formatted' === $column_key ) {
+                                                $row[ $column_key ] = isset( $batch->landed_cost ) ? $batch->landed_cost : '';
+                                        } else {
+                                                $row[ $column_key ] = isset( $batch->$column_key ) ? wp_strip_all_tags( $batch->$column_key ) : '';
+                                        }
+                                }
 
 				$data[] = $row;
 			}

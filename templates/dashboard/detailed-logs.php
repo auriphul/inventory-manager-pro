@@ -45,6 +45,10 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
         
         <div class="logs-export">
+            <select class="logs-export-format">
+                <option value="csv">CSV</option>
+                <option value="xls">XLS</option>
+            </select>
             <button class="button logs-export-btn"><?php _e( 'Export Logs', 'inventory-manager-pro' ); ?></button>
         </div>
     </div>

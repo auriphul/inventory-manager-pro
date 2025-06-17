@@ -431,7 +431,7 @@
     function exportLogs() {
         // Prepare export params
         const params = {
-            format: 'csv', // Default to CSV
+            format: $('.logs-export-format').val() || 'csv',
             type: 'detailed-logs',
             period: state.period,
             search: state.search
