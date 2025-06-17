@@ -73,17 +73,18 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 			<label><input type="checkbox" class="toggle-column" data-column="stock_cost" checked> <?php _e( 'STOCK COST', 'inventory-manager-pro' ); ?></label>
 			<label><input type="checkbox" class="toggle-column" data-column="landed_cost" checked> <?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?></label>
 		</div>
-		
-                <div class="actions">
-                        <select class="export-format">
-                                <option value="csv">CSV</option>
-                                <option value="xls">XLS</option>
-                        </select>
-                        <button class="button export-btn"><?php _e( 'EXPORT', 'inventory-manager-pro' ); ?></button>
-			<div class="search-box">
-				<input type="text" placeholder="<?php _e( 'Search...', 'inventory-manager-pro' ); ?>">
-				<button class="search-btn"><?php _e( 'Search', 'inventory-manager-pro' ); ?></button>
-			</div>
+	</div>
+	<div class="filters-row">
+		<div class="period-filter-container">
+			<select class="export-format">
+					<option value="csv">CSV</option>
+					<option value="xls">XLS</option>
+			</select>
+			<button class="button export-btn"><?php _e( 'EXPORT', 'inventory-manager-pro' ); ?></button>
+		</div>
+		<div class="logs-search-box">
+			<input type="text" placeholder="<?php _e( 'Search...', 'inventory-manager-pro' ); ?>">
+			<button class="button search-btn"><?php _e( 'Search', 'inventory-manager-pro' ); ?></button>
 			<button class="button show-all-btn"><?php _e( 'Show All Batches', 'inventory-manager-pro' ); ?></button>
 		</div>
 	</div>

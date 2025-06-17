@@ -604,6 +604,9 @@
     margin-bottom: 10px;
     z-index: 100;
 }
+.w-100{
+    width: 100%;
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
