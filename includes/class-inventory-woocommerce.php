@@ -89,7 +89,7 @@ class Inventory_Manager_WooCommerce {
                                "SELECT * FROM {$wpdb->prefix}inventory_stock_movements
                 WHERE movement_type = 'woocommerce_order_placed'
                 AND reference = %s",
-                               'order_' . $order_id
+                               $order_id
                        )
                );
 
@@ -140,7 +140,7 @@ class Inventory_Manager_WooCommerce {
                        $batch_id,
                        -1 * $qty,
                        'woocommerce_order_placed',
-                       'order_' . $order_id
+                       $order_id
                );
        }
 
@@ -187,7 +187,7 @@ class Inventory_Manager_WooCommerce {
                                $batch->id,
                                -1 * $deduct_qty,
                                'woocommerce_order_placed',
-                               'order_' . $order_id
+                               $order_id
                        );
 
                        $remaining_qty -= $deduct_qty;
