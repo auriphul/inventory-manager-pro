@@ -670,6 +670,15 @@ class Inventory_Database {
                 $order = in_array(strtoupper($args['order']), array('ASC', 'DESC')) ? strtoupper($args['order']) : 'ASC';
                 $movements_query .= " ORDER BY m.date_created {$order}";
                 $batch->movements = $wpdb->get_results($movements_query);
+
+                // Replace initial stock movement type label
+                if ( ! empty( $batch->movements ) ) {
+                    foreach ( $batch->movements as $movement ) {
+                        if ( 'initial_stock' === $movement->movement_type ) {
+                            $movement->movement_type = __( 'Manual Entry', 'inventory-manager-pro' );
+                        }
+                    }
+                }
             }
             // Add product to result
             $result[] = array(
@@ -976,6 +985,14 @@ class Inventory_Database {
                 $batch_id
             )
         );
+
+        if ( ! empty( $movements ) ) {
+            foreach ( $movements as $movement ) {
+                if ( 'initial_stock' === $movement->movement_type ) {
+                    $movement->movement_type = __( 'Manual Entry', 'inventory-manager-pro' );
+                }
+            }
+        }
 
         return $movements;
     }
