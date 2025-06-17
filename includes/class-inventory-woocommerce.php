@@ -87,7 +87,7 @@ class Inventory_Manager_WooCommerce {
                $movements = $wpdb->get_results(
                        $wpdb->prepare(
                                "SELECT * FROM {$wpdb->prefix}inventory_stock_movements
-                WHERE movement_type = 'woocommerce_order_placed'
+                WHERE movement_type = 'wc_order_placed'
                 AND reference = %s",
                                $order_id
                        )
@@ -136,12 +136,20 @@ class Inventory_Manager_WooCommerce {
 	 * Deduct stock from specific batch.
 	 */
        private function deduct_stock_from_batch( $batch_id, $qty, $order_id, $item_id ) {
-               $this->db->update_batch_quantity(
-                       $batch_id,
-                       -1 * $qty,
-                       'woocommerce_order_placed',
-                       $order_id
-               );
+				global $wpdb;
+				$exists = $wpdb->get_var( $wpdb->prepare(
+					"SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements 
+					WHERE reference = %s AND batch_id = %d AND movement_type = %s",
+					$order_id, $batch_id, 'wc_order_placed'
+				) );
+				if ( ! $exists ) {
+					$this->db->update_batch_quantity(
+							$batch_id,
+							-1 * $qty,
+							'wc_order_placed',
+							$order_id
+					);
+				}
 
                if ( $item_id ) {
                        wc_update_order_item_meta( $item_id, '_selected_batch_id', $batch_id );
@@ -192,12 +200,20 @@ class Inventory_Manager_WooCommerce {
                                $selected_batch_id = $batch->id;
                        }
 
-                       $this->db->update_batch_quantity(
-                               $batch->id,
-                               -1 * $deduct_qty,
-                               'woocommerce_order_placed',
-                               $order_id
-                       );
+					   $exists = $wpdb->get_var( $wpdb->prepare(
+						   "SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements 
+						   WHERE reference = %s AND batch_id = %d AND movement_type = %s",
+						   $order_id, $batch->id, 'wc_order_placed'
+					   ) );
+
+					   if ( ! $exists ) {
+							$this->db->update_batch_quantity(
+									$batch->id,
+									-1 * $deduct_qty,
+									'wc_order_placed',
+									$order_id
+							);
+						}
 
                        $remaining_qty -= $deduct_qty;
                }
