@@ -42,6 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div class="logs-search-box">
             <input type="text" placeholder="<?php _e( 'Search products...', 'inventory-manager-pro' ); ?>">
             <button class="button logs-search-btn"><?php _e( 'Search', 'inventory-manager-pro' ); ?></button>
+            <button class="button show-all-batches-btn"><?php _e( 'Show All Batches', 'inventory-manager-pro' ); ?></button>
         </div>
         
         <div class="logs-export">

@@ -39,7 +39,7 @@
         });
         
         // Search
-        $('.logs-search-box button').on('click', function() {
+        $('.logs-search-btn').on('click', function() {
             state.search = $('.logs-search-box input').val();
             loadLogs();
         });
@@ -49,6 +49,13 @@
                 state.search = $(this).val();
                 loadLogs();
             }
+        });
+
+        // Show all batches button
+        $('.show-all-batches-btn').on('click', function() {
+            $('.logs-search-box input').val('');
+            state.search = '';
+            loadLogs();
         });
         
         // Export button
