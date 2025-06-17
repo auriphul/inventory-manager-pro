@@ -76,8 +76,8 @@
         });
         
         // Toggle batch details
-        $(document).on('click', '.batch-header', function() {
-            $(this).closest('.batch-section').find('.batch-details, .movement-log').slideToggle();
+        $(document).on('click', '.toggle-batch-details', function() {
+            $(this).closest('tr').next('.batch-details-row').toggle();
         });
         
         // Add adjustment button
@@ -156,18 +156,17 @@
      */
     function renderProduct(product) {
         let html = '<div class="product-section">';
-        
+
         // Product header
         html += '<div class="product-header">';
         html += '<div class="product-info">';
         html += '<strong>' + product.product_name + '</strong><br>';
         html += '<span class="sku">SKU: ' + product.sku + '</span>';
         html += '</div>';
-        
+
         // Product summary
         html += '<div class="product-summary">';
-        
-        // Totals and averages
+
         let totalStock = 0;
         let totalStockCost = 0;
         let totalLandedCost = 0;
@@ -189,7 +188,6 @@
         const avgUnitCost = totalStock ? (weightedUnitCost / totalStock) : 0;
         const avgFreight = totalStock ? (weightedFreight / totalStock) : 0;
 
-        // Total batches
         html += '<div class="batch-count">';
         html += '<span class="label">Batches</span>';
         html += '<span class="value">' + product.batches.length + '</span>';
@@ -219,21 +217,30 @@
         html += '<span class="label">Total Landed Cost</span>';
         html += '<span class="value">' + totalLandedCost.toFixed(2) + '</span>';
         html += '</div>';
-        
+
         html += '</div>'; // End product-summary
         html += '</div>'; // End product-header
-        
-        // Batches container
-        html += '<div class="batches-container">';
-        
-        // Render each batch
+
+        html += '<div class="batches-container" style="display:none;">';
+        html += '<table class="widefat striped batch-table">';
+        html += '<thead><tr>';
+        html += '<th>Batch</th>';
+        html += '<th>Stock Qty</th>';
+        html += '<th>Expiry</th>';
+        html += '<th>Unit Cost</th>';
+        html += '<th>Stock Cost</th>';
+        html += '<th>Freight Markup</th>';
+        html += '<th>Landed Cost</th>';
+        html += '<th>Actions</th>';
+        html += '</tr></thead><tbody>';
+
         $.each(product.batches, function(index, batch) {
             html += renderBatch(batch);
         });
-        
-        html += '</div>'; // End batches-container
+
+        html += '</tbody></table></div>';
         html += '</div>'; // End product-section
-        
+
         return html;
     }
     
@@ -241,105 +248,59 @@
      * Render batch section
      */
     function renderBatch(batch) {
-        let html = '<div class="batch-section">';
-        
-        // Batch header
-        html += '<div class="batch-header">';
-        html += '<div class="batch-number">';
-        html += '<span class="label">Batch</span>';
-        html += '<span class="value">' + batch.batch_number + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-stock">';
-        html += '<span class="label">Stock Qty</span>';
-        html += '<span class="value">' + batch.stock_qty + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-expiry">';
-        html += '<span class="label">Expiry</span>';
-        html += '<span class="value">' + (batch.expiry_formatted || 'N/A') + '</span>';
-        html += '</div>';
+        let html = '<tr class="batch-row" data-batch-id="' + batch.id + '">';
+        html += '<td>' + batch.batch_number + '</td>';
+        html += '<td>' + batch.stock_qty + '</td>';
+        html += '<td>' + (batch.expiry_formatted || 'N/A') + '</td>';
+        html += '<td>' + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</td>';
+        html += '<td>' + (batch.stock_cost_formatted || parseFloat(batch.stock_cost || 0).toFixed(2)) + '</td>';
+        html += '<td>' + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</td>';
+        html += '<td>' + (batch.landed_cost_formatted || parseFloat(batch.landed_cost || 0).toFixed(2)) + '</td>';
+        html += '<td><button class="button toggle-batch-details" data-batch-id="' + batch.id + '">Details</button></td>';
+        html += '</tr>';
 
-        // Newly requested fields
-        html += '<div class="batch-unit-cost">';
-        html += '<span class="label">Unit Cost</span>';
-        html += '<span class="value">' + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</span>';
-        html += '</div>';
-
-        html += '<div class="batch-stock-cost">';
-        html += '<span class="label">Stock Cost</span>';
-        html += '<span class="value">' + (batch.stock_cost_formatted || parseFloat(batch.stock_cost || 0).toFixed(2)) + '</span>';
-        html += '</div>';
-
-        html += '<div class="batch-freight">';
-        html += '<span class="label">Freight Markup</span>';
-        html += '<span class="value">' + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
-        html += '</div>';
-
-        html += '<div class="batch-landed-cost">';
-        html += '<span class="label">Landed Cost</span>';
-        html += '<span class="value">' + (batch.landed_cost_formatted || parseFloat(batch.landed_cost || 0).toFixed(2)) + '</span>';
-        html += '</div>';
-
-        html += '</div>'; // End batch-header
-        
-        // Batch details
-        html += '<div class="batch-details" style="display: none;">';
-        
-        html += '<div class="batch-supplier">';
-        html += '<span class="label">Supplier</span>';
-        html += '<span class="value">' + (batch.supplier_name || 'N/A') + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-origin">';
-        html += '<span class="label">Origin</span>';
-        html += '<span class="value">' + (batch.origin || 'N/A') + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-location">';
-        html += '<span class="label">Location</span>';
-        html += '<span class="value">' + (batch.location || 'N/A') + '</span>';
-        html += '</div>';
-        
+        html += '<tr class="batch-details-row" style="display:none;">';
+        html += '<td colspan="8">';
+        html += '<div class="batch-details">';
+        html += '<span class="label">Supplier</span> <span class="value">' + (batch.supplier_name || 'N/A') + '</span><br>';
+        html += '<span class="label">Origin</span> <span class="value">' + (batch.origin || 'N/A') + '</span><br>';
+        html += '<span class="label">Location</span> <span class="value">' + (batch.location || 'N/A') + '</span>';
         html += '<div class="batch-actions">';
         html += '<button class="button add-adjustment-btn" data-batch-id="' + batch.id + '">Add Adjustment</button>';
         html += '</div>';
-        
-        html += '</div>'; // End batch-details
-        
-        // Movement log
-        html += '<div class="movement-log" style="display: none;">';
-        
+        html += '</div>';
+
+        html += '<div class="movement-log">';
         if (batch.movements && batch.movements.length > 0) {
-            html += '<div class="log-header">';
-            html += '<div class="log-date">Date & Time</div>';
-            html += '<div class="log-type">Type</div>';
-            html += '<div class="log-reference">Reference</div>';
-            html += '<div class="log-in">Stock In</div>';
-            html += '<div class="log-out">Stock Out</div>';
-            html += '</div>';
-            
-            html += '<div class="log-entries">';
-            
-            // Render each movement
+            html += '<table class="widefat striped movements-table">';
+            html += '<thead><tr>';
+            html += '<th>Date & Time</th>';
+            html += '<th>Type</th>';
+            html += '<th>Reference</th>';
+            html += '<th>Stock In</th>';
+            html += '<th>Stock Out</th>';
+            html += '</tr></thead><tbody>';
             $.each(batch.movements, function(index, movement) {
-                html += '<div class="log-entry">';
-                html += '<div class="log-date">' + movement.date_time + '</div>';
-                html += '<div class="log-type">' + movement.movement_type + '</div>';
-                html += '<div class="log-reference">' + movement.reference + '</div>';
-                html += '<div class="log-in">' + (movement.stock_in || '') + '</div>';
-                html += '<div class="log-out">' + (movement.stock_out || '') + '</div>';
-                html += '</div>';
+                html += renderMovement(movement);
             });
-            
-            html += '</div>'; // End log-entries
+            html += '</tbody></table>';
         } else {
             html += '<div class="no-movements">No movements recorded</div>';
         }
-        
-        html += '</div>'; // End movement-log
-        html += '</div>'; // End batch-section
-        
+        html += '</div>'; // movement-log
+        html += '</td></tr>';
+
+        return html;
+    }
+
+    function renderMovement(movement) {
+        let html = '<tr>';
+        html += '<td>' + movement.date_time + '</td>';
+        html += '<td>' + movement.movement_type + '</td>';
+        html += '<td>' + movement.reference + '</td>';
+        html += '<td>' + (movement.stock_in || '') + '</td>';
+        html += '<td>' + (movement.stock_out || '') + '</td>';
+        html += '</tr>';
         return html;
     }
     

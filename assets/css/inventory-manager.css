@@ -329,6 +329,19 @@
     padding: 0;
 }
 
+.inventory-manager .batch-table,
+.inventory-manager .movements-table {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.inventory-manager .batch-table th,
+.inventory-manager .batch-table td,
+.inventory-manager .movements-table th,
+.inventory-manager .movements-table td {
+    padding: 8px;
+}
+
 .inventory-manager .batch-section {
     margin: 15px;
     border: 1px solid #ddd;
