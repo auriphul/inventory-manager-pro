@@ -399,10 +399,11 @@ class Inventory_API {
 	public function get_detailed_logs( $request ) {
 		$params = $request->get_params();
 
-		$args = array(
-			'period' => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
-			'search' => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
-		);
+                $args = array(
+                        'period' => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
+                        'search' => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
+                        'order'  => isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'ASC',
+                );
 
 		$products = $this->db->get_detailed_logs( $args );
 

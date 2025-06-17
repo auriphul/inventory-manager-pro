@@ -10,6 +10,7 @@
     let state = {
         period: 'last_30_days',
         search: '',
+        order: 'ASC',
         products: []
     };
 
@@ -35,6 +36,12 @@
         // Period filter
         $('.period-filter').on('change', function() {
             state.period = $(this).val();
+            loadLogs();
+        });
+
+        // Order filter
+        $('.order-filter').on('change', function() {
+            state.order = $(this).val();
             loadLogs();
         });
         
@@ -92,7 +99,8 @@
         // Prepare request data
         const data = {
             period: state.period,
-            search: state.search
+            search: state.search,
+            order: state.order
         };
         
         // Make API request

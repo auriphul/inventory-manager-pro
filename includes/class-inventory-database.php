@@ -566,6 +566,7 @@ class Inventory_Database {
         $defaults = array(
             'period' => '',
             'search' => '',
+            'order'  => 'ASC',
         );
 
         $args = wp_parse_args($args, $defaults);
@@ -666,7 +667,8 @@ class Inventory_Database {
                     }
                 }
 
-                $movements_query .= " ORDER BY m.date_created DESC";
+                $order = in_array(strtoupper($args['order']), array('ASC', 'DESC')) ? strtoupper($args['order']) : 'ASC';
+                $movements_query .= " ORDER BY m.date_created {$order}";
                 $batch->movements = $wpdb->get_results($movements_query);
             }
             // Add product to result
@@ -970,7 +972,7 @@ class Inventory_Database {
                 FROM {$wpdb->prefix}inventory_stock_movements m
                 LEFT JOIN {$wpdb->users} u ON m.created_by = u.ID
                 WHERE m.batch_id = %d
-                ORDER BY m.date_created DESC",
+                ORDER BY m.date_created ASC",
                 $batch_id
             )
         );

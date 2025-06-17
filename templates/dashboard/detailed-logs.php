@@ -44,6 +44,14 @@ if ( ! defined( 'ABSPATH' ) ) {
             <button class="button logs-search-btn"><?php _e( 'Search', 'inventory-manager-pro' ); ?></button>
             <button class="button show-all-batches-btn"><?php _e( 'Show All Batches', 'inventory-manager-pro' ); ?></button>
         </div>
+
+        <div class="logs-order">
+            <label for="order-filter"><?php _e( 'Order:', 'inventory-manager-pro' ); ?></label>
+            <select id="order-filter" class="order-filter">
+                <option value="ASC"><?php _e( 'Oldest First', 'inventory-manager-pro' ); ?></option>
+                <option value="DESC"><?php _e( 'Newest First', 'inventory-manager-pro' ); ?></option>
+            </select>
+        </div>
         
         <div class="logs-export">
             <select class="logs-export-format">
