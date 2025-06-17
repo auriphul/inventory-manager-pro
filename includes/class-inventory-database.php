@@ -679,6 +679,8 @@ class Inventory_Database {
                         }
                     }
                 }
+                $batch->stock_cost = $batch->unit_cost * $batch->stock_qty;
+                $batch->landed_cost = ($batch->unit_cost * $batch->freight_markup) * $batch->stock_qty;
             }
             // Add product to result
             $result[] = array(
