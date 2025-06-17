@@ -6,8 +6,12 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+        exit;
 }
+
+// Fetch transit times from the options table
+$inventory_db   = new Inventory_Database();
+$transit_times  = $inventory_db->get_transit_times();
 ?>
 
 <div class="inventory-manager-add-manually">
@@ -102,11 +106,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 					
 					<div class="form-field">
 						<label for="new_supplier_transit"><?php _e( 'Transit Time', 'inventory-manager-pro' ); ?></label>
-						<select id="new_supplier_transit" name="new_supplier_transit">
-							<option value=""><?php _e( 'Select transit time', 'inventory-manager-pro' ); ?></option>
-							<option value="3 days">3 days</option>
-							<!-- Transit times will be populated via JavaScript -->
-						</select>
+                                                <select id="new_supplier_transit" name="new_supplier_transit">
+                                                        <option value=""><?php _e( 'Select transit time', 'inventory-manager-pro' ); ?></option>
+                                                        <?php foreach ( $transit_times as $time ) : ?>
+                                                                <option value="<?php echo esc_attr( $time['id'] ); ?>">
+                                                                        <?php echo esc_html( $time['name'] ); ?>
+                                                                </option>
+                                                        <?php endforeach; ?>
+                                                </select>
 					</div>
 				</div>
 			</div>
