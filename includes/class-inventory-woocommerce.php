@@ -72,19 +72,20 @@ class Inventory_Manager_WooCommerce {
 
 		// Process each order item
 		foreach ( $order->get_items() as $item_id => $item ) {
-			// Get movement logs for this order item
-			$movements = $wpdb->get_results(
+                       // Get movement logs for this order item
+                       // woo_order_placed movements correspond to deductions made when the order was placed
+                       $movements = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT * FROM {$wpdb->prefix}inventory_stock_movements 
-                WHERE movement_type = 'invoice' 
+                               "SELECT * FROM {$wpdb->prefix}inventory_stock_movements
+                WHERE movement_type = 'woo_order_placed'
                 AND reference = %s",
 					'order_' . $order_id . '_item_' . $item_id
 				)
 			);
 
-			// Restore stock for each movement
-			foreach ( $movements as $movement ) {
-				// Create credit note (opposite of invoice)
+                       // Restore stock for each movement
+                       foreach ( $movements as $movement ) {
+                               // Create credit note (reverses a woo_order_placed deduction)
 				$wpdb->insert(
 					$wpdb->prefix . 'inventory_stock_movements',
 					array(
@@ -141,18 +142,20 @@ class Inventory_Manager_WooCommerce {
 			return;
 		}
 
-		// Create invoice movement
-		$wpdb->insert(
-			$wpdb->prefix . 'inventory_stock_movements',
-			array(
-				'batch_id'      => $batch_id,
-				'movement_type' => 'invoice',
-				'reference'     => 'order_' . $order_id . '_item_' . $item_id,
-				'quantity'      => -1 * $qty, // Negative for deduction
-				'date_created'  => current_time( 'mysql' ),
-				'created_by'    => get_current_user_id(),
-			)
-		);
+               // Log WooCommerce order placement
+                $wpdb->insert(
+                        $wpdb->prefix . 'inventory_stock_movements',
+                        array(
+                                'batch_id'      => $batch_id,
+                                // movement_type is limited to 20 characters
+                                // 'woo_order_placed' records a WooCommerce order deduction
+                                'movement_type' => 'woo_order_placed',
+                                'reference'     => 'order_' . $order_id . '_item_' . $item_id,
+                                'quantity'      => -1 * $qty, // Negative for deduction
+                                'date_created'  => current_time( 'mysql' ),
+                                'created_by'    => get_current_user_id(),
+                        )
+                );
 
 		// Update batch stock quantity
 		$wpdb->query(
@@ -208,18 +211,20 @@ class Inventory_Manager_WooCommerce {
 
 			$deduct_qty = min( $remaining_qty, $batch->stock_qty );
 
-			// Create invoice movement
-			$wpdb->insert(
-				$wpdb->prefix . 'inventory_stock_movements',
-				array(
-					'batch_id'      => $batch->id,
-					'movement_type' => 'invoice',
-					'reference'     => 'order_' . $order_id . '_item_' . $item_id,
-					'quantity'      => -1 * $deduct_qty, // Negative for deduction
-					'date_created'  => current_time( 'mysql' ),
-					'created_by'    => get_current_user_id(),
-				)
-			);
+                       // Log WooCommerce order placement
+                       $wpdb->insert(
+                               $wpdb->prefix . 'inventory_stock_movements',
+                               array(
+                                       'batch_id'      => $batch->id,
+                                       // movement_type must be concise
+                                       // 'woo_order_placed' tracks WooCommerce order deductions
+                                       'movement_type' => 'woo_order_placed',
+                                       'reference'     => 'order_' . $order_id . '_item_' . $item_id,
+                                       'quantity'      => -1 * $deduct_qty, // Negative for deduction
+                                       'date_created'  => current_time( 'mysql' ),
+                                       'created_by'    => get_current_user_id(),
+                               )
+                       );
 
 			// Update batch stock quantity
 			$wpdb->query(
