@@ -64,7 +64,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     
     <div class="products-container">
         <div class="loading"><?php _e( 'Loading...', 'inventory-manager-pro' ); ?></div>
-        
+
         <!-- Products will be loaded here via JavaScript -->
     </div>
 </div>
@@ -77,110 +77,91 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <strong>{{product_name}}</strong><br>
                 <span class="sku">SKU: {{sku}}</span>
             </div>
-            
+
             <div class="product-summary">
                 <div class="batch-count">
                     <span class="label"><?php _e( 'Batches', 'inventory-manager-pro' ); ?></span>
                     <span class="value">{{batch_count}}</span>
                 </div>
-                
+
                 <div class="total-stock">
                     <span class="label"><?php _e( 'Total Stock', 'inventory-manager-pro' ); ?></span>
                     <span class="value">{{total_stock}}</span>
                 </div>
             </div>
         </div>
-        
-        <div class="batches-container">
-            <!-- Batches will be inserted here -->
+
+        <div class="batches-container" style="display:none;">
+            <table class="widefat striped batch-table">
+                <thead>
+                    <tr>
+                        <th><?php _e( 'Batch', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Stock Qty', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Expiry', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Unit Cost', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Stock Cost', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Freight Markup', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Landed Cost', 'inventory-manager-pro' ); ?></th>
+                        <th><?php _e( 'Actions', 'inventory-manager-pro' ); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Batch rows will be inserted here -->
+                </tbody>
+            </table>
         </div>
     </div>
 </script>
 
 <script type="text/template" id="batch-template">
-    <div class="batch-section" data-batch-id="{{id}}">
-        <div class="batch-header">
-            <div class="batch-number">
-                <span class="label"><?php _e( 'Batch', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{batch_number}}</span>
+    <tr class="batch-row" data-batch-id="{{id}}">
+        <td>{{batch_number}}</td>
+        <td>{{stock_qty}}</td>
+        <td>{{expiry_formatted}}</td>
+        <td>{{unit_cost}}</td>
+        <td>{{stock_cost_formatted}}</td>
+        <td>{{freight_markup}}</td>
+        <td>{{landed_cost_formatted}}</td>
+        <td><button class="button toggle-batch-details" data-batch-id="{{id}}"><?php _e( 'Details', 'inventory-manager-pro' ); ?></button></td>
+    </tr>
+    <tr class="batch-details-row" style="display:none;">
+        <td colspan="8">
+            <div class="batch-details">
+                <span class="label"><?php _e( 'Supplier', 'inventory-manager-pro' ); ?></span> <span class="value">{{supplier_name}}</span><br>
+                <span class="label"><?php _e( 'Origin', 'inventory-manager-pro' ); ?></span> <span class="value">{{origin}}</span><br>
+                <span class="label"><?php _e( 'Location', 'inventory-manager-pro' ); ?></span> <span class="value">{{location}}</span>
+                <div class="batch-actions">
+                    <button class="button add-adjustment-btn" data-batch-id="{{id}}"><?php _e( 'Add Adjustment', 'inventory-manager-pro' ); ?></button>
+                </div>
             </div>
-            
-            <div class="batch-stock">
-                <span class="label"><?php _e( 'Stock Qty', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{stock_qty}}</span>
+            <div class="movement-log">
+                <table class="widefat striped movements-table">
+                    <thead>
+                        <tr>
+                            <th><?php _e( 'Date & Time', 'inventory-manager-pro' ); ?></th>
+                            <th><?php _e( 'Type', 'inventory-manager-pro' ); ?></th>
+                            <th><?php _e( 'Reference', 'inventory-manager-pro' ); ?></th>
+                            <th><?php _e( 'Stock In', 'inventory-manager-pro' ); ?></th>
+                            <th><?php _e( 'Stock Out', 'inventory-manager-pro' ); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Movement entries will be inserted here -->
+                    </tbody>
+                </table>
             </div>
-            
-            <div class="batch-expiry">
-                <span class="label"><?php _e( 'Expiry', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{expiry_formatted}}</span>
-            </div>
-
-            <div class="batch-unit-cost">
-                <span class="label"><?php _e( 'Unit Cost', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{unit_cost}}</span>
-            </div>
-
-            <div class="batch-stock-cost">
-                <span class="label"><?php _e( 'Stock Cost', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{stock_cost_formatted}}</span>
-            </div>
-
-            <div class="batch-freight">
-                <span class="label"><?php _e( 'Freight Markup', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{freight_markup}}</span>
-            </div>
-
-            <div class="batch-landed-cost">
-                <span class="label"><?php _e( 'Landed Cost', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{landed_cost_formatted}}</span>
-            </div>
-        </div>
-        
-        <div class="batch-details" style="display: none;">
-            <div class="batch-supplier">
-                <span class="label"><?php _e( 'Supplier', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{supplier_name}}</span>
-            </div>
-            
-            <div class="batch-origin">
-                <span class="label"><?php _e( 'Origin', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{origin}}</span>
-            </div>
-            
-            <div class="batch-location">
-                <span class="label"><?php _e( 'Location', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{location}}</span>
-            </div>
-            
-            <div class="batch-actions">
-                <button class="button add-adjustment-btn" data-batch-id="{{id}}"><?php _e( 'Add Adjustment', 'inventory-manager-pro' ); ?></button>
-            </div>
-        </div>
-        
-        <div class="movement-log" style="display: none;">
-            <div class="log-header">
-                <div class="log-date"><?php _e( 'Date & Time', 'inventory-manager-pro' ); ?></div>
-                <div class="log-type"><?php _e( 'Type', 'inventory-manager-pro' ); ?></div>
-                <div class="log-reference"><?php _e( 'Reference', 'inventory-manager-pro' ); ?></div>
-                <div class="log-in"><?php _e( 'Stock In', 'inventory-manager-pro' ); ?></div>
-                <div class="log-out"><?php _e( 'Stock Out', 'inventory-manager-pro' ); ?></div>
-            </div>
-            
-            <div class="log-entries">
-                <!-- Movement entries will be inserted here -->
-            </div>
-        </div>
-    </div>
+        </td>
+    </tr>
 </script>
 
 <script type="text/template" id="movement-template">
-    <div class="log-entry">
-        <div class="log-date">{{date_time}}</div>
-        <div class="log-type">{{movement_type}}</div>
-        <div class="log-reference">{{reference}}</div>
-        <div class="log-in">{{stock_in}}</div>
-        <div class="log-out">{{stock_out}}</div>
-    </div>
+    <tr>
+        <td>{{date_time}}</td>
+        <td>{{movement_type}}</td>
+        <td>{{reference}}</td>
+        <td>{{stock_in}}</td>
+        <td>{{stock_out}}</td>
+    </tr>
 </script>
 
 <script type="text/template" id="adjustment-modal-template">
