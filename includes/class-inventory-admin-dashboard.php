@@ -28,7 +28,14 @@ class Inventory_Admin_Dashboard {
     }
 
     public function enqueue_scripts( $hook ) {
-        if ( $hook !== 'inventory-manager_page_inventory-manager-dashboard' ) {
+        $allowed_hooks = array(
+            'toplevel_page_inventory-manager',
+            'inventory-manager_page_inventory-manager',
+            'inventory-manager_page_inventory-manager-dashboard',
+            'inventory-manager_page_inventory-manager-settings',
+        );
+
+        if ( ! in_array( $hook, $allowed_hooks, true ) ) {
             return;
         }
 
