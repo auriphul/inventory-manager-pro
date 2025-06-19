@@ -16,27 +16,58 @@ class Inventory_Settings {
 	/**
 	 * Add settings page to admin menu.
 	 */
-	public function add_settings_page() {
-		add_menu_page(
-			__( 'Inventory Manager', 'inventory-manager-pro' ),
-			__( 'Inventory Manager', 'inventory-manager-pro' ),
-			'manage_inventory',
-			'inventory-manager',
-			array( $this, 'render_settings_page' ),
-			'dashicons-clipboard',
-			56
-		);
+       public function add_settings_page() {
+               add_menu_page(
+                       __( 'Smart | Powerful', 'inventory-manager-pro' ),
+                       __( 'Smart | Powerful', 'inventory-manager-pro' ),
+                       'manage_inventory',
+                       'inventory-manager',
+                       array( $this, 'render_plugins_list' ),
+                       'dashicons-clipboard',
+                       56
+               );
 
-		add_submenu_page(
-			'inventory-manager',
-			__( 'Settings', 'inventory-manager-pro' ),
-			__( 'Settings', 'inventory-manager-pro' ),
-			'manage_inventory',
-			'inventory-manager-settings',
-			array( $this, 'render_settings_page' )
-		);
+               add_submenu_page(
+                       'inventory-manager',
+                       __( 'Smart | Powerful', 'inventory-manager-pro' ),
+                       __( 'Smart | Powerful', 'inventory-manager-pro' ),
+                       'manage_inventory',
+                       'inventory-manager',
+                       array( $this, 'render_plugins_list' )
+               );
 
-        }
+               add_submenu_page(
+                       'inventory-manager',
+                       __( 'Settings', 'inventory-manager-pro' ),
+                       __( 'Settings', 'inventory-manager-pro' ),
+                       'manage_inventory',
+                       'inventory-manager-settings',
+                       array( $this, 'render_settings_page' )
+               );
+
+       }
+
+       /**
+        * Render a list of Smart | Powerful plugins.
+        */
+       public function render_plugins_list() {
+               $plugins = array(
+                       'Inventory Manager Pro' => 'https://example.com/inventory-manager-pro',
+                       'Smart Sales Booster'   => 'https://example.com/smart-sales-booster',
+                       'Smart Analytics'      => 'https://example.com/smart-analytics',
+               );
+
+               echo '<div class="wrap">';
+               echo '<h1>' . esc_html__( 'Smart | Powerful Plugins', 'inventory-manager-pro' ) . '</h1>';
+               echo '<ul>';
+
+               foreach ( $plugins as $name => $url ) {
+                       echo '<li><a href="' . esc_url( $url ) . '" target="_blank">' . esc_html( $name ) . '</a></li>';
+               }
+
+               echo '</ul>';
+               echo '</div>';
+       }
 
         /**
          * Redirect to frontend dashboard.
