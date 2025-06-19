@@ -92,7 +92,7 @@ class Inventory_Admin_Dashboard {
             'detailed-logs' => __( 'Detailed Logs', 'inventory-manager-pro' ),
             'add-manually'  => __( 'Add Manually', 'inventory-manager-pro' ),
             'import'        => __( 'Import', 'inventory-manager-pro' ),
-            // 'settings'      => __( 'Settings', 'inventory-manager-pro' ),
+            'settings'      => __( 'Settings', 'inventory-manager-pro' ),
         );
         foreach ( $tabs as $key => $label ) {
             $class = ( $tab === $key ) ? ' nav-tab-active' : '';
