@@ -127,7 +127,7 @@ class Inventory_Shortcodes {
 		$batch_info = array(
 			'supplier'  => $supplier_name,
 			'batch'     => $batch->batch_number,
-			'expiry'    => $batch->expiry_date ? date_i18n( get_option( 'date_format' ), strtotime( $batch->expiry_date ) ) : '',
+                       'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
 			'origin'    => $batch->origin,
 			'location'  => $batch->location,
 			'stock_qty' => $batch->stock_qty,
@@ -221,7 +221,7 @@ class Inventory_Shortcodes {
 		$batch_info = array(
 			'supplier'  => $supplier_name,
 			'batch'     => $batch->batch_number,
-			'expiry'    => $batch->expiry_date ? date_i18n( get_option( 'date_format' ), strtotime( $batch->expiry_date ) ) : '',
+                       'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
 			'origin'    => $batch->origin,
 			'location'  => $batch->location,
 			'stock_qty' => $batch->stock_qty,

@@ -297,7 +297,7 @@ class Inventory_API {
 				return array(
 					'batch_number'     => $batch->batch_number,
 					'stock_qty'        => $batch->stock_qty,
-					'expiry_formatted' => $batch->expiry_date ? date( 'M d, Y', strtotime( $batch->expiry_date ) ) : null,
+                                       'expiry_formatted' => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : null,
 					'location'         => $batch->location,
 				);
 			}, $batches );
@@ -1042,7 +1042,7 @@ class Inventory_API {
 					$batch->sku,
 					$batch->product_name,
 					$batch->batch_number,
-					date_i18n( get_option( 'date_format' ), strtotime( $batch->expiry_date ) ),
+                                       date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ),
 					$batch->stock_qty
 				) . "\n";
 			}

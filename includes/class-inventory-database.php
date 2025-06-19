@@ -148,7 +148,7 @@ class Inventory_Database {
             foreach ($results as &$batch) {
                 // Format expiry date
                 if (!empty($batch->expiry_date)) {
-                    $batch->expiry_formatted = date_i18n(get_option('date_format'), strtotime($batch->expiry_date));
+                    $batch->expiry_formatted = date_i18n(INVENTORY_MANAGER_DATE_FORMAT, strtotime($batch->expiry_date));
                     
                     // Determine expiry range
                     $today = time();
@@ -314,7 +314,7 @@ class Inventory_Database {
 
         // Format expiry date
         if (!empty($batch->expiry_date)) {
-            $batch->expiry_formatted = date_i18n(get_option('date_format'), strtotime($batch->expiry_date));
+            $batch->expiry_formatted = date_i18n(INVENTORY_MANAGER_DATE_FORMAT, strtotime($batch->expiry_date));
         } else {
             $batch->expiry_formatted = '';
         }
@@ -618,7 +618,7 @@ class Inventory_Database {
             foreach ($batches as &$batch) {
                 // Format expiry date
                 if (!empty($batch->expiry_date)) {
-                    $batch->expiry_formatted = date_i18n(get_option('date_format'), strtotime($batch->expiry_date));
+                    $batch->expiry_formatted = date_i18n(INVENTORY_MANAGER_DATE_FORMAT, strtotime($batch->expiry_date));
                 } else {
                     $batch->expiry_formatted = '';
                 }
