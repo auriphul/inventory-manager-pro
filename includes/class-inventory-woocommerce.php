@@ -314,26 +314,46 @@ class Inventory_Manager_WooCommerce {
 			return;
 		}
 
-		$sku = $product->get_sku();
+               $sku         = $product->get_sku();
+               $product_id  = $product->get_id();
 
-		if ( empty( $sku ) ) {
-			echo '<td class="batch-info">&mdash;</td>';
-			return;
-		}
+               // Fallbacks for variable products without a SKU
+               if ( empty( $sku ) ) {
+                       // Try the variation's own SKU meta
+                       $sku = get_post_meta( $product_id, '_sku', true );
+
+                       // If still empty, try the parent product SKU
+                       if ( empty( $sku ) && method_exists( $product, 'get_parent_id' ) ) {
+                               $parent_id = $product->get_parent_id();
+                               if ( $parent_id ) {
+                                       $parent_sku = get_post_meta( $parent_id, '_sku', true );
+                                       if ( ! empty( $parent_sku ) ) {
+                                               $sku        = $parent_sku;
+                                               $product_id = $parent_id;
+                                       }
+                               }
+                       }
+
+                       if ( empty( $sku ) ) {
+                               echo '<td class="batch-info">&mdash;</td>';
+                               return;
+                       }
+               }
 
 		// Get selected batch ID
 		$selected_batch_id = wc_get_order_item_meta( $item_id, '_selected_batch_id', true );
 
-		// Get batches for this SKU
-		global $wpdb;
-		$batches = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}inventory_batches 
-            WHERE sku = %s AND stock_qty > 0 
+               // Get batches for this SKU and product
+               global $wpdb;
+               $batches = $wpdb->get_results(
+                       $wpdb->prepare(
+                               "SELECT * FROM {$wpdb->prefix}inventory_batches
+            WHERE sku = %s AND product_id = %d AND stock_qty > 0
             ORDER BY expiry_date ASC",
-				$sku
-			)
-		);
+                               $sku,
+                               $product_id
+                       )
+               );
 
 		if ( empty( $batches ) ) {
 			echo '<td class="batch-info">' . __( 'No batches available', 'inventory-manager-pro' ) . '</td>';
@@ -487,22 +507,40 @@ class Inventory_Manager_WooCommerce {
 			wp_send_json_error( array( 'message' => __( 'Product not found', 'inventory-manager-pro' ) ) );
 		}
 
-		$sku = $product->get_sku();
+               $sku        = $product->get_sku();
+               $lookup_id  = $product_id;
 
-		if ( empty( $sku ) ) {
-			wp_send_json_error( array( 'message' => __( 'Product has no SKU', 'inventory-manager-pro' ) ) );
-		}
+               if ( empty( $sku ) ) {
+                       // Try variation SKU meta
+                       $sku = get_post_meta( $product_id, '_sku', true );
 
-		// Get batches for this SKU
-		global $wpdb;
-		$batches = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}inventory_batches 
-            WHERE sku = %s AND stock_qty > 0 
+                       if ( empty( $sku ) && method_exists( $product, 'get_parent_id' ) ) {
+                               $parent_id = $product->get_parent_id();
+                               if ( $parent_id ) {
+                                       $parent_sku = get_post_meta( $parent_id, '_sku', true );
+                                       if ( ! empty( $parent_sku ) ) {
+                                               $sku       = $parent_sku;
+                                               $lookup_id = $parent_id;
+                                       }
+                               }
+                       }
+
+                       if ( empty( $sku ) ) {
+                               wp_send_json_error( array( 'message' => __( 'Product has no SKU', 'inventory-manager-pro' ) ) );
+                       }
+               }
+
+               // Get batches for this SKU and product
+               global $wpdb;
+               $batches = $wpdb->get_results(
+                       $wpdb->prepare(
+                               "SELECT * FROM {$wpdb->prefix}inventory_batches
+            WHERE sku = %s AND product_id = %d AND stock_qty > 0
             ORDER BY expiry_date ASC",
-				$sku
-			)
-		);
+                               $sku,
+                               $lookup_id
+                       )
+               );
 
 		if ( empty( $batches ) ) {
 			wp_send_json_error( array( 'message' => __( 'No batches available for this product', 'inventory-manager-pro' ) ) );
