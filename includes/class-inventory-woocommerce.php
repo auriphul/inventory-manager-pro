@@ -30,8 +30,11 @@ class Inventory_Manager_WooCommerce {
 		add_action( 'woocommerce_admin_order_item_values', array( $this, 'add_batch_values_to_order_items' ), 10, 3 );
 
 		// Ajax endpoints for batch selection
-		add_action( 'wp_ajax_get_product_batches', array( $this, 'get_product_batches' ) );
+               add_action( 'wp_ajax_get_product_batches', array( $this, 'get_product_batches' ) );
                add_action( 'wp_ajax_select_order_item_batch', array( $this, 'select_order_item_batch' ) );
+
+               // Detect quantity changes on admin order update.
+               add_action( 'woocommerce_before_save_order_items', array( $this, 'maybe_adjust_order_item_quantities' ), 10, 2 );
        }
 
        /**
@@ -625,8 +628,8 @@ class Inventory_Manager_WooCommerce {
 	/**
 	 * AJAX handler for selecting batch for order item.
 	 */
-	public function select_order_item_batch() {
-		check_ajax_referer( 'woocommerce-order', 'security' );
+        public function select_order_item_batch() {
+                check_ajax_referer( 'woocommerce-order', 'security' );
 
 		if ( ! current_user_can( 'edit_shop_orders' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this', 'inventory-manager-pro' ) ) );
@@ -640,12 +643,125 @@ class Inventory_Manager_WooCommerce {
 		}
 
 		// Update or delete meta
-		if ( $batch_id ) {
-			wc_update_order_item_meta( $item_id, '_selected_batch_id', $batch_id );
-		} else {
-			wc_delete_order_item_meta( $item_id, '_selected_batch_id' );
-		}
+                if ( $batch_id ) {
+                        wc_update_order_item_meta( $item_id, '_selected_batch_id', $batch_id );
+                } else {
+                        wc_delete_order_item_meta( $item_id, '_selected_batch_id' );
+                }
 
-		wp_send_json_success();
-	}
+                wp_send_json_success();
+        }
+
+       /**
+        * Adjust stock movements when order item quantities are edited.
+        *
+        * @param int   $order_id Order ID.
+        * @param array $items    Posted items.
+        */
+       public function maybe_adjust_order_item_quantities( $order_id, $items ) {
+               global $wpdb;
+
+               $order = wc_get_order( $order_id );
+               if ( ! $order ) {
+                       return;
+               }
+
+               $deduction_method = get_option( 'inventory_manager_frontend_deduction_method', 'closest_expiry' );
+
+               foreach ( $items as $item_id => $data ) {
+                       if ( ! isset( $data['qty'] ) ) {
+                               continue;
+                       }
+
+                       $new_qty = floatval( $data['qty'] );
+                       $ref     = $order_id . ':' . $item_id;
+
+                       $logged = $wpdb->get_var(
+                               $wpdb->prepare(
+                                       "SELECT SUM(quantity) FROM {$wpdb->prefix}inventory_stock_movements WHERE reference = %s AND movement_type = 'wc_order_placed'",
+                                       $ref
+                               )
+                       );
+
+                       if ( null === $logged ) {
+                               continue;
+                       }
+
+                       $current_qty = abs( floatval( $logged ) );
+
+                       if ( $new_qty == $current_qty ) {
+                               continue;
+                       }
+
+                       $item       = $order->get_item( $item_id );
+                       $product_id = $item ? $item->get_product_id() : 0;
+                       $sku        = $product_id ? get_post_meta( $product_id, '_sku', true ) : '';
+
+                       $difference = $new_qty - $current_qty;
+
+                       if ( $difference > 0 ) {
+                               // Deduct additional quantity.
+                               $remaining   = $difference;
+                               $batch_id    = wc_get_order_item_meta( $item_id, '_selected_batch_id', true );
+                               $first_batch = 0;
+
+                               if ( $batch_id ) {
+                                       $this->db->update_batch_quantity( $batch_id, -1 * $remaining, 'wc_order_placed', $ref );
+                                       $first_batch = $batch_id;
+                               } elseif ( $sku ) {
+                                       $batches = $wpdb->get_results(
+                                               $wpdb->prepare(
+                                                       $deduction_method === 'closest_expiry'
+                                                               ? "SELECT * FROM {$wpdb->prefix}inventory_batches WHERE sku = %s AND stock_qty > 0 ORDER BY expiry_date ASC, id ASC"
+                                                               : "SELECT * FROM {$wpdb->prefix}inventory_batches WHERE sku = %s AND stock_qty > 0 ORDER BY date_created ASC, id ASC",
+                                                       $sku
+                                               )
+                                       );
+
+                                       foreach ( $batches as $batch ) {
+                                               if ( $remaining <= 0 ) {
+                                                       break;
+                                               }
+
+                                               $deduct_qty = min( $remaining, $batch->stock_qty );
+                                               $this->db->update_batch_quantity( $batch->id, -1 * $deduct_qty, 'wc_order_placed', $ref );
+
+                                               if ( ! $first_batch ) {
+                                                       $first_batch = $batch->id;
+                                               }
+
+                                               $remaining -= $deduct_qty;
+                                       }
+                               }
+
+                               if ( $first_batch ) {
+                                       wc_update_order_item_meta( $item_id, '_selected_batch_id', $first_batch );
+                               }
+                       } else {
+                               // Quantity reduced - restore the difference.
+                               $restore = abs( $difference );
+
+                               $movements = $wpdb->get_results(
+                                       $wpdb->prepare(
+                                               "SELECT batch_id, ABS(quantity) AS qty FROM {$wpdb->prefix}inventory_stock_movements WHERE reference = %s AND movement_type = 'wc_order_placed' ORDER BY id DESC",
+                                               $ref
+                                       )
+                               );
+
+                               foreach ( $movements as $movement ) {
+                                       if ( $restore <= 0 ) {
+                                               break;
+                                       }
+
+                                       $qty = min( $restore, $movement->qty );
+                                       $this->db->update_batch_quantity( $movement->batch_id, $qty, 'credit_note', 'order_edit_' . $ref );
+                                       $restore -= $qty;
+                               }
+
+                               if ( $new_qty <= 0 ) {
+                                       wc_delete_order_item_meta( $item_id, '_selected_batch_id' );
+                               }
+                       }
+               }
+       }
 }
