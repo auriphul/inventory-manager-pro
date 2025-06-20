@@ -88,8 +88,8 @@ class Inventory_Manager_WooCommerce {
                        $wpdb->prepare(
                                "SELECT * FROM {$wpdb->prefix}inventory_stock_movements
                 WHERE movement_type = 'wc_order_placed'
-                AND reference = %s",
-                               $order_id
+                AND reference LIKE %s",
+                               $wpdb->esc_like( $order_id ) . '%'
                        )
                );
 
@@ -137,19 +137,47 @@ class Inventory_Manager_WooCommerce {
 	 */
        private function deduct_stock_from_batch( $batch_id, $qty, $order_id, $item_id ) {
 				global $wpdb;
-				$exists = $wpdb->get_var( $wpdb->prepare(
-					"SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements 
-					WHERE reference = %s AND batch_id = %d AND movement_type = %s",
-					$order_id, $batch_id, 'wc_order_placed'
-				) );
-				if ( ! $exists ) {
-					$this->db->update_batch_quantity(
-							$batch_id,
-							-1 * $qty,
-							'wc_order_placed',
-							$order_id
-					);
-				}
+                               $ref = $order_id . ':' . $item_id;
+                               $movement = $wpdb->get_row( $wpdb->prepare(
+                                       "SELECT id, quantity FROM {$wpdb->prefix}inventory_stock_movements
+                                        WHERE reference = %s AND batch_id = %d AND movement_type = %s",
+                                       $ref, $batch_id, 'wc_order_placed'
+                               ) );
+
+                               if ( $movement ) {
+                                       $difference = ( -1 * $qty ) - floatval( $movement->quantity );
+
+                                       if ( 0 !== $difference ) {
+                                               $wpdb->update(
+                                                       $wpdb->prefix . 'inventory_stock_movements',
+                                                       array( 'quantity' => -1 * $qty ),
+                                                       array( 'id' => $movement->id )
+                                               );
+
+                                               $wpdb->query( $wpdb->prepare(
+                                                       "UPDATE {$wpdb->prefix}inventory_batches
+                                                        SET stock_qty = stock_qty + %f
+                                                        WHERE id = %d",
+                                                       $difference,
+                                                       $batch_id
+                                               ) );
+
+                                               $batch = $wpdb->get_row( $wpdb->prepare(
+                                                       "SELECT product_id FROM {$wpdb->prefix}inventory_batches WHERE id = %d",
+                                                       $batch_id
+                                               ) );
+                                               if ( $batch ) {
+                                                       $this->update_product_stock( $batch->product_id );
+                                               }
+                                       }
+                               } else {
+                                       $this->db->update_batch_quantity(
+                                                       $batch_id,
+                                                       -1 * $qty,
+                                                       'wc_order_placed',
+                                                       $ref
+                                       );
+                               }
 
                if ( $item_id ) {
                        wc_update_order_item_meta( $item_id, '_selected_batch_id', $batch_id );
@@ -200,20 +228,47 @@ class Inventory_Manager_WooCommerce {
                                $selected_batch_id = $batch->id;
                        }
 
-					   $exists = $wpdb->get_var( $wpdb->prepare(
-						   "SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements 
-						   WHERE reference = %s AND batch_id = %d AND movement_type = %s",
-						   $order_id, $batch->id, 'wc_order_placed'
-					   ) );
+                       $ref     = $order_id . ':' . $item_id;
+                       $movement = $wpdb->get_row( $wpdb->prepare(
+                                                   "SELECT id, quantity FROM {$wpdb->prefix}inventory_stock_movements
+                                                   WHERE reference = %s AND batch_id = %d AND movement_type = %s",
+                                                   $ref, $batch->id, 'wc_order_placed'
+                                           ) );
 
-					   if ( ! $exists ) {
-							$this->db->update_batch_quantity(
-									$batch->id,
-									-1 * $deduct_qty,
-									'wc_order_placed',
-									$order_id
-							);
-						}
+                                           if ( $movement ) {
+                                                        $difference = ( -1 * $deduct_qty ) - floatval( $movement->quantity );
+
+                                                        if ( 0 !== $difference ) {
+                                                                $wpdb->update(
+                                                                        $wpdb->prefix . 'inventory_stock_movements',
+                                                                        array( 'quantity' => -1 * $deduct_qty ),
+                                                                        array( 'id' => $movement->id )
+                                                                );
+
+                                                                $wpdb->query( $wpdb->prepare(
+                                                                        "UPDATE {$wpdb->prefix}inventory_batches
+                                                                         SET stock_qty = stock_qty + %f
+                                                                         WHERE id = %d",
+                                                                        $difference,
+                                                                        $batch->id
+                                                                ) );
+
+                                                                $batch_product = $wpdb->get_row( $wpdb->prepare(
+                                                                        "SELECT product_id FROM {$wpdb->prefix}inventory_batches WHERE id = %d",
+                                                                        $batch->id
+                                                                ) );
+                                                                if ( $batch_product ) {
+                                                                        $this->update_product_stock( $batch_product->product_id );
+                                                                }
+                                                        }
+                                           } else {
+                                                        $this->db->update_batch_quantity(
+                                                                        $batch->id,
+                                                                        -1 * $deduct_qty,
+                                                                        'wc_order_placed',
+                                                                        $ref
+                                                        );
+                                           }
 
                        $remaining_qty -= $deduct_qty;
                }
