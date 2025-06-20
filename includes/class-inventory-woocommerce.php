@@ -314,23 +314,29 @@ class Inventory_Manager_WooCommerce {
 			return;
 		}
 
-               $sku         = $product->get_sku();
-               $product_id  = $product->get_id();
+               // Use the parent product ID for batch lookups when available
+               $product_id     = $product->get_id();
+               $original_id    = $product_id;
 
-               // Fallbacks for variable products without a SKU
+               if ( method_exists( $product, 'get_parent_id' ) ) {
+                       $parent_id = $product->get_parent_id();
+                       if ( $parent_id ) {
+                               $product_id = $parent_id;
+                       }
+               }
+
+               $sku = $product->get_sku();
+
+               // Fallbacks for products without a SKU
                if ( empty( $sku ) ) {
                        // Try the variation's own SKU meta
-                       $sku = get_post_meta( $product_id, '_sku', true );
+                       $sku = get_post_meta( $original_id, '_sku', true );
 
                        // If still empty, try the parent product SKU
-                       if ( empty( $sku ) && method_exists( $product, 'get_parent_id' ) ) {
-                               $parent_id = $product->get_parent_id();
-                               if ( $parent_id ) {
-                                       $parent_sku = get_post_meta( $parent_id, '_sku', true );
-                                       if ( ! empty( $parent_sku ) ) {
-                                               $sku        = $parent_sku;
-                                               $product_id = $parent_id;
-                                       }
+                       if ( empty( $sku ) && isset( $parent_id ) && $parent_id ) {
+                               $parent_sku = get_post_meta( $parent_id, '_sku', true );
+                               if ( ! empty( $parent_sku ) ) {
+                                       $sku = $parent_sku;
                                }
                        }
 
@@ -507,21 +513,27 @@ class Inventory_Manager_WooCommerce {
 			wp_send_json_error( array( 'message' => __( 'Product not found', 'inventory-manager-pro' ) ) );
 		}
 
-               $sku        = $product->get_sku();
+               // Use the parent product ID for batch queries when available
                $lookup_id  = $product_id;
+               $original_id = $product_id;
+
+               if ( method_exists( $product, 'get_parent_id' ) ) {
+                       $parent_id = $product->get_parent_id();
+                       if ( $parent_id ) {
+                               $lookup_id = $parent_id;
+                       }
+               }
+
+               $sku = $product->get_sku();
 
                if ( empty( $sku ) ) {
                        // Try variation SKU meta
-                       $sku = get_post_meta( $product_id, '_sku', true );
+                       $sku = get_post_meta( $original_id, '_sku', true );
 
-                       if ( empty( $sku ) && method_exists( $product, 'get_parent_id' ) ) {
-                               $parent_id = $product->get_parent_id();
-                               if ( $parent_id ) {
-                                       $parent_sku = get_post_meta( $parent_id, '_sku', true );
-                                       if ( ! empty( $parent_sku ) ) {
-                                               $sku       = $parent_sku;
-                                               $lookup_id = $parent_id;
-                                       }
+                       if ( empty( $sku ) && isset( $parent_id ) && $parent_id ) {
+                               $parent_sku = get_post_meta( $parent_id, '_sku', true );
+                               if ( ! empty( $parent_sku ) ) {
+                                       $sku = $parent_sku;
                                }
                        }
 
