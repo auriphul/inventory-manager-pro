@@ -257,7 +257,7 @@
         
         html += '<div class="batch-expiry">';
         html += '<span class="label">Expiry</span>';
-        html += '<span class="value">' + (batch.expiry_formatted || 'N/A') + '</span>';
+        html += '<span class="value">' + (batch.expiry_formatted || '-') + '</span>';
         html += '</div>';
 
         // Newly requested fields
@@ -288,17 +288,17 @@
         
         html += '<div class="batch-supplier">';
         html += '<span class="label">Supplier</span>';
-        html += '<span class="value">' + (batch.supplier_name || 'N/A') + '</span>';
+        html += '<span class="value">' + (batch.supplier_name || '-') + '</span>';
         html += '</div>';
         
         html += '<div class="batch-origin">';
         html += '<span class="label">Origin</span>';
-        html += '<span class="value">' + (batch.origin || 'N/A') + '</span>';
+        html += '<span class="value">' + (batch.origin || '-') + '</span>';
         html += '</div>';
         
         html += '<div class="batch-location">';
         html += '<span class="label">Location</span>';
-        html += '<span class="value">' + (batch.location || 'N/A') + '</span>';
+        html += '<span class="value">' + (batch.location || '-') + '</span>';
         html += '</div>';
         
         html += '<div class="batch-actions">';
