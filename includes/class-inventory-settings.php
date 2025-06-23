@@ -325,7 +325,8 @@ class Inventory_Settings {
 		echo '<tr>';
 		echo '<th scope="row">' . __( 'Shortcodes', 'inventory-manager-pro' ) . '</th>';
 		echo '<td>';
-		echo '<p>' . __( 'Show selected Frontend Fields on Product Archive Page by adding this shortcode:', 'inventory-manager-pro' ) . ' <code>[inventory_batch_archive]</code></p>';
+                echo '<p>' . __( 'Show selected Frontend Fields on Product Archive Page by adding this shortcode:', 'inventory-manager-pro' ) . ' <code>[inventory_batch_archive]</code></p>';
+                echo '<p>' . __( 'Optionally pass <code>sku</code> or <code>product_id</code> to target a specific product.', 'inventory-manager-pro' ) . '</p>';
 		echo '<p>' . __( 'Show selected Frontend Fields on Single Product Page by adding this shortcode:', 'inventory-manager-pro' ) . ' <code>[inventory_batch_single]</code></p>';
 		echo '</td>';
 		echo '</tr>';

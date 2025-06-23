@@ -68,14 +68,35 @@ class Inventory_Shortcodes {
 	/**
 	 * Render batch info on product archive pages.
 	 */
-	public function render_batch_archive( $atts ) {
-		global $product;
+        public function render_batch_archive( $atts ) {
+                $atts = shortcode_atts(
+                        array(
+                                'sku'        => '',
+                                'product_id' => 0,
+                        ),
+                        $atts,
+                        'inventory_batch_archive'
+                );
 
-		if ( ! $product ) {
-			return '';
-		}
+                $product_obj = null;
 
-		$sku = $product->get_sku();
+                if ( ! empty( $atts['product_id'] ) ) {
+                        $product_obj = wc_get_product( absint( $atts['product_id'] ) );
+                } elseif ( ! empty( $atts['sku'] ) ) {
+                        $product_id  = wc_get_product_id_by_sku( $atts['sku'] );
+                        if ( $product_id ) {
+                                $product_obj = wc_get_product( $product_id );
+                        }
+                } else {
+                        global $product;
+                        $product_obj = $product;
+                }
+
+                if ( ! $product_obj ) {
+                        return '';
+                }
+
+                $sku = $product_obj->get_sku();
 
 		if ( empty( $sku ) ) {
 			return '';
