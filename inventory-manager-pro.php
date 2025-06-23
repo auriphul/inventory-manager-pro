@@ -3,7 +3,7 @@
  * Plugin Name: Inventory Manager Pro
  * Plugin URI: https://example.com/inventory-manager-pro
  * Description: Advanced inventory management system for WooCommerce with batch tracking capabilities
- * Version: 2.1.1
+ * Version: 2.2.1
  * Author: Aurang Zeb
  * Author URI: https://aurang.dev
  * Text Domain: inventory-manager-pro
