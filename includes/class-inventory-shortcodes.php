@@ -154,29 +154,20 @@ class Inventory_Shortcodes {
 			'stock_qty' => $batch->stock_qty,
 		);
 
-		// Buffer output.
-		ob_start();
+                // Render template.
+                ob_start();
+                wc_get_template(
+                        'frontend/product-batch-archive.php',
+                        array(
+                                'batch_info'       => $batch_info,
+                                'displayed_fields' => $displayed_fields,
+                        ),
+                        '',
+                        $this->plugin->template_path()
+                );
 
-		echo '<div class="inventory-batch-info product-archive">';
-
-		foreach ( $displayed_fields as $field_key => $field ) {
-			if ( isset( $batch_info[ $field_key ] ) && ! empty( $batch_info[ $field_key ] ) ) {
-				$style = '';
-				if ( ! empty( $field['color'] ) ) {
-					$style = 'style="color:' . esc_attr( $field['color'] ) . ';"';
-				}
-
-				echo '<div class="batch-info-field ' . esc_attr( $field_key ) . '">';
-				echo '<span class="label" ' . $style . '>' . esc_html( $field['label'] ) . ': </span>';
-				echo '<span class="value" ' . $style . '>' . esc_html( $batch_info[ $field_key ] ) . '</span>';
-				echo '</div>';
-			}
-		}
-
-		echo '</div>';
-
-		return ob_get_clean();
-	}
+                return ob_get_clean();
+        }
 
 	/**
 	 * Render batch info on single product page.
