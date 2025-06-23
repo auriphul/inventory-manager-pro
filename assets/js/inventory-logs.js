@@ -91,7 +91,21 @@
         
         // Toggle batch details
         $(document).on('click', '.batch-header', function() {
-            $(this).closest('.batch-section').find('.batch-details, .movement-log').slideToggle();
+            const header = $(this);
+            header.closest('.batch-section').find('.batch-details, .movement-log').slideToggle();
+
+            const icon = header.find('.toggle-icon');
+            if (header.hasClass('expanded')) {
+                header.removeClass('expanded');
+                icon
+                    .removeClass('dashicons-arrow-up-alt2')
+                    .addClass('dashicons-arrow-down-alt2');
+            } else {
+                header.addClass('expanded');
+                icon
+                    .removeClass('dashicons-arrow-down-alt2')
+                    .addClass('dashicons-arrow-up-alt2');
+            }
         });
         
         // Add adjustment button
@@ -172,11 +186,8 @@
         let html = '<div class="product-section">';
         
         // Product header
+        html += '<div class="inv-product-info"><span>SKU: ' + product.sku +'</span>' + '<span>' + product.product_name +'</span>' + '<span>BATCHES: ' + product.batches.length +'</span>' + '</div>';
         html += '<div class="product-header">';
-        html += '<div class="product-info">';
-        html += '<strong>' + product.product_name + '</strong><br>';
-        html += '<span class="sku">SKU: ' + product.sku + '</span>';
-        html += '</div>';
         
         // Product summary
         html += '<div class="product-summary">';
@@ -204,10 +215,6 @@
         const avgFreight = totalStock ? (weightedFreight / totalStock) : 0;
 
         // Total batches
-        html += '<div class="batch-count">';
-        html += '<span class="label">Batches</span>';
-        html += '<span class="value">' + product.batches.length + '</span>';
-        html += '</div>';
 
         html += '<div class="total-stock">';
         html += '<span class="label">Total Stock Qty</span>';
@@ -296,6 +303,7 @@
         html += '<span class="value">' + (batch.landed_cost_formatted || parseFloat(batch.landed_cost || 0).toFixed(2)) + '</span>';
         html += '</div>';
 
+        html += '<span class="toggle-icon dashicons dashicons-arrow-down-alt2"></span>';
         html += '</div>'; // End batch-header
         
         // Batch details
