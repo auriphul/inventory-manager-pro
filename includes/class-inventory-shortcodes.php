@@ -248,7 +248,7 @@ class Inventory_Shortcodes {
 
 		$batch_info['total_stock'] = $total_stock;
 
-                ob_start();
+                // ob_start();
 
                 wc_get_template(
                         'frontend/product-batch-single.php',
@@ -261,7 +261,7 @@ class Inventory_Shortcodes {
                 );
 
                 $this->display_stock_notes( $product, $batch_info );
-
+				ob_start();
                 return ob_get_clean();
 	}
 
