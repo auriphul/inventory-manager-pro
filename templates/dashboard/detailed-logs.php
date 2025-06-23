@@ -10,7 +10,12 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-
+<style>
+    span.toggle-icon.dashicons.dashicons-arrow-down-alt2,span.toggle-icon.dashicons.dashicons-arrow-up-alt2 {
+        font-size: 3rem;
+        margin-right: 2rem;
+    }
+</style>
 <div class="inventory-manager-logs">
     <div class="section-header">
         <h2><?php _e( 'Detailed Inventory Logs', 'inventory-manager-pro' ); ?></h2>
@@ -89,7 +94,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <span class="value">{{total_stock}}</span>
                 </div>
             </div>
-            <span class="toggle-icon dashicons dashicons-arrow-down"></span>
+            <span class="toggle-icon dashicons dashicons-arrow-down-alt2"></span>
         </div>
         
         <div class="batches-container">

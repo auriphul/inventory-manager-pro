@@ -79,13 +79,13 @@
             if (header.hasClass('expanded')) {
                 header.removeClass('expanded');
                 icon
-                    .removeClass('dashicons-arrow-up')
-                    .addClass('dashicons-arrow-down');
+                    .removeClass('dashicons-arrow-up-alt2')
+                    .addClass('dashicons-arrow-down-alt2');
             } else {
                 header.addClass('expanded');
                 icon
-                    .removeClass('dashicons-arrow-down')
-                    .addClass('dashicons-arrow-up');
+                    .removeClass('dashicons-arrow-down-alt2')
+                    .addClass('dashicons-arrow-up-alt2');
             }
         });
         
@@ -235,7 +235,7 @@
         html += '</div>';
 
         html += '</div>'; // End product-summary
-        html += '<span class="toggle-icon dashicons dashicons-arrow-down"></span>';
+        html += '<span class="toggle-icon dashicons dashicons-arrow-down-alt2"></span>';
         html += '</div>'; // End product-header
         
         // Batches container
