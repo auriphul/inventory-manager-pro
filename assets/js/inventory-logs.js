@@ -186,7 +186,7 @@
         let html = '<div class="product-section">';
         
         // Product header
-        html += '<div class="inv-product-info"><span>SKU: ' + product.sku +'</span>' + '<span>' + product.product_name +'</span>' + '<span>BATCHES: ' + product.batches.length +'</span>' + '</div>';
+        html += '<div class="inv-product-info"><span class="half-flex">SKU: ' + product.sku +'</span>' + '<span>' + product.product_name +'</span>' + '<span class="half-flex">BATCHES: ' + product.batches.length +'</span>' + '</div>';
         html += '<div class="product-header">';
         
         // Product summary

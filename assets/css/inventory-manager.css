@@ -633,6 +633,9 @@
 .inv-product-info span{
     flex: 1;
 }
+.inv-product-info .half-flex{
+    flex: 0.5;
+}
 .product-summary>div {
     background-color: #000000;
     color: #ffffff;
