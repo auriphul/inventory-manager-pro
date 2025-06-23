@@ -77,18 +77,19 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <strong>{{product_name}}</strong><br>
                 <span class="sku">SKU: {{sku}}</span>
             </div>
-            
+
             <div class="product-summary">
                 <div class="batch-count">
                     <span class="label"><?php _e( 'Batches', 'inventory-manager-pro' ); ?></span>
                     <span class="value">{{batch_count}}</span>
                 </div>
-                
+
                 <div class="total-stock">
                     <span class="label"><?php _e( 'Total Stock', 'inventory-manager-pro' ); ?></span>
                     <span class="value">{{total_stock}}</span>
                 </div>
             </div>
+            <span class="toggle-icon">&#9660;</span>
         </div>
         
         <div class="batches-container">

@@ -72,7 +72,17 @@
         
         // Toggle product details
         $(document).on('click', '.product-header', function() {
-            $(this).closest('.product-section').find('.batches-container').slideToggle();
+            const header = $(this);
+            header.closest('.product-section').find('.batches-container').slideToggle();
+
+            const icon = header.find('.toggle-icon');
+            if (header.hasClass('expanded')) {
+                header.removeClass('expanded');
+                icon.html('&#9660;');
+            } else {
+                header.addClass('expanded');
+                icon.html('&#9650;');
+            }
         });
         
         // Toggle batch details
@@ -219,8 +229,9 @@
         html += '<span class="label">Total Landed Cost</span>';
         html += '<span class="value">' + totalLandedCost.toFixed(2) + '</span>';
         html += '</div>';
-        
+
         html += '</div>'; // End product-summary
+        html += '<span class="toggle-icon">&#9660;</span>';
         html += '</div>'; // End product-header
         
         // Batches container

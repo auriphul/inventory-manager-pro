@@ -313,6 +313,13 @@
     min-width: 300px;
 }
 
+.inventory-manager .product-header .toggle-icon {
+    margin-left: auto;
+    font-size: 16px;
+    line-height: 1;
+    align-self: center;
+}
+
 .inventory-manager .product-summary > div {
     margin-right: 20px;
     margin-bottom: 10px;
