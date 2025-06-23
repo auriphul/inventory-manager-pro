@@ -248,29 +248,21 @@ class Inventory_Shortcodes {
 
 		$batch_info['total_stock'] = $total_stock;
 
-		ob_start();
+                ob_start();
 
-		echo '<div class="inventory-batch-info single-product">';
+                wc_get_template(
+                        'frontend/product-batch-single.php',
+                        array(
+                                'batch_info'       => $batch_info,
+                                'displayed_fields' => $displayed_fields,
+                        ),
+                        '',
+                        $this->plugin->template_path()
+                );
 
-		foreach ( $displayed_fields as $field_key => $field ) {
-			if ( isset( $batch_info[ $field_key ] ) && ! empty( $batch_info[ $field_key ] ) ) {
-				$style = '';
-				if ( ! empty( $field['color'] ) ) {
-					$style = 'style="color:' . esc_attr( $field['color'] ) . ';"';
-				}
+                $this->display_stock_notes( $product, $batch_info );
 
-				echo '<div class="batch-info-field ' . esc_attr( $field_key ) . '">';
-				echo '<span class="label" ' . $style . '>' . esc_html( $field['label'] ) . ': </span>';
-				echo '<span class="value" ' . $style . '>' . esc_html( $batch_info[ $field_key ] ) . '</span>';
-				echo '</div>';
-			}
-		}
-
-		$this->display_stock_notes( $product, $batch_info );
-
-		echo '</div>';
-
-		return ob_get_clean();
+                return ob_get_clean();
 	}
 
 	/**
