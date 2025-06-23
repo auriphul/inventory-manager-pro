@@ -315,9 +315,10 @@
 
 .inventory-manager .product-header .toggle-icon {
     margin-left: auto;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1;
     align-self: center;
+    display: inline-block;
 }
 
 .inventory-manager .product-summary > div {

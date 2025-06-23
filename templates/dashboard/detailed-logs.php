@@ -89,7 +89,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <span class="value">{{total_stock}}</span>
                 </div>
             </div>
-            <span class="toggle-icon">&#9660;</span>
+            <span class="toggle-icon dashicons dashicons-arrow-down"></span>
         </div>
         
         <div class="batches-container">

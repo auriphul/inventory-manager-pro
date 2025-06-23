@@ -35,9 +35,10 @@ class Inventory_Admin_Dashboard {
         wp_enqueue_style(
             'inventory-manager',
             INVENTORY_MANAGER_URL . 'assets/css/inventory-manager.css',
-            array(),
+            array( 'dashicons' ),
             INVENTORY_MANAGER_VERSION
         );
+        wp_enqueue_style( 'dashicons' );
 
         wp_enqueue_script(
             'inventory-tables',

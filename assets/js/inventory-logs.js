@@ -78,10 +78,14 @@
             const icon = header.find('.toggle-icon');
             if (header.hasClass('expanded')) {
                 header.removeClass('expanded');
-                icon.html('&#9660;');
+                icon
+                    .removeClass('dashicons-arrow-up')
+                    .addClass('dashicons-arrow-down');
             } else {
                 header.addClass('expanded');
-                icon.html('&#9650;');
+                icon
+                    .removeClass('dashicons-arrow-down')
+                    .addClass('dashicons-arrow-up');
             }
         });
         
@@ -231,7 +235,7 @@
         html += '</div>';
 
         html += '</div>'; // End product-summary
-        html += '<span class="toggle-icon">&#9660;</span>';
+        html += '<span class="toggle-icon dashicons dashicons-arrow-down"></span>';
         html += '</div>'; // End product-header
         
         // Batches container

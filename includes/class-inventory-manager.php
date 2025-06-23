@@ -144,13 +144,13 @@ class Inventory_Manager {
 	 * @since    1.0.0
 	 */
 	public function enqueue_admin_styles() {
-		wp_enqueue_style(
-			'inventory-manager-admin',
-			INVENTORY_MANAGER_URL . 'assets/css/admin.css',
-			array(),
-			INVENTORY_MANAGER_VERSION,
-			'all'
-		);
+                wp_enqueue_style(
+                        'inventory-manager-admin',
+                        INVENTORY_MANAGER_URL . 'assets/css/admin.css',
+                        array( 'dashicons' ),
+                        INVENTORY_MANAGER_VERSION,
+                        'all'
+                );
 	}
 
 	/**
@@ -182,17 +182,18 @@ class Inventory_Manager {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_public_styles() {
-		if ( $this->is_inventory_page() || is_product() || is_shop() ) {
-			wp_enqueue_style(
-				'inventory-manager',
-				INVENTORY_MANAGER_URL . 'assets/css/inventory-manager.css',
-				array(),
-				INVENTORY_MANAGER_VERSION,
-				'all'
-			);
-		}
-	}
+        public function enqueue_public_styles() {
+                if ( $this->is_inventory_page() || is_product() || is_shop() ) {
+                        wp_enqueue_style(
+                                'inventory-manager',
+                                INVENTORY_MANAGER_URL . 'assets/css/inventory-manager.css',
+                                array( 'dashicons' ),
+                                INVENTORY_MANAGER_VERSION,
+                                'all'
+                        );
+                        wp_enqueue_style( 'dashicons' );
+                }
+        }
 
 	/**
 	 * Register the JavaScript for the public-facing side of the site.
