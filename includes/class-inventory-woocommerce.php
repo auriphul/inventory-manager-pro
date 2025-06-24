@@ -302,8 +302,12 @@ class Inventory_Manager_WooCommerce {
 	/**
 	 * Update WooCommerce product stock based on batch quantities.
 	 */
-	private function update_product_stock( $product_id ) {
-		global $wpdb;
+        private function update_product_stock( $product_id ) {
+                if ( 'yes' !== get_option( 'inventory_manager_sync_stock', 'yes' ) ) {
+                        return;
+                }
+
+                global $wpdb;
 
 		// Get total stock for all batches of this product
 		$total_stock = $wpdb->get_var(

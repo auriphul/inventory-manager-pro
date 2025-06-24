@@ -50,7 +50,8 @@ class Inventory_Settings {
 		// Backend settings
 		register_setting( 'inventory_manager_backend', 'inventory_manager_backend_fields' );
 		register_setting( 'inventory_manager_backend', 'inventory_manager_backend_deduction_method' );
-		register_setting( 'inventory_manager_backend', 'inventory_manager_backend_select_batch' );
+                register_setting( 'inventory_manager_backend', 'inventory_manager_backend_select_batch' );
+                register_setting( 'inventory_manager_backend', 'inventory_manager_sync_stock' );
 
 		// Frontend settings
 		register_setting( 'inventory_manager_frontend', 'inventory_manager_frontend_fields' );
@@ -188,9 +189,9 @@ class Inventory_Settings {
 		echo '</td>';
 		echo '</tr>';
 
-		echo '<tr>';
-		echo '<th scope="row">' . __( 'Deduction Method', 'inventory-manager-pro' ) . '</th>';
-		echo '<td>';
+                echo '<tr>';
+                echo '<th scope="row">' . __( 'Deduction Method', 'inventory-manager-pro' ) . '</th>';
+                echo '<td>';
 		echo '<label>';
 		echo '<input type="radio" name="inventory_manager_backend_deduction_method" value="closest_expiry" ' . checked( $deduction_method, 'closest_expiry', false ) . '>';
 		echo __( 'Closest Expiry first', 'inventory-manager-pro' );
@@ -205,8 +206,29 @@ class Inventory_Settings {
 		echo '</td>';
 		echo '</tr>';
 
-		echo '</table>';
-	}
+                echo '</table>';
+
+                // Option to sync WooCommerce stock with batches
+                $sync_stock = get_option( 'inventory_manager_sync_stock', 'yes' );
+                echo '<h3>' . __( 'Sync Product Stock with Batches', 'inventory-manager-pro' ) . '</h3>';
+                echo '<table class="form-table">';
+                echo '<tr>';
+                echo '<th scope="row">' . __( 'Synchronize product stock', 'inventory-manager-pro' ) . '</th>';
+                echo '<td>';
+                echo '<label>';
+                echo '<input type="radio" name="inventory_manager_sync_stock" value="yes" ' . checked( $sync_stock, 'yes', false ) . '>';
+                echo __( 'Yes', 'inventory-manager-pro' );
+                echo '</label>';
+                echo '<br>';
+                echo '<label>';
+                echo '<input type="radio" name="inventory_manager_sync_stock" value="no" ' . checked( $sync_stock, 'no', false ) . '>';
+                echo __( 'No', 'inventory-manager-pro' );
+                echo '</label>';
+                echo '<p class="description">' . __( 'If disabled, WooCommerce product stock and batch stock will be managed separately.', 'inventory-manager-pro' ) . '</p>';
+                echo '</td>';
+                echo '</tr>';
+                echo '</table>';
+        }
 
 	/**
 	 * Render frontend settings.

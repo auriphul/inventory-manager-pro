@@ -427,8 +427,8 @@ class Inventory_Database {
             )
         );
 
-        // Update product stock
-        $this->update_product_stock($product_id);
+        // Update product stock if syncing enabled
+        $this->update_product_stock( $product_id );
 
         return $batch_id;
     }
@@ -521,8 +521,8 @@ class Inventory_Database {
             array('id' => $batch_id)
         );
 
-        // Update product stock
-        $this->update_product_stock($batch->product_id);
+        // Update product stock if syncing enabled
+        $this->update_product_stock( $batch->product_id );
 
         return true;
     }
@@ -533,6 +533,11 @@ class Inventory_Database {
      * @param int $product_id Product ID.
      */
     public function update_product_stock($product_id) {
+        // Respect plugin setting to keep product stock independent
+        if ( 'yes' !== get_option( 'inventory_manager_sync_stock', 'yes' ) ) {
+            return;
+        }
+
         global $wpdb;
 
         // Get total stock for all batches
