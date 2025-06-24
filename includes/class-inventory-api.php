@@ -104,25 +104,85 @@ class Inventory_API {
 		);
 
 		// Helper endpoints
-		register_rest_route(
-			'inventory-manager/v1',
-			'/suppliers',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_suppliers' ),
-				'permission_callback' => array( $this, 'check_api_permissions' ),
-			)
-		);
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/suppliers',
+                        array(
+                                'methods'             => 'GET',
+                                'callback'            => array( $this, 'get_suppliers' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
 
-		register_rest_route(
-			'inventory-manager/v1',
-			'/transit-times',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_transit_times' ),
-				'permission_callback' => array( $this, 'check_api_permissions' ),
-			)
-		);
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/suppliers',
+                        array(
+                                'methods'             => 'POST',
+                                'callback'            => array( $this, 'create_supplier' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/suppliers/(?P<id>\d+)',
+                        array(
+                                'methods'             => 'PUT',
+                                'callback'            => array( $this, 'update_supplier' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/suppliers/(?P<id>\d+)',
+                        array(
+                                'methods'             => 'DELETE',
+                                'callback'            => array( $this, 'delete_supplier' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/transit-times',
+                        array(
+                                'methods'             => 'GET',
+                                'callback'            => array( $this, 'get_transit_times' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/transit-times',
+                        array(
+                                'methods'             => 'POST',
+                                'callback'            => array( $this, 'add_transit_time' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/transit-times/(?P<id>[a-zA-Z0-9_-]+)',
+                        array(
+                                'methods'             => 'PUT',
+                                'callback'            => array( $this, 'update_transit_time' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/transit-times/(?P<id>[a-zA-Z0-9_-]+)',
+                        array(
+                                'methods'             => 'DELETE',
+                                'callback'            => array( $this, 'delete_transit_time' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
 
 		register_rest_route(
 			'inventory-manager/v1',
@@ -714,22 +774,73 @@ class Inventory_API {
 	 * @param WP_REST_Request $request The request object.
 	 * @return WP_REST_Response The response object.
 	 */
-	public function get_suppliers( $request ) {
-		$suppliers = $this->db->get_suppliers();
+        public function get_suppliers( $request ) {
+                $suppliers = $this->db->get_suppliers();
 
-		return rest_ensure_response(
-			array(
-				'suppliers' => $suppliers,
-			)
-		);
-	}
+                return rest_ensure_response(
+                        array(
+                                'suppliers' => $suppliers,
+                        )
+                );
+        }
+
+        /**
+         * Create a supplier.
+         */
+        public function create_supplier( $request ) {
+                $name         = sanitize_text_field( $request['name'] );
+                $transit_time = sanitize_text_field( $request['transit_time'] );
+
+                if ( empty( $name ) || empty( $transit_time ) ) {
+                        return new WP_Error( 'missing_data', __( 'Name and transit time are required.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+
+                $result = $this->db->create_supplier( $name, $transit_time );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true, 'id' => $result ) );
+        }
+
+        /**
+         * Update a supplier.
+         */
+        public function update_supplier( $request ) {
+                $id           = intval( $request['id'] );
+                $name         = sanitize_text_field( $request['name'] );
+                $transit_time = sanitize_text_field( $request['transit_time'] );
+
+                $result = $this->db->update_supplier( $id, $name, $transit_time );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        /**
+         * Delete a supplier.
+         */
+        public function delete_supplier( $request ) {
+                $id     = intval( $request['id'] );
+                $result = $this->db->delete_supplier( $id );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
 
 	/**
 	 * Get transit times.
 	 *
 	 * @return array Array of transit time options.
 	 */
-	public function get_transit_times() {
+        public function get_transit_times() {
 		$transit_times = array(
 			array(
 				'id'   => '3_days',
@@ -771,8 +882,58 @@ class Inventory_API {
 			}
 		}
 
-		return $transit_times;
-	}
+                return $transit_times;
+        }
+
+        /**
+         * Add a transit time option.
+         */
+        public function add_transit_time( $request ) {
+                $id   = sanitize_title( $request['id'] );
+                $name = sanitize_text_field( $request['name'] );
+
+                if ( empty( $id ) || empty( $name ) ) {
+                        return new WP_Error( 'missing_data', __( 'ID and name are required.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+
+                $result = $this->db->add_transit_time( $id, $name );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        /**
+         * Update a transit time option.
+         */
+        public function update_transit_time( $request ) {
+                $id   = sanitize_title( $request['id'] );
+                $name = sanitize_text_field( $request['name'] );
+
+                $result = $this->db->update_transit_time( $id, $name );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        /**
+         * Delete a transit time option.
+         */
+        public function delete_transit_time( $request ) {
+                $id     = sanitize_title( $request['id'] );
+                $result = $this->db->delete_transit_time( $id );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
 
 	/**
 	 * Get adjustment types.

@@ -748,6 +748,63 @@ class Inventory_Database {
     }
 
     /**
+     * Add a transit time option.
+     *
+     * @param string $id   Transit time identifier.
+     * @param string $name Transit time label.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function add_transit_time( $id, $name ) {
+        $settings = get_option( 'inventory_manager_suppliers', array() );
+        if ( empty( $settings['transit_times'] ) ) {
+            $settings['transit_times'] = array();
+        }
+
+        if ( isset( $settings['transit_times'][ $id ] ) ) {
+            return new WP_Error( 'duplicate_transit', __( 'Transit time already exists.', 'inventory-manager-pro' ) );
+        }
+
+        $settings['transit_times'][ $id ] = $name;
+
+        return update_option( 'inventory_manager_suppliers', $settings );
+    }
+
+    /**
+     * Update a transit time option.
+     *
+     * @param string $id   Transit time identifier.
+     * @param string $name Transit time label.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function update_transit_time( $id, $name ) {
+        $settings = get_option( 'inventory_manager_suppliers', array() );
+        if ( empty( $settings['transit_times'][ $id ] ) ) {
+            return new WP_Error( 'not_found', __( 'Transit time not found.', 'inventory-manager-pro' ) );
+        }
+
+        $settings['transit_times'][ $id ] = $name;
+
+        return update_option( 'inventory_manager_suppliers', $settings );
+    }
+
+    /**
+     * Delete a transit time option.
+     *
+     * @param string $id Transit time identifier.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function delete_transit_time( $id ) {
+        $settings = get_option( 'inventory_manager_suppliers', array() );
+        if ( empty( $settings['transit_times'][ $id ] ) ) {
+            return new WP_Error( 'not_found', __( 'Transit time not found.', 'inventory-manager-pro' ) );
+        }
+
+        unset( $settings['transit_times'][ $id ] );
+
+        return update_option( 'inventory_manager_suppliers', $settings );
+    }
+
+    /**
      * Get adjustment types.
      *
      * @return array Array of adjustment type options.
@@ -831,6 +888,57 @@ class Inventory_Database {
         }
 
         return $wpdb->insert_id;
+    }
+
+    /**
+     * Update an existing supplier.
+     *
+     * @param int    $id          Supplier ID.
+     * @param string $name        Supplier name.
+     * @param string $transit_time Transit time.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function update_supplier( $id, $name, $transit_time ) {
+        global $wpdb;
+
+        $result = $wpdb->update(
+            $wpdb->prefix . 'inventory_suppliers',
+            array(
+                'name'         => $name,
+                'transit_time' => $transit_time,
+            ),
+            array( 'id' => $id ),
+            array( '%s', '%s' ),
+            array( '%d' )
+        );
+
+        if ( false === $result ) {
+            return new WP_Error( 'db_error', __( 'Error updating supplier.', 'inventory-manager-pro' ) );
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete a supplier.
+     *
+     * @param int $id Supplier ID.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function delete_supplier( $id ) {
+        global $wpdb;
+
+        $result = $wpdb->delete(
+            $wpdb->prefix . 'inventory_suppliers',
+            array( 'id' => $id ),
+            array( '%d' )
+        );
+
+        if ( ! $result ) {
+            return new WP_Error( 'db_error', __( 'Error deleting supplier.', 'inventory-manager-pro' ) );
+        }
+
+        return true;
     }
 
     /**

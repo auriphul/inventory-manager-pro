@@ -64,6 +64,14 @@ class Inventory_Admin_Dashboard {
             true
         );
 
+        wp_enqueue_script(
+            'inventory-settings',
+            INVENTORY_MANAGER_URL . 'assets/js/inventory-settings.js',
+            array( 'jquery' ),
+            INVENTORY_MANAGER_VERSION,
+            true
+        );
+
         wp_localize_script(
             'inventory-tables',
             'inventory_manager',
