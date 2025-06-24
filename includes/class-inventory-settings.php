@@ -64,8 +64,9 @@ class Inventory_Settings {
 		// Detailed logs settings
 		register_setting( 'inventory_manager_logs', 'inventory_manager_expiry_ranges' );
 		register_setting( 'inventory_manager_logs', 'inventory_manager_adjustment_types' );
-		register_setting( 'inventory_manager_logs', 'inventory_manager_email_notifications' );
-	}
+                register_setting( 'inventory_manager_logs', 'inventory_manager_email_notifications' );
+                register_setting( 'inventory_manager_logs', 'inventory_manager_currency' );
+        }
 
 	/**
 	 * Render settings page.
@@ -495,9 +496,26 @@ class Inventory_Settings {
 			echo '</tr>';
 		}
 
-		echo '</table>';
+                echo '</table>';
 
-		// Adjustment types
+                // Currency
+                echo '<h3>' . __( 'Currency', 'inventory-manager-pro' ) . '</h3>';
+                echo '<table class="form-table">';
+                $currency = get_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() );
+                echo '<tr>';
+                echo '<th scope="row">' . __( 'Select Currency', 'inventory-manager-pro' ) . '</th>';
+                echo '<td>';
+                echo '<select name="inventory_manager_currency">';
+                $symbols = array( '$' => '$', '€' => '€', '£' => '£' );
+                foreach ( $symbols as $symbol => $label ) {
+                        echo '<option value="' . esc_attr( $symbol ) . '" ' . selected( $currency, $symbol, false ) . '>' . esc_html( $label ) . '</option>';
+                }
+                echo '</select>';
+                echo '</td>';
+                echo '</tr>';
+                echo '</table>';
+
+                // Adjustment types
 		echo '<h3>' . __( 'Options for Adjustments', 'inventory-manager-pro' ) . '</h3>';
 		echo '<table class="form-table">';
 

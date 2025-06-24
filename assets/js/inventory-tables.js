@@ -225,7 +225,7 @@
                 .replace(/\{\{sku\}\}/g, batch.sku)
                 .replace(/\{\{product_name\}\}/g, batch.product_name)
                 .replace(/\{\{batch_number\}\}/g, batch.batch_number)
-                .replace(/\{\{stock_qty\}\}/g, batch.stock_qty)
+                .replace(/\{\{stock_qty\}\}/g, parseFloat(batch.stock_qty).toFixed(2))
                 .replace(/\{\{supplier_name\}\}/g, batch.supplier_name || '')
                 .replace(/\{\{expiry_formatted\}\}/g, batch.expiry_formatted || '')
                 .replace(/\{\{origin\}\}/g, batch.origin || '')

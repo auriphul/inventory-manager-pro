@@ -22,8 +22,11 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_order_status_refunded', array( $this, 'process_order_stock_restoration' ), 10, 2 );
 
 		// Product display.
-		add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'display_batch_info_single_product' ) );
-		add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_batch_info_archive' ) );
+               add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'display_batch_info_single_product' ) );
+               add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_batch_info_archive' ) );
+
+               // Assign expiring products to special offers category
+               add_action( 'init', array( $this, 'assign_special_offers_category' ) );
 
 		// Backend order interface
 		add_action( 'woocommerce_admin_order_item_headers', array( $this, 'add_batch_headers_to_order_items' ) );
@@ -766,6 +769,32 @@ class Inventory_Manager_WooCommerce {
                                        wc_delete_order_item_meta( $item_id, '_selected_batch_id' );
                                }
                        }
+               }
+       }
+
+       /**
+        * Assign products with batches expiring within 30 days to the Special Offers category.
+        */
+       public function assign_special_offers_category() {
+               $category_slug = 'special-offers';
+               $term          = get_term_by( 'slug', $category_slug, 'product_cat' );
+
+               if ( ! $term ) {
+                       $created = wp_insert_term( 'Special Offers', 'product_cat', array( 'slug' => $category_slug ) );
+                       if ( is_wp_error( $created ) ) {
+                               return;
+                       }
+                       $term = get_term( $created['term_id'], 'product_cat' );
+               }
+
+               $expiring = $this->db->get_expiring_products( 30 );
+
+               if ( empty( $expiring ) ) {
+                       return;
+               }
+
+               foreach ( $expiring as $product ) {
+                       wp_set_object_terms( $product->product_id, (int) $term->term_id, 'product_cat', true );
                }
        }
 }

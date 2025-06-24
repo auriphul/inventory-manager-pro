@@ -70,6 +70,7 @@ class Inventory_Admin_Dashboard {
             array(
                 'api_url' => rest_url( 'inventory-manager/v1' ),
                 'nonce'   => wp_create_nonce( 'wp_rest' ),
+                'currency_symbol' => get_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() ),
                 'pages'   => array(
                     'add_manually' => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=add-manually' ),
                     'import'       => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=import' ),

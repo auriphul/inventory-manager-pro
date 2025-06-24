@@ -223,22 +223,22 @@
 
         html += '<div class="avg-unit-cost">';
         html += '<span class="label">Avg Unit Cost</span>';
-        html += '<span class="value">' + avgUnitCost.toFixed(2) + '</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + avgUnitCost.toFixed(2) + '</span>';
         html += '</div>';
 
         html += '<div class="total-stock-cost">';
         html += '<span class="label">Total Stock Cost</span>';
-        html += '<span class="value">' + totalStockCost.toFixed(2) + '</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + totalStockCost.toFixed(2) + '</span>';
         html += '</div>';
 
         html += '<div class="avg-freight">';
         html += '<span class="label">Avg Freight Markup</span>';
-        html += '<span class="value">' + avgFreight.toFixed(2) + '</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + avgFreight.toFixed(2) + '</span>';
         html += '</div>';
 
         html += '<div class="total-landed-cost">';
         html += '<span class="label">Total Landed Cost</span>';
-        html += '<span class="value">' + totalLandedCost.toFixed(2) + '</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + totalLandedCost.toFixed(2) + '</span>';
         html += '</div>';
 
         html += '</div>'; // End product-summary
@@ -274,7 +274,7 @@
         
         html += '<div class="batch-stock">';
         html += '<span class="label">Stock Qty</span>';
-        html += '<span class="value">' + batch.stock_qty + '</span>';
+        html += '<span class="value">' + parseFloat(batch.stock_qty).toFixed(2) + '</span>';
         html += '</div>';
         
         html += '<div class="batch-expiry">';
@@ -285,22 +285,22 @@
         // Newly requested fields
         html += '<div class="batch-unit-cost">';
         html += '<span class="label">Unit Cost</span>';
-        html += '<span class="value">' + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</span>';
         html += '</div>';
 
         html += '<div class="batch-stock-cost">';
         html += '<span class="label">Stock Cost</span>';
-        html += '<span class="value">' + (batch.stock_cost_formatted || parseFloat(batch.stock_cost || 0).toFixed(2)) + '</span>';
+        html += '<span class="value">' + (batch.stock_cost_formatted || (inventory_manager.currency_symbol + parseFloat(batch.stock_cost || 0).toFixed(2))) + '</span>';
         html += '</div>';
 
         html += '<div class="batch-freight">';
         html += '<span class="label">Freight Markup</span>';
-        html += '<span class="value">' + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
         html += '</div>';
 
         html += '<div class="batch-landed-cost">';
         html += '<span class="label">Landed Cost</span>';
-        html += '<span class="value">' + (batch.landed_cost_formatted || parseFloat(batch.landed_cost || 0).toFixed(2)) + '</span>';
+        html += '<span class="value">' + (batch.landed_cost_formatted || (inventory_manager.currency_symbol + parseFloat(batch.landed_cost || 0).toFixed(2))) + '</span>';
         html += '</div>';
 
         html += '<span class="toggle-icon dashicons dashicons-arrow-down-alt2"></span>';
@@ -426,7 +426,7 @@
         
         html += '<div class="batch-info">';
         html += '<p><strong>SKU:</strong> ' + batch.sku + '</p>';
-        html += '<p><strong>Current Stock:</strong> ' + batch.stock_qty + '</p>';
+        html += '<p><strong>Current Stock:</strong> ' + parseFloat(batch.stock_qty).toFixed(2) + '</p>';
         html += '</div>';
         
         html += '<form id="adjustment-form">';

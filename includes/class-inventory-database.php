@@ -94,8 +94,8 @@ class Inventory_Database {
         // Search
         if (!empty($args['search'])) {
             $query .= " AND (
-                b.sku LIKE %s OR 
-                p.post_title LIKE %s OR 
+                b.sku LIKE %s OR
+                p.post_title LIKE %s OR
                 b.batch_number LIKE %s OR
                 (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) LIKE %s OR
                 b.origin LIKE %s OR
@@ -109,6 +109,9 @@ class Inventory_Database {
             $query_args[] = $search_term;
             $query_args[] = $search_term;
         }
+
+        // Only batches with stock
+        $query .= " AND b.stock_qty > 0";
 
         // Ordering
         if (!empty($args['orderby'])) {
@@ -179,8 +182,8 @@ class Inventory_Database {
                 $batch->landed_cost = ($batch->unit_cost * $batch->freight_markup) * $batch->stock_qty;
                 // $batch->landed_cost = $batch->freight_markup * $batch->stock_qty;
                 
-                $batch->stock_cost_formatted = wc_price($batch->stock_cost);
-                $batch->landed_cost_formatted = wc_price($batch->landed_cost);
+                $batch->stock_cost_formatted = inventory_manager_format_price($batch->stock_cost);
+                $batch->landed_cost_formatted = inventory_manager_format_price($batch->landed_cost);
             }
         }
 
@@ -283,6 +286,8 @@ class Inventory_Database {
             $query_args[] = $search_term;
         }
 
+        $query .= " AND b.stock_qty > 0";
+
         // Prepare and execute query
         $sql = empty($query_args) ? $query : $wpdb->prepare($query, $query_args);
         return $wpdb->get_var($sql);
@@ -324,8 +329,8 @@ class Inventory_Database {
         $batch->landed_cost = ($batch->unit_cost * $batch->freight_markup) * $batch->stock_qty;
         // $batch->landed_cost = $batch->freight_markup * $batch->stock_qty;
         
-        $batch->stock_cost_formatted = wc_price($batch->stock_cost);
-        $batch->landed_cost_formatted = wc_price($batch->landed_cost);
+        $batch->stock_cost_formatted = inventory_manager_format_price($batch->stock_cost);
+        $batch->landed_cost_formatted = inventory_manager_format_price($batch->landed_cost);
 
         return $batch;
     }
@@ -681,6 +686,8 @@ class Inventory_Database {
                     foreach ( $batch->movements as $movement ) {
                         if ( 'initial_stock' === $movement->movement_type ) {
                             $movement->movement_type = __( 'Manual Entry', 'inventory-manager-pro' );
+                        } elseif ( 'wc_order_placed' === $movement->movement_type ) {
+                            $movement->movement_type = __( 'Order', 'inventory-manager-pro' );
                         }
                     }
                 }
@@ -997,6 +1004,8 @@ class Inventory_Database {
             foreach ( $movements as $movement ) {
                 if ( 'initial_stock' === $movement->movement_type ) {
                     $movement->movement_type = __( 'Manual Entry', 'inventory-manager-pro' );
+                } elseif ( 'wc_order_placed' === $movement->movement_type ) {
+                    $movement->movement_type = __( 'Order', 'inventory-manager-pro' );
                 }
             }
         }

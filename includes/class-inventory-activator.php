@@ -237,8 +237,12 @@ class Inventory_Activator {
 			),
 		);
 
-		if ( ! get_option( 'inventory_manager_adjustment_types' ) ) {
-			update_option( 'inventory_manager_adjustment_types', $default_adjustment_types );
-		}
-	}
+                if ( ! get_option( 'inventory_manager_adjustment_types' ) ) {
+                        update_option( 'inventory_manager_adjustment_types', $default_adjustment_types );
+                }
+
+                if ( ! get_option( 'inventory_manager_currency' ) ) {
+                        update_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() );
+                }
+        }
 }

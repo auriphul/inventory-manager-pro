@@ -15,12 +15,25 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'INVENTORY_MANAGER_VERSION', '2.2.3' );
+define( 'INVENTORY_MANAGER_VERSION', '2.2.4' );
 define( 'INVENTORY_MANAGER_FILE', __FILE__ );
 define( 'INVENTORY_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'INVENTORY_MANAGER_URL', plugin_dir_url( __FILE__ ) );
 define( 'INVENTORY_MANAGER_BASENAME', plugin_basename( __FILE__ ) );
 define( 'INVENTORY_MANAGER_DATE_FORMAT', 'd/m/Y' );
+
+/**
+ * Format currency values using plugin setting.
+ *
+ * @param float $amount Amount to format.
+ * @return string
+ */
+function inventory_manager_format_price( $amount ) {
+    $currency = get_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() );
+    $decimals = wc_get_price_decimals();
+
+    return $currency . number_format( (float) $amount, $decimals );
+}
 
 /**
  * The code that runs during plugin activation.
