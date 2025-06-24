@@ -16,7 +16,7 @@
                     var row = $('<tr data-id="'+t.id+'">');
                     row.append('<td><input type="text" class="transit-id" value="'+t.id+'" disabled></td>');
                     row.append('<td><input type="text" class="transit-name" value="'+t.name+'"></td>');
-                    row.append('<td><button class="save-transit button">Save</button> <button class="delete-transit button">Delete</button></td>');
+                    row.append('<td><button class="save-transit button">Edit</button> <button class="delete-transit button">Delete</button></td>');
                     $('#transit-list').append(row);
                 });
                 if(callback) callback();
@@ -39,7 +39,7 @@
                     $('#new_supplier_transit option').clone().appendTo(select);
                     select.val(s.transit_time);
                     row.append($('<td>').append(select));
-                    row.append('<td><button class="save-supplier button">Save</button> <button class="delete-supplier button">Delete</button></td>');
+                    row.append('<td><button class="save-supplier button">Edit</button> <button class="delete-supplier button">Delete</button></td>');
                     $('#supplier-list').append(row);
                 });
             }
