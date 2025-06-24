@@ -1097,7 +1097,7 @@ class Inventory_Database {
 
         return $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT p.ID as product_id, 
+                "SELECT p.ID as product_id,
                 p.post_title as product_name, 
                 pm.meta_value as sku,
                 b.id as batch_id,
@@ -1117,5 +1117,55 @@ class Inventory_Database {
                 $days
             )
         );
+    }
+
+    /**
+     * Delete a stock movement entry and update related batch stock.
+     *
+     * @param int $movement_id Movement entry ID.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function delete_movement( $movement_id ) {
+        global $wpdb;
+
+        $movement = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}inventory_stock_movements WHERE id = %d",
+                $movement_id
+            )
+        );
+
+        if ( ! $movement ) {
+            return new WP_Error( 'movement_not_found', __( 'Movement not found.', 'inventory-manager-pro' ) );
+        }
+
+        $batch = $this->get_batch( $movement->batch_id );
+
+        if ( ! $batch ) {
+            return new WP_Error( 'batch_not_found', __( 'Batch not found.', 'inventory-manager-pro' ) );
+        }
+
+        // Reverse the movement quantity.
+        $new_qty = $batch->stock_qty - $movement->quantity;
+
+        $wpdb->update(
+            $wpdb->prefix . 'inventory_batches',
+            array( 'stock_qty' => $new_qty ),
+            array( 'id' => $batch->id )
+        );
+
+        $result = $wpdb->delete(
+            $wpdb->prefix . 'inventory_stock_movements',
+            array( 'id' => $movement_id ),
+            array( '%d' )
+        );
+
+        if ( ! $result ) {
+            return new WP_Error( 'db_error', __( 'Error deleting entry.', 'inventory-manager-pro' ) );
+        }
+
+        $this->update_product_stock( $batch->product_id );
+
+        return true;
     }
 }

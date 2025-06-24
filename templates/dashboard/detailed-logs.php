@@ -170,6 +170,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div class="log-reference"><?php _e( 'Reference', 'inventory-manager-pro' ); ?></div>
                 <div class="log-in"><?php _e( 'Stock In', 'inventory-manager-pro' ); ?></div>
                 <div class="log-out"><?php _e( 'Stock Out', 'inventory-manager-pro' ); ?></div>
+                <div class="log-actions"><?php _e( 'Actions', 'inventory-manager-pro' ); ?></div>
             </div>
             
             <div class="log-entries">
@@ -186,6 +187,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div class="log-reference">{{reference}}</div>
         <div class="log-in">{{stock_in}}</div>
         <div class="log-out">{{stock_out}}</div>
+        <div class="log-actions"><button class="button delete-entry-btn" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></div>
     </div>
 </script>
 

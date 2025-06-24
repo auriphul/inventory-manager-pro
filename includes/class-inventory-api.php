@@ -40,15 +40,35 @@ class Inventory_API {
 			)
 		);
 
-		register_rest_route(
-			'inventory-manager/v1',
-			'/batch',
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( $this, 'create_batch' ),
-				'permission_callback' => array( $this, 'check_api_permissions' ),
-			)
-		);
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/batch',
+                        array(
+                                'methods'             => 'POST',
+                                'callback'            => array( $this, 'create_batch' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/batch/(?P<id>\d+)',
+                        array(
+                                'methods'             => 'DELETE',
+                                'callback'            => array( $this, 'delete_batch' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/movement/(?P<id>\d+)',
+                        array(
+                                'methods'             => 'DELETE',
+                                'callback'            => array( $this, 'delete_movement' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
 
 		// Adjustment endpoint
 		register_rest_route(
@@ -579,7 +599,7 @@ class Inventory_API {
 	 * @param array  $columns Column headers.
 	 * @param array  $data Data to export.
 	 */
-	private function export_file( $filename, $format, $columns, $data ) {
+        private function export_file( $filename, $format, $columns, $data ) {
 		$date     = date( 'Y-m-d' );
 		$filename = $filename . '_' . $date;
 
@@ -599,7 +619,43 @@ class Inventory_API {
 			// Add data
 			foreach ( $data as $row ) {
 				fputcsv( $output, $row );
-			}
+        }
+
+        /**
+         * Delete a batch.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response|WP_Error The response object or error.
+         */
+        public function delete_batch( $request ) {
+                $batch_id = intval( $request['id'] );
+
+                $result = $this->db->delete_batch( $batch_id );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        /**
+         * Delete a stock movement entry.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response|WP_Error The response object or error.
+         */
+        public function delete_movement( $request ) {
+                $movement_id = intval( $request['id'] );
+
+                $result = $this->db->delete_movement( $movement_id );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
 
 			fclose( $output );
 			exit;

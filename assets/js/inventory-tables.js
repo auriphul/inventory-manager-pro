@@ -149,6 +149,34 @@
                 }, 300);
             }
         });
+
+        // Delete batch
+        $(document).on('click', '.delete-batch', function() {
+            if (!confirm('Are you sure you want to delete this batch?')) {
+                return;
+            }
+
+            const batchId = $(this).data('id');
+
+            $.ajax({
+                url: inventory_manager.api_url + '/batch/' + batchId,
+                method: 'DELETE',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+                },
+                success: function() {
+                    inventoryManager.showNotification('Batch deleted', 'success');
+                    loadBatches();
+                },
+                error: function(xhr) {
+                    let message = 'Error deleting batch';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    inventoryManager.showNotification(message, 'error');
+                }
+            });
+        });
     }
     
     /**
@@ -158,7 +186,7 @@
         const tableBody = $('.inventory-table tbody');
         
         // Show loading
-        tableBody.html('<tr><td colspan="10" class="loading">Loading...</td></tr>');
+        tableBody.html('<tr><td colspan="11" class="loading">Loading...</td></tr>');
         
         // Prepare request data
         const data = {
@@ -196,7 +224,7 @@
                     message = xhr.responseJSON.message;
                 }
                 
-                tableBody.html('<tr><td colspan="10" class="error">' + message + '</td></tr>');
+                tableBody.html('<tr><td colspan="11" class="error">' + message + '</td></tr>');
             }
         });
     }
@@ -208,7 +236,7 @@
         const tableBody = $('.inventory-table tbody');
         
         if (state.batches.length === 0) {
-            tableBody.html('<tr><td colspan="10" class="no-results">No batches found</td></tr>');
+            tableBody.html('<tr><td colspan="11" class="no-results">No batches found</td></tr>');
             return;
         }
         

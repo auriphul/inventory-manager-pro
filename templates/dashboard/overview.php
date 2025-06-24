@@ -101,12 +101,13 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 				<th data-sort="origin" class="column-origin"><?php _e( 'ORIGIN', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="location" class="column-location"><?php _e( 'LOCATION', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="stock_cost" class="column-stock_cost"><?php _e( 'STOCK COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
-				<th data-sort="landed_cost" class="column-landed_cost"><?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
+                                <th data-sort="landed_cost" class="column-landed_cost"><?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
+                                <th><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr>
-				<td colspan="10" class="loading"><?php _e( 'Loading...', 'inventory-manager-pro' ); ?></td>
+                                <td colspan="11" class="loading"><?php _e( 'Loading...', 'inventory-manager-pro' ); ?></td>
 			</tr>
 		</tbody>
 	</table>
@@ -117,16 +118,17 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 </div>
 
 <script id="batch-row-template" type="text/template">
-	<tr data-id="{{id}}" class="expiry-{{expiry_range}}">
-		<td>{{sku}}</td>
-		<td>{{product_name}}</td>
-		<td>{{batch_number}}</td>
-		<td>{{stock_qty}}</td>
-		<td class="column-supplier">{{supplier_name}}</td>
-		<td class="column-expiry">{{expiry_formatted}}</td>
-		<td class="column-origin">{{origin}}</td>
-		<td class="column-location">{{location}}</td>
-		<td class="column-stock_cost">{{stock_cost_formatted}}</td>
-		<td class="column-landed_cost">{{landed_cost_formatted}}</td>
-	</tr>
+        <tr data-id="{{id}}" class="expiry-{{expiry_range}}">
+                <td>{{sku}}</td>
+                <td>{{product_name}}</td>
+                <td>{{batch_number}}</td>
+                <td>{{stock_qty}}</td>
+                <td class="column-supplier">{{supplier_name}}</td>
+                <td class="column-expiry">{{expiry_formatted}}</td>
+                <td class="column-origin">{{origin}}</td>
+                <td class="column-location">{{location}}</td>
+                <td class="column-stock_cost">{{stock_cost_formatted}}</td>
+                <td class="column-landed_cost">{{landed_cost_formatted}}</td>
+                <td><button class="button delete-batch" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></td>
+        </tr>
 </script>

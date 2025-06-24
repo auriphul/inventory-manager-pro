@@ -113,6 +113,34 @@
             const batchId = $(this).data('batch-id');
             openAdjustmentModal(batchId);
         });
+
+        // Delete movement entry
+        $(document).on('click', '.delete-entry-btn', function() {
+            if (!confirm('Are you sure you want to delete this entry?')) {
+                return;
+            }
+
+            const entryId = $(this).data('id');
+
+            $.ajax({
+                url: inventory_manager.api_url + '/movement/' + entryId,
+                method: 'DELETE',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+                },
+                success: function() {
+                    inventoryManager.showNotification('Entry deleted', 'success');
+                    loadLogs();
+                },
+                error: function(xhr) {
+                    let message = 'Error deleting entry';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    inventoryManager.showNotification(message, 'error');
+                }
+            });
+        });
     }
     
     /**
@@ -352,6 +380,7 @@
                 html += '<div class="log-reference">' + movement.reference + '</div>';
                 html += '<div class="log-in">' + (movement.stock_in || '') + '</div>';
                 html += '<div class="log-out">' + (movement.stock_out || '') + '</div>';
+                html += '<div class="log-actions"><button class="button delete-entry-btn" data-id="' + movement.id + '">Delete</button></div>';
                 html += '</div>';
             });
             
