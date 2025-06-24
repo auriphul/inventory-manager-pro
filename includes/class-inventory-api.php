@@ -599,7 +599,7 @@ class Inventory_API {
 	 * @param array  $columns Column headers.
 	 * @param array  $data Data to export.
 	 */
-        private function export_file( $filename, $format, $columns, $data ) {
+	private function export_file( $filename, $format, $columns, $data ) {
 		$date     = date( 'Y-m-d' );
 		$filename = $filename . '_' . $date;
 
@@ -619,43 +619,7 @@ class Inventory_API {
 			// Add data
 			foreach ( $data as $row ) {
 				fputcsv( $output, $row );
-        }
-
-        /**
-         * Delete a batch.
-         *
-         * @param WP_REST_Request $request The request object.
-         * @return WP_REST_Response|WP_Error The response object or error.
-         */
-        public function delete_batch( $request ) {
-                $batch_id = intval( $request['id'] );
-
-                $result = $this->db->delete_batch( $batch_id );
-
-                if ( is_wp_error( $result ) ) {
-                        return $result;
-                }
-
-                return rest_ensure_response( array( 'success' => true ) );
-        }
-
-        /**
-         * Delete a stock movement entry.
-         *
-         * @param WP_REST_Request $request The request object.
-         * @return WP_REST_Response|WP_Error The response object or error.
-         */
-        public function delete_movement( $request ) {
-                $movement_id = intval( $request['id'] );
-
-                $result = $this->db->delete_movement( $movement_id );
-
-                if ( is_wp_error( $result ) ) {
-                        return $result;
-                }
-
-                return rest_ensure_response( array( 'success' => true ) );
-        }
+			}
 
 			fclose( $output );
 			exit;
@@ -707,6 +671,42 @@ class Inventory_API {
 			exit;
 		}
 	}
+
+        /**
+         * Delete a batch.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response|WP_Error The response object or error.
+         */
+        public function delete_batch( $request ) {
+                $batch_id = intval( $request['id'] );
+
+                $result = $this->db->delete_batch( $batch_id );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        /**
+         * Delete a stock movement entry.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response|WP_Error The response object or error.
+         */
+        public function delete_movement( $request ) {
+                $movement_id = intval( $request['id'] );
+
+                $result = $this->db->delete_movement( $movement_id );
+
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+
+                return rest_ensure_response( array( 'success' => true ) );
+        }
 
 	/**
 	 * Get suppliers.
