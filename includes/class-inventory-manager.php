@@ -167,14 +167,15 @@ class Inventory_Manager {
 			false
 		);
 
-		wp_localize_script(
-			'inventory-manager-admin',
-			'inventory_manager_admin',
-			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'    => wp_create_nonce( 'inventory-manager-admin-nonce' ),
-			)
-		);
+        wp_localize_script(
+                'inventory-manager-admin',
+                'inventory_manager_admin',
+                array(
+                        'ajax_url' => admin_url( 'admin-ajax.php' ),
+                        'api_url'  => rest_url( 'inventory-manager/v1' ),
+                        'nonce'    => wp_create_nonce( 'wp_rest' ),
+                )
+        );
 	}
 
 	/**

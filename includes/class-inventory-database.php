@@ -731,7 +731,6 @@ class Inventory_Database {
             array('id' => '20_days', 'name' => __('20 days', 'inventory-manager-pro')),
             array('id' => '1_month', 'name' => __('1 month', 'inventory-manager-pro')),
             array('id' => '40_days', 'name' => __('40 days', 'inventory-manager-pro')),
-            array('id' => 'new', 'name' => __('Add new transit time', 'inventory-manager-pro'))
         );
 
         // Get custom transit times from settings
@@ -744,9 +743,6 @@ class Inventory_Database {
                 $transit_times[] = array('id' => $id, 'name' => $name);
             }
         }
-
-        // Always include the option to add a new transit time
-        $transit_times[] = array('id' => 'new', 'name' => __('Add new transit time', 'inventory-manager-pro'));
 
         return $transit_times;
     }
