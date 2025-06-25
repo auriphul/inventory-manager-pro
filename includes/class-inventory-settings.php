@@ -7,11 +7,14 @@
  */
 
 class Inventory_Settings {
-	private $plugin;
+       private $plugin;
+       /** @var Inventory_Database */
+       private $db;
 
-	public function __construct( $plugin ) {
-		$this->plugin = $plugin;
-	}
+       public function __construct( $plugin ) {
+               $this->plugin = $plugin;
+               $this->db     = new Inventory_Database();
+       }
 
 	/**
 	 * Add settings page to admin menu.
@@ -386,15 +389,14 @@ class Inventory_Settings {
 	private function render_supplier_settings() {
 		echo '<h2>' . __( 'Suppliers & Transit Time Settings', 'inventory-manager-pro' ) . '</h2>';
 
-		// Transit time options
-		$transit_times = array(
-			'3_days'  => __( '3 days', 'inventory-manager-pro' ),
-			'1_week'  => __( '1 week', 'inventory-manager-pro' ),
-			'2_weeks' => __( '2 weeks', 'inventory-manager-pro' ),
-			'20_days' => __( '20 days', 'inventory-manager-pro' ),
-			'1_month' => __( '1 month', 'inventory-manager-pro' ),
-			'40_days' => __( '40 days', 'inventory-manager-pro' ),
-		);
+               // Transit time options pulled from database
+               $transit_times = $this->db->get_transit_times();
+
+               // Append placeholder option for adding a new transit time
+               $transit_times[] = array(
+                       'id'   => 'new',
+                       'name' => __( 'Add new transit time', 'inventory-manager-pro' ),
+               );
 
 		echo '<h3>' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</h3>';
 		echo '<p>' . __( 'These options will be available when adding new suppliers.', 'inventory-manager-pro' ) . '</p>';
@@ -404,11 +406,13 @@ class Inventory_Settings {
 		echo '<th scope="row">' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</th>';
 		echo '<td>';
 
-		foreach ( $transit_times as $key => $label ) {
-			echo '<label>';
-			echo '<input type="text" name="inventory_manager_suppliers[transit_times][' . esc_attr( $key ) . ']" value="' . esc_attr( $label ) . '" class="regular-text">';
-			echo '</label><br>';
-		}
+               foreach ( $transit_times as $time ) {
+                       $key   = $time['id'];
+                       $label = $time['name'];
+                       echo '<label>';
+                       echo '<input type="text" name="inventory_manager_suppliers[transit_times][' . esc_attr( $key ) . ']" value="' . esc_attr( $label ) . '" class="regular-text">';
+                       echo '</label><br>';
+               }
 
 		echo '</td>';
 		echo '</tr>';

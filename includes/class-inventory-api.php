@@ -840,50 +840,9 @@ class Inventory_API {
 	 *
 	 * @return array Array of transit time options.
 	 */
-        public function get_transit_times() {
-		$transit_times = array(
-			array(
-				'id'   => '3_days',
-				'name' => __( '3 days', 'inventory-manager-pro' ),
-			),
-			array(
-				'id'   => '1_week',
-				'name' => __( '1 week', 'inventory-manager-pro' ),
-			),
-			array(
-				'id'   => '2_weeks',
-				'name' => __( '2 weeks', 'inventory-manager-pro' ),
-			),
-			array(
-				'id'   => '20_days',
-				'name' => __( '20 days', 'inventory-manager-pro' ),
-			),
-			array(
-				'id'   => '1_month',
-				'name' => __( '1 month', 'inventory-manager-pro' ),
-			),
-			array(
-				'id'   => '40_days',
-				'name' => __( '40 days', 'inventory-manager-pro' ),
-			),
-		);
-
-		// Get custom transit times from settings
-		$custom_times = get_option( 'inventory_manager_suppliers', array() );
-
-		if ( ! empty( $custom_times['transit_times'] ) ) {
-			$transit_times = array();
-
-			foreach ( $custom_times['transit_times'] as $id => $name ) {
-				$transit_times[] = array(
-					'id'   => $id,
-					'name' => $name,
-				);
-			}
-		}
-
-                return $transit_times;
-        }
+       public function get_transit_times() {
+               return $this->db->get_transit_times();
+       }
 
         /**
          * Add a transit time option.
