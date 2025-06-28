@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <option value="last_3_months"><?php _e( 'Last 3 Months', 'inventory-manager-pro' ); ?></option>
                 <option value="last_6_months"><?php _e( 'Last 6 Months', 'inventory-manager-pro' ); ?></option>
                 <option value="this_year"><?php _e( 'This Year', 'inventory-manager-pro' ); ?></option>
-                <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option>
+                <!-- <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option> -->
             </select>
 
             <div class="custom-date-range" style="display:none;">
@@ -57,7 +57,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <option value="last_3_months"><?php _e( 'Last 3 Months', 'inventory-manager-pro' ); ?></option>
                 <option value="last_6_months"><?php _e( 'Last 6 Months', 'inventory-manager-pro' ); ?></option>
                 <option value="this_year"><?php _e( 'This Year', 'inventory-manager-pro' ); ?></option>
-                <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option>
+                <!-- <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option> -->
             </select>
 
             <div class="custom-batch-date-range" style="display:none;">
