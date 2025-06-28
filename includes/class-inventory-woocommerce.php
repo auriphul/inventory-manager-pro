@@ -40,6 +40,9 @@ class Inventory_Manager_WooCommerce {
 
                // Detect quantity changes on admin order update.
                add_action( 'woocommerce_before_save_order_items', array( $this, 'maybe_adjust_order_item_quantities' ), 10, 2 );
+               add_action( 'init', [$this, 'register_custom_order_statuses'] );
+               add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
+               add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
        }
 
        /**
@@ -823,4 +826,43 @@ class Inventory_Manager_WooCommerce {
                        wp_set_object_terms( $product->product_id, (int) $term->term_id, 'product_cat', true );
                }
        }
+       function register_custom_order_statuses() {
+                register_post_status( 'wc-credit-note', array(
+                'label'                     => _x( 'Credit Note', 'Order status', 'woocommerce' ),
+                'public'                    => true,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop( 'Credit Note (%s)', 'Credit Note (%s)', 'woocommerce' )
+                ) );
+        
+                register_post_status( 'wc-invoice', array(
+                'label'                     => _x( 'Invoice', 'Order status', 'woocommerce' ),
+                'public'                    => true,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop( 'Invoice (%s)', 'Invoice (%s)', 'woocommerce' )
+                ) );
+        }
+        function add_custom_order_statuses( $order_statuses ) {
+                $new_statuses = array();
+                
+                // Place custom statuses after processing
+                foreach ( $order_statuses as $key => $status ) {
+                        $new_statuses[ $key ] = $status;
+                
+                        if ( 'wc-processing' === $key ) {
+                        $new_statuses['wc-credit-note'] = _x( 'Credit Note', 'Order status', 'woocommerce' );
+                        $new_statuses['wc-invoice']     = _x( 'Invoice', 'Order status', 'woocommerce' );
+                        }
+                }
+                
+                return $new_statuses;
+        }
+        function add_custom_bulk_actions( $bulk_actions ) {
+                $bulk_actions['mark_credit-note'] = 'Mark as Credit Note';
+                $bulk_actions['mark_invoice']     = 'Mark as Invoice';
+                return $bulk_actions;
+        }
 }
