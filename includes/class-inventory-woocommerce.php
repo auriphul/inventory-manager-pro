@@ -40,9 +40,9 @@ class Inventory_Manager_WooCommerce {
 
                // Detect quantity changes on admin order update.
                add_action( 'woocommerce_before_save_order_items', array( $this, 'maybe_adjust_order_item_quantities' ), 10, 2 );
-               add_action( 'init', [$this, 'register_custom_order_statuses'] );
-               add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
-               add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
+        //        add_action( 'init', [$this, 'register_custom_order_statuses'] );
+        //        add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
+        //        add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
        }
 
        /**

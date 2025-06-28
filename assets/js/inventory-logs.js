@@ -205,6 +205,7 @@
         });
         
         logsContainer.html(html);
+        $('.product-header').click();
     }
     
     /**
@@ -592,8 +593,5 @@
     $(document).ready(function() {
         init();
     });
-    setTimeout(function(){
-        $('.product-header').click();
-    },500);
 
 })(jQuery);
