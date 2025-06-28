@@ -480,9 +480,10 @@ class Inventory_API {
 		$params = $request->get_params();
 
                 $args = array(
-                        'period' => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
-                        'search' => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
-                        'order'  => isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'ASC',
+                        'period'       => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
+                        'batch_period' => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
+                        'search'       => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
+                        'order'        => isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'ASC',
                 );
 
 		$products = $this->db->get_detailed_logs( $args );
@@ -564,11 +565,12 @@ class Inventory_API {
 
 			// Export data
 			$this->export_file( 'inventory_overview', $format, $columns, $data );
-		} elseif ( $type === 'detailed-logs' ) {
-			$args = array(
-				'period' => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
-				'search' => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
-			);
+                } elseif ( $type === 'detailed-logs' ) {
+                        $args = array(
+                                'period'       => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
+                                'batch_period' => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
+                                'search'       => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
+                        );
 
 			// Get detailed logs
 			$products = $this->db->get_detailed_logs( $args );

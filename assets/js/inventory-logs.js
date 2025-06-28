@@ -9,6 +9,7 @@
     // Current state
     let state = {
         period: 'last_30_days',
+        batch_period: 'all',
         search: '',
         order: 'ASC',
         products: []
@@ -36,6 +37,12 @@
         // Period filter
         $('.period-filter').on('change', function() {
             state.period = $(this).val();
+            loadLogs();
+        });
+
+        // Batch period filter
+        $('.batch-period-filter').on('change', function() {
+            state.batch_period = $(this).val();
             loadLogs();
         });
 
@@ -155,6 +162,7 @@
         // Prepare request data
         const data = {
             period: state.period,
+            batch_period: state.batch_period,
             search: state.search,
             order: state.order
         };
@@ -560,6 +568,7 @@
             format: $('.logs-export-format').val() || 'csv',
             type: 'detailed-logs',
             period: state.period,
+            batch_period: state.batch_period,
             search: state.search
         };
         

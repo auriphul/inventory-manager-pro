@@ -612,12 +612,42 @@ class Inventory_Database {
 
         foreach ($products as $product) {
             // Get batches for this product
-            $batches_query = "SELECT b.*, 
+            $batches_query = "SELECT b.*,
                             (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) as supplier_name
                             FROM {$wpdb->prefix}inventory_batches b
-                            WHERE b.product_id = %d
-                            ORDER BY b.batch_number ASC";
-            
+                            WHERE b.product_id = %d";
+            if ( ! empty( $args['batch_period'] ) && 'all' !== $args['batch_period'] ) {
+                switch ( $args['batch_period'] ) {
+                    case 'today':
+                        $batches_query .= " AND DATE(b.date_created) = CURDATE()";
+                        break;
+                    case 'yesterday':
+                        $batches_query .= " AND DATE(b.date_created) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
+                        break;
+                    case 'this_week':
+                        $batches_query .= " AND YEARWEEK(b.date_created, 1) = YEARWEEK(CURDATE(), 1)";
+                        break;
+                    case 'last_week':
+                        $batches_query .= " AND YEARWEEK(b.date_created, 1) = YEARWEEK(CURDATE() - INTERVAL 1 WEEK, 1)";
+                        break;
+                    case 'this_month':
+                        $batches_query .= " AND MONTH(b.date_created) = MONTH(CURDATE()) AND YEAR(b.date_created) = YEAR(CURDATE())";
+                        break;
+                    case 'last_month':
+                        $batches_query .= " AND MONTH(b.date_created) = MONTH(CURDATE() - INTERVAL 1 MONTH) AND YEAR(b.date_created) = YEAR(CURDATE() - INTERVAL 1 MONTH)";
+                        break;
+                    case 'last_3_months':
+                        $batches_query .= " AND b.date_created >= CURDATE() - INTERVAL 3 MONTH";
+                        break;
+                    case 'last_6_months':
+                        $batches_query .= " AND b.date_created >= CURDATE() - INTERVAL 6 MONTH";
+                        break;
+                    case 'this_year':
+                        $batches_query .= " AND YEAR(b.date_created) = YEAR(CURDATE())";
+                        break;
+                }
+            }
+            $batches_query .= " ORDER BY b.batch_number ASC";
             $batches = $wpdb->get_results($wpdb->prepare($batches_query, $product['product_id']));
 
             if (empty($batches)) {

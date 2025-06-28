@@ -38,9 +38,30 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <option value="this_year"><?php _e( 'This Year', 'inventory-manager-pro' ); ?></option>
                 <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option>
             </select>
-            
+
             <div class="custom-date-range" style="display:none;">
                 <input type="text" class="logs-date-range" placeholder="<?php _e( 'Select date range', 'inventory-manager-pro' ); ?>">
+            </div>
+        </div>
+
+        <div class="batch-period-filter-container">
+            <label for="batch-period-filter"><?php _e( 'Batch Period:', 'inventory-manager-pro' ); ?></label>
+            <select id="batch-period-filter" class="batch-period-filter">
+                <option value="all"><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
+                <option value="today"><?php _e( 'Today', 'inventory-manager-pro' ); ?></option>
+                <option value="yesterday"><?php _e( 'Yesterday', 'inventory-manager-pro' ); ?></option>
+                <option value="this_week"><?php _e( 'This Week', 'inventory-manager-pro' ); ?></option>
+                <option value="last_week"><?php _e( 'Last Week', 'inventory-manager-pro' ); ?></option>
+                <option value="this_month"><?php _e( 'This Month', 'inventory-manager-pro' ); ?></option>
+                <option value="last_month"><?php _e( 'Last Month', 'inventory-manager-pro' ); ?></option>
+                <option value="last_3_months"><?php _e( 'Last 3 Months', 'inventory-manager-pro' ); ?></option>
+                <option value="last_6_months"><?php _e( 'Last 6 Months', 'inventory-manager-pro' ); ?></option>
+                <option value="this_year"><?php _e( 'This Year', 'inventory-manager-pro' ); ?></option>
+                <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option>
+            </select>
+
+            <div class="custom-batch-date-range" style="display:none;">
+                <input type="text" class="batch-date-range" placeholder="<?php _e( 'Select date range', 'inventory-manager-pro' ); ?>">
             </div>
         </div>
         
