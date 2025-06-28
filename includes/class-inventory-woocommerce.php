@@ -20,8 +20,8 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_order_status_completed', array( $this, 'process_order_stock_reduction' ), 10, 2 );
                add_action( 'woocommerce_order_status_cancelled', array( $this, 'process_order_stock_restoration' ), 10, 2 );
                add_action( 'woocommerce_order_status_refunded', array( $this, 'process_order_stock_restoration' ), 10, 2 );
-               add_action( 'woocommerce_order_status_wc-invoice', array( $this, 'admin_order_invoice_status' ), 10, 2 );
-               add_action( 'woocommerce_order_status_wc-credit-note', array( $this, 'admin_order_credit_note_status' ), 10, 2 );
+               add_action( 'woocommerce_order_status_invoice', array( $this, 'admin_order_invoice_status' ), 10, 2 );
+               add_action( 'woocommerce_order_status_credit-note', array( $this, 'admin_order_credit_note_status' ), 10, 2 );
 
 		// Product display.
                add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'display_batch_info_single_product' ) );
@@ -784,6 +784,7 @@ class Inventory_Manager_WooCommerce {
         * @param WC_Order $order    Order object.
         */
        public function admin_order_invoice_status( $order_id, $order ) {
+        // echo '<pre>';print_r($order);exit;
                if ( $order && $order->get_created_via() === 'admin' ) {
                        $this->process_order_stock_reduction( $order_id, $order );
                }

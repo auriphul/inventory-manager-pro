@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Inventory Manager Pro
- * Plugin URI: https://example.com/inventory-manager-pro
+ * Plugin URI: https://aurang.dev/inventory-manager-pro
  * Description: Advanced inventory management system for WooCommerce with batch tracking capabilities
- * Version: 2.2.4
+ * Version: 2.2.5
  * Author: Aurang Zeb
  * Author URI: https://aurang.dev
  * Text Domain: inventory-manager-pro
@@ -15,7 +15,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'INVENTORY_MANAGER_VERSION', '2.2.4' );
+define( 'INVENTORY_MANAGER_VERSION', '2.2.5' );
 define( 'INVENTORY_MANAGER_FILE', __FILE__ );
 define( 'INVENTORY_MANAGER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'INVENTORY_MANAGER_URL', plugin_dir_url( __FILE__ ) );

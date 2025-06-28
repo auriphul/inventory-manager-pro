@@ -79,13 +79,13 @@
             if (header.hasClass('expanded')) {
                 header.removeClass('expanded');
                 icon
-                    .removeClass('dashicons-arrow-up-alt2')
-                    .addClass('dashicons-arrow-down-alt2');
+                    .removeClass('dashicons-arrow-down-alt2')
+                    .addClass('dashicons-arrow-up-alt2');
             } else {
                 header.addClass('expanded');
                 icon
-                    .removeClass('dashicons-arrow-down-alt2')
-                    .addClass('dashicons-arrow-up-alt2');
+                    .removeClass('dashicons-arrow-up-alt2')
+                    .addClass('dashicons-arrow-down-alt2');
             }
         });
         
@@ -592,5 +592,8 @@
     $(document).ready(function() {
         init();
     });
+    setTimeout(function(){
+        $('.product-header').click();
+    },500);
 
 })(jQuery);
