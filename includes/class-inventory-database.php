@@ -760,7 +760,7 @@ class Inventory_Database {
             array('id' => '2_weeks', 'name' => __('2 weeks', 'inventory-manager-pro')),
             array('id' => '20_days', 'name' => __('20 days', 'inventory-manager-pro')),
             array('id' => '1_month', 'name' => __('1 month', 'inventory-manager-pro')),
-            array('id' => '40_days', 'name' => __('40 days', 'inventory-manager-pro'))
+            array('id' => '40_days', 'name' => __('40 days', 'inventory-manager-pro')),
         );
 
         // Get custom transit times from settings

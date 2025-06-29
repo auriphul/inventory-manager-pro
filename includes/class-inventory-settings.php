@@ -7,11 +7,14 @@
  */
 
 class Inventory_Settings {
-	private $plugin;
+       private $plugin;
+       /** @var Inventory_Database */
+       private $db;
 
-	public function __construct( $plugin ) {
-		$this->plugin = $plugin;
-	}
+       public function __construct( $plugin ) {
+               $this->plugin = $plugin;
+               $this->db     = new Inventory_Database();
+       }
 
 	/**
 	 * Add settings page to admin menu.
@@ -386,34 +389,20 @@ class Inventory_Settings {
 	private function render_supplier_settings() {
 		echo '<h2>' . __( 'Suppliers & Transit Time Settings', 'inventory-manager-pro' ) . '</h2>';
 
-		// Transit time options
-		$transit_times = array(
-			'3_days'  => __( '3 days', 'inventory-manager-pro' ),
-			'1_week'  => __( '1 week', 'inventory-manager-pro' ),
-			'2_weeks' => __( '2 weeks', 'inventory-manager-pro' ),
-			'20_days' => __( '20 days', 'inventory-manager-pro' ),
-			'1_month' => __( '1 month', 'inventory-manager-pro' ),
-			'40_days' => __( '40 days', 'inventory-manager-pro' ),
-		);
-
-		echo '<h3>' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</h3>';
-		echo '<p>' . __( 'These options will be available when adding new suppliers.', 'inventory-manager-pro' ) . '</p>';
-		echo '<table class="form-table">';
-
-		echo '<tr>';
-		echo '<th scope="row">' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</th>';
-		echo '<td>';
-
-		foreach ( $transit_times as $key => $label ) {
-			echo '<label>';
-			echo '<input type="text" name="inventory_manager_suppliers[transit_times][' . esc_attr( $key ) . ']" value="' . esc_attr( $label ) . '" class="regular-text">';
-			echo '</label><br>';
-		}
-
-		echo '</td>';
-		echo '</tr>';
-
-		echo '</table>';
+               // Transit time options managed via REST API
+               echo '<div id="transit-settings-admin" class="inventory-settings-transit">';
+               echo '<h3>' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</h3>';
+               echo '<table class="widefat">';
+               echo '<thead><tr><th>' . __( 'ID', 'inventory-manager-pro' ) . '</th><th>' . __( 'Label', 'inventory-manager-pro' ) . '</th><th></th></tr></thead>';
+               echo '<tbody id="transit-list"></tbody>';
+               echo '</table>';
+               echo '<h4>' . __( 'Add Transit Time', 'inventory-manager-pro' ) . '</h4>';
+               echo '<form id="add-transit-form-admin">';
+               echo '<input type="text" id="new_transit_id_admin" placeholder="' . esc_attr__( 'ID', 'inventory-manager-pro' ) . '" required>'; 
+               echo '<input type="text" id="new_transit_name_admin" placeholder="' . esc_attr__( 'Label', 'inventory-manager-pro' ) . '" required>'; 
+               echo '<button type="submit" class="button">' . __( 'Add', 'inventory-manager-pro' ) . '</button>';
+               echo '</form>';
+               echo '</div>';
 
 		// Matched suppliers & transit times
 		echo '<h3>' . __( 'Matched Suppliers & Transit Times', 'inventory-manager-pro' ) . '</h3>';
