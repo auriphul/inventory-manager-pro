@@ -161,10 +161,10 @@ class Inventory_Manager {
 	public function enqueue_admin_scripts() {
 		wp_enqueue_script(
 			'inventory-manager-admin',
-			INVENTORY_MANAGER_URL . 'assets/js/admin.js',
+			INVENTORY_MANAGER_URL . 'assets/js/inventory-manager.js',
 			array( 'jquery' ),
 			INVENTORY_MANAGER_VERSION,
-			false
+			true
 		);
 
 		wp_localize_script(

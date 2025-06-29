@@ -12,7 +12,7 @@
             // Initialize components based on current page
             this.initCommon();
             this.initDashboard();
-            this.initSettings();
+            // this.initSettings();
             this.initWooCommerceIntegration();
         },
 
