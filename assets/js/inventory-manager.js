@@ -255,7 +255,7 @@
                         action: 'select_order_item_batch',
                         batch_id: batchId,
                         item_id: itemId,
-                        security: woocommerce_admin.nonce
+                        security: inventory_manager_admin.order_nonce
                     },
                     type: 'POST',
                     success: function(response) {
