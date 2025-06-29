@@ -68,8 +68,16 @@ class Inventory_Manager_WooCommerce {
 		// Process each order item
 		foreach ( $order->get_items() as $item_id => $item ) {
 			$product_id = $item->get_product_id();
+			$product = $item->get_product();
+			if ( $product && $product->is_type( 'variation' ) ) {
+				$variation_id = $product->get_id();
+				$inv_reduction_per_item	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+				// $inv_reduction_per_item	=	5;
+			}else{
+				$inv_reduction_per_item	=	1;
+			}
 			$sku        = get_post_meta( $product_id, '_sku', true );
-			$qty        = $item->get_quantity();
+			$qty        = $item->get_quantity()	*	$inv_reduction_per_item;
 
 			// Skip if no SKU
 			if ( empty( $sku ) ) {
@@ -430,7 +438,7 @@ class Inventory_Manager_WooCommerce {
 		if ( $select_batch === 'yes' ) {
 			// Batch selection dropdown
 			echo '<td class="batch-info">';
-			echo '<select class="batch-select" data-item-id="' . esc_attr( $item_id ) . '">';
+			echo '<select class="batch-select" name="_selected_batch_id" data-item-id="' . esc_attr( $item_id ) . '">';
 			echo '<option value="">' . __( 'Select batch', 'inventory-manager-pro' ) . '</option>';
 
 			foreach ( $batches as $batch ) {
