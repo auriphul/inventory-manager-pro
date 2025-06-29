@@ -43,6 +43,34 @@ class Inventory_Settings {
          */
         public function redirect_to_dashboard() {}
 
+       /**
+        * Enqueue scripts for the settings page.
+        *
+        * @param string $hook Current admin page hook.
+        */
+       public function enqueue_scripts( $hook ) {
+               if ( $hook !== 'inventory-manager_page_inventory-manager-settings' ) {
+                       return;
+               }
+
+               wp_enqueue_script(
+                       'inventory-settings',
+                       INVENTORY_MANAGER_URL . 'assets/js/inventory-settings.js',
+                       array( 'jquery' ),
+                       INVENTORY_MANAGER_VERSION,
+                       true
+               );
+
+               wp_localize_script(
+                       'inventory-settings',
+                       'inventory_manager',
+                       array(
+                               'api_url' => rest_url( 'inventory-manager/v1' ),
+                               'nonce'   => wp_create_nonce( 'wp_rest' ),
+                       )
+               );
+       }
+
 	/**
 	 * Register settings.
 	 */
@@ -108,10 +136,12 @@ class Inventory_Settings {
 				settings_fields( 'inventory_manager_frontend' );
 				$this->render_frontend_settings();
 				break;
-			case 'suppliers':
-				settings_fields( 'inventory_manager_suppliers' );
-				$this->render_supplier_settings();
-				break;
+                       case 'suppliers':
+                               settings_fields( 'inventory_manager_suppliers' );
+                               echo '<div id="settings-tab">';
+                               $this->render_supplier_settings();
+                               echo '</div>';
+                               break;
 			case 'logs':
 				settings_fields( 'inventory_manager_logs' );
 				$this->render_logs_settings();
@@ -383,68 +413,39 @@ class Inventory_Settings {
 	/**
 	 * Render supplier settings.
 	 */
-	private function render_supplier_settings() {
-		echo '<h2>' . __( 'Suppliers & Transit Time Settings', 'inventory-manager-pro' ) . '</h2>';
+       private function render_supplier_settings() {
+               echo '<h2>' . __( 'Suppliers & Transit Time Settings', 'inventory-manager-pro' ) . '</h2>';
 
-		// Transit time options
-		$transit_times = array(
-			'3_days'  => __( '3 days', 'inventory-manager-pro' ),
-			'1_week'  => __( '1 week', 'inventory-manager-pro' ),
-			'2_weeks' => __( '2 weeks', 'inventory-manager-pro' ),
-			'20_days' => __( '20 days', 'inventory-manager-pro' ),
-			'1_month' => __( '1 month', 'inventory-manager-pro' ),
-			'40_days' => __( '40 days', 'inventory-manager-pro' ),
-		);
+               echo '<div class="inventory-settings-suppliers">';
+               echo '<h3>' . __( 'Suppliers', 'inventory-manager-pro' ) . '</h3>';
+               echo '<table class="widefat">';
+               echo '<thead><tr><th>' . __( 'Name', 'inventory-manager-pro' ) . '</th><th>' . __( 'Transit Time', 'inventory-manager-pro' ) . '</th><th></th></tr></thead>';
+               echo '<tbody id="supplier-list"></tbody>';
+               echo '</table>';
+               echo '<h4>' . __( 'Add Supplier', 'inventory-manager-pro' ) . '</h4>';
+               echo '<form id="add-supplier-form">';
+               echo '<input type="text" id="new_supplier_name" placeholder="' . esc_attr__( 'Supplier Name', 'inventory-manager-pro' ) . '" required>';
+               echo '<select id="new_supplier_transit"></select>';
+               echo '<button type="submit" class="button">' . __( 'Add', 'inventory-manager-pro' ) . '</button>';
+               echo '</form>';
+               echo '</div>';
 
-		echo '<h3>' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</h3>';
-		echo '<p>' . __( 'These options will be available when adding new suppliers.', 'inventory-manager-pro' ) . '</p>';
-		echo '<table class="form-table">';
+               echo '<hr />';
 
-		echo '<tr>';
-		echo '<th scope="row">' . __( 'Transit Time Options', 'inventory-manager-pro' ) . '</th>';
-		echo '<td>';
-
-		foreach ( $transit_times as $key => $label ) {
-			echo '<label>';
-			echo '<input type="text" name="inventory_manager_suppliers[transit_times][' . esc_attr( $key ) . ']" value="' . esc_attr( $label ) . '" class="regular-text">';
-			echo '</label><br>';
-		}
-
-		echo '</td>';
-		echo '</tr>';
-
-		echo '</table>';
-
-		// Matched suppliers & transit times
-		echo '<h3>' . __( 'Matched Suppliers & Transit Times', 'inventory-manager-pro' ) . '</h3>';
-		echo '<p>' . __( 'This is a read-only view of current supplier transit times.', 'inventory-manager-pro' ) . '</p>';
-
-		global $wpdb;
-		$suppliers = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}inventory_suppliers ORDER BY name ASC" );
-
-		if ( $suppliers ) {
-			echo '<table class="widefat fixed" cellspacing="0">';
-			echo '<thead>';
-			echo '<tr>';
-			echo '<th>' . __( 'Supplier', 'inventory-manager-pro' ) . '</th>';
-			echo '<th>' . __( 'Transit Time', 'inventory-manager-pro' ) . '</th>';
-			echo '</tr>';
-			echo '</thead>';
-			echo '<tbody>';
-
-			foreach ( $suppliers as $supplier ) {
-				echo '<tr>';
-				echo '<td>' . esc_html( $supplier->name ) . '</td>';
-				echo '<td>' . esc_html( $supplier->transit_time ) . '</td>';
-				echo '</tr>';
-			}
-
-			echo '</tbody>';
-			echo '</table>';
-		} else {
-			echo '<p>' . __( 'No suppliers found.', 'inventory-manager-pro' ) . '</p>';
-		}
-	}
+               echo '<div class="inventory-settings-transit">';
+               echo '<h3>' . __( 'Transit Times', 'inventory-manager-pro' ) . '</h3>';
+               echo '<table class="widefat">';
+               echo '<thead><tr><th>' . __( 'ID', 'inventory-manager-pro' ) . '</th><th>' . __( 'Label', 'inventory-manager-pro' ) . '</th><th></th></tr></thead>';
+               echo '<tbody id="transit-list"></tbody>';
+               echo '</table>';
+               echo '<h4>' . __( 'Add Transit Time', 'inventory-manager-pro' ) . '</h4>';
+               echo '<form id="add-transit-form">';
+               echo '<input type="text" id="new_transit_id" placeholder="' . esc_attr__( 'ID', 'inventory-manager-pro' ) . '" required>';
+               echo '<input type="text" id="new_transit_name" placeholder="' . esc_attr__( 'Label', 'inventory-manager-pro' ) . '" required>';
+               echo '<button type="submit" class="button">' . __( 'Add', 'inventory-manager-pro' ) . '</button>';
+               echo '</form>';
+               echo '</div>';
+       }
 
 	/**
 	 * Render logs settings.
