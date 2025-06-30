@@ -12,6 +12,7 @@
         batch_period: 'all',
         search: '',
         order: 'ASC',
+        expiry_filters: ['6+', '3-6', '1-3', '<1', 'expired'],
         products: []
     };
 
@@ -37,6 +38,20 @@
         // Period filter
         $('.period-filter').on('change', function() {
             state.period = $(this).val();
+            loadLogs();
+        });
+
+        // Expiry filters
+        $('.filter-expiry').on('change', function() {
+            const range = $(this).data('range');
+            const index = state.expiry_filters.indexOf(range);
+
+            if ($(this).is(':checked') && index === -1) {
+                state.expiry_filters.push(range);
+            } else if (!$(this).is(':checked') && index !== -1) {
+                state.expiry_filters.splice(index, 1);
+            }
+
             loadLogs();
         });
 
@@ -69,6 +84,8 @@
         $('.show-all-batches-btn').on('click', function() {
             $('.logs-search-box input').val('');
             state.search = '';
+            $('.filter-expiry').prop('checked', true);
+            state.expiry_filters = ['6+', '3-6', '1-3', '<1', 'expired'];
             loadLogs();
         });
         
@@ -164,7 +181,8 @@
             period: state.period,
             batch_period: state.batch_period,
             search: state.search,
-            order: state.order
+            order: state.order,
+            expiry_filters: state.expiry_filters
         };
         
         // Make API request
@@ -570,7 +588,8 @@
             type: 'detailed-logs',
             period: state.period,
             batch_period: state.batch_period,
-            search: state.search
+            search: state.search,
+            expiry_filters: state.expiry_filters
         };
         
         // Create form and submit it

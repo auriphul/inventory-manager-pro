@@ -480,10 +480,11 @@ class Inventory_API {
 		$params = $request->get_params();
 
                 $args = array(
-                        'period'       => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
-                        'batch_period' => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
-                        'search'       => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
-                        'order'        => isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'ASC',
+                        'period'        => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
+                        'batch_period'  => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
+                        'search'        => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
+                        'order'         => isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'ASC',
+                        'expiry_filters'=> isset( $params['expiry_filters'] ) ? (array) $params['expiry_filters'] : array(),
                 );
 
 		$products = $this->db->get_detailed_logs( $args );
@@ -567,9 +568,10 @@ class Inventory_API {
 			$this->export_file( 'inventory_overview', $format, $columns, $data );
                 } elseif ( $type === 'detailed-logs' ) {
                         $args = array(
-                                'period'       => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
-                                'batch_period' => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
-                                'search'       => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
+                                'period'        => isset( $params['period'] ) ? sanitize_text_field( $params['period'] ) : '',
+                                'batch_period'  => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
+                                'search'        => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
+                                'expiry_filters'=> isset( $params['expiry_filters'] ) ? (array) $params['expiry_filters'] : array(),
                         );
 
 			// Get detailed logs

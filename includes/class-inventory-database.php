@@ -574,9 +574,11 @@ class Inventory_Database {
         global $wpdb;
         // Default arguments
         $defaults = array(
-            'period' => '',
-            'search' => '',
-            'order'  => 'ASC',
+            'period'        => '',
+            'batch_period'  => '',
+            'search'        => '',
+            'order'         => 'ASC',
+            'expiry_filters'=> array(),
         );
 
         $args = wp_parse_args($args, $defaults);
@@ -645,6 +647,38 @@ class Inventory_Database {
                     case 'this_year':
                         $batches_query .= " AND YEAR(b.date_created) = YEAR(CURDATE())";
                         break;
+                }
+            }
+
+            // Filter by expiry range
+            if ( ! empty( $args['expiry_filters'] ) ) {
+                $expiry_conditions = array();
+
+                foreach ( $args['expiry_filters'] as $range ) {
+                    switch ( $range ) {
+                        case '6+':
+                            $expiry_conditions[] = '(b.expiry_date > DATE_ADD(CURDATE(), INTERVAL 6 MONTH))';
+                            break;
+                        case '3-6':
+                            $expiry_conditions[] = '(b.expiry_date > DATE_ADD(CURDATE(), INTERVAL 3 MONTH) AND b.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 6 MONTH))';
+                            break;
+                        case '1-3':
+                            $expiry_conditions[] = '(b.expiry_date > DATE_ADD(CURDATE(), INTERVAL 1 MONTH) AND b.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 3 MONTH))';
+                            break;
+                        case '<1':
+                            $expiry_conditions[] = '(b.expiry_date > CURDATE() AND b.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 1 MONTH))';
+                            break;
+                        case 'expired':
+                            $expiry_conditions[] = '(b.expiry_date <= CURDATE())';
+                            break;
+                        case 'no_expiry':
+                            $expiry_conditions[] = '(b.expiry_date IS NULL)';
+                            break;
+                    }
+                }
+
+                if ( ! empty( $expiry_conditions ) ) {
+                    $batches_query .= ' AND (' . implode( ' OR ', $expiry_conditions ) . ')';
                 }
             }
             $batches_query .= " ORDER BY b.batch_number ASC";
