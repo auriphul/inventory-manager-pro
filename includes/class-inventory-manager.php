@@ -71,7 +71,7 @@ class Inventory_Manager {
                 require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-fullscreen.php';
 
                 // Custom notice handler to override WooCommerce notices.
-                require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-notices.php';
+                // require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-notices.php';
 
 		$this->loader = new Inventory_Loader();
 	}
