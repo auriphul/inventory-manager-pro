@@ -303,7 +303,8 @@
         let html = '<div class="batch-section">';
         
         // Batch header
-        html += '<div class="batch-header">';
+        const expiryClass = batch.expiry_range ? ' expiry-' + batch.expiry_range : '';
+        html += '<div class="batch-header' + expiryClass + '">';
         html += '<div class="batch-number">';
         html += '<span class="label">Batch</span>';
         html += '<span class="value">' + batch.batch_number + '</span>';

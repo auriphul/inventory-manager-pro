@@ -656,11 +656,32 @@ class Inventory_Database {
 
             // Format batches and get movements
             foreach ($batches as &$batch) {
-                // Format expiry date
+                // Format expiry date and determine expiry range
                 if (!empty($batch->expiry_date)) {
                     $batch->expiry_formatted = date_i18n(INVENTORY_MANAGER_DATE_FORMAT, strtotime($batch->expiry_date));
+
+                    // Determine expiry range similar to get_batches()
+                    $today  = time();
+                    $expiry = strtotime($batch->expiry_date);
+
+                    if ($expiry <= $today) {
+                        $batch->expiry_range = 'expired';
+                    } else {
+                        $diff_months = ($expiry - $today) / (30 * 24 * 60 * 60); // Approximate months
+
+                        if ($diff_months > 6) {
+                            $batch->expiry_range = '6plus';
+                        } elseif ($diff_months > 3) {
+                            $batch->expiry_range = '3-6';
+                        } elseif ($diff_months > 1) {
+                            $batch->expiry_range = '1-3';
+                        } else {
+                            $batch->expiry_range = 'less1';
+                        }
+                    }
                 } else {
                     $batch->expiry_formatted = '';
+                    $batch->expiry_range    = 'no_expiry';
                 }
 
                 // Get movements for this batch
