@@ -65,10 +65,13 @@ class Inventory_Manager {
 		// The class responsible for integrating with WooCommerce.
 		require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-woocommerce.php';
 
-		// The class responsible for plugin settings.
-		require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-settings.php';
+                // The class responsible for plugin settings.
+                require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-settings.php';
 
-		require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-fullscreen.php';
+                require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-fullscreen.php';
+
+                // Custom notice handler to override WooCommerce notices.
+                require_once INVENTORY_MANAGER_PATH . 'includes/class-inventory-notices.php';
 
 		$this->loader = new Inventory_Loader();
 	}
