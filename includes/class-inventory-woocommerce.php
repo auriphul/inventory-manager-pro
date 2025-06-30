@@ -45,6 +45,10 @@ class Inventory_Manager_WooCommerce {
                add_action( 'wp_ajax_get_product_batches', array( $this, 'get_product_batches' ) );
                add_action( 'wp_ajax_select_order_item_batch', array( $this, 'select_order_item_batch' ) );
 
+               // Stock notice retrieval via AJAX for cart fragment refreshes
+               add_action( 'wp_ajax_inventory_manager_get_stock_notices', array( $this, 'ajax_get_stock_notices' ) );
+               add_action( 'wp_ajax_nopriv_inventory_manager_get_stock_notices', array( $this, 'ajax_get_stock_notices' ) );
+
                // Detect quantity changes on admin order update.
                add_action( 'woocommerce_before_save_order_items', array( $this, 'maybe_adjust_order_item_quantities' ), 10, 2 );
 
@@ -1033,5 +1037,22 @@ class Inventory_Manager_WooCommerce {
         */
        public static function get_checkout_stock_messages() {
                return self::$checkout_stock_messages;
+       }
+
+       /**
+        * AJAX callback to retrieve checkout stock notices.
+        *
+        * Invoked when cart fragments are refreshed on the front-end to
+        * fetch any stock allocation messages for display in modals or
+        * custom interfaces.
+        */
+       public function ajax_get_stock_notices() {
+               $this->add_checkout_stock_notices();
+
+               wp_send_json_success(
+                       array(
+                               'messages' => self::get_checkout_stock_messages(),
+                       )
+               );
        }
 }
