@@ -87,15 +87,32 @@ class Inventory_Manager_WooCommerce {
 			// Check if specific batch was selected for this item
 			$selected_batch_id = wc_get_order_item_meta( $item_id, '_selected_batch_id', true );
 
-			if ( $selected_batch_id ) {
-				// Deduct from specific batch
-				$this->deduct_stock_from_batch( $selected_batch_id, $qty, $order_id, $item_id );
-			} else {
-				// Deduct based on method
-				$this->deduct_stock_by_method( $sku, $qty, $stock_deduction_method, $order_id, $item_id );
-			}
-		}
-	}
+                       if ( $selected_batch_id ) {
+                               $batch = $this->db->get_batch( $selected_batch_id );
+                               if ( ! $batch ) {
+                                       $order->add_order_note( sprintf( __( 'Batch ID %1$d not found for SKU %2$s.', 'inventory-manager-pro' ), $selected_batch_id, $sku ) );
+                                       $this->deduct_stock_by_method( $sku, $qty, $stock_deduction_method, $order_id, $item_id );
+                                       continue;
+                               }
+
+                               $available = floatval( $batch->stock_qty );
+
+                               if ( $qty > $available ) {
+                                       if ( $available > 0 ) {
+                                               $this->deduct_stock_from_batch( $selected_batch_id, $available, $order_id, $item_id );
+                                       }
+
+                                       $remaining = $qty - $available;
+                                       $this->deduct_stock_by_method( $sku, $remaining, 'closest_expiry', $order_id, $item_id );
+                               } else {
+                                       $this->deduct_stock_from_batch( $selected_batch_id, $qty, $order_id, $item_id );
+                               }
+                       } else {
+                               // Deduct based on method
+                               $this->deduct_stock_by_method( $sku, $qty, $stock_deduction_method, $order_id, $item_id );
+                       }
+               }
+       }
 
 	/**
 	 * Restore stock when order is cancelled or refunded.
@@ -197,9 +214,13 @@ class Inventory_Manager_WooCommerce {
                                                        $ref
                                        );
                                }
-
                if ( $item_id ) {
                        wc_update_order_item_meta( $item_id, '_selected_batch_id', $batch_id );
+               }
+
+               $batch_info = $this->db->get_batch( $batch_id );
+               if ( $batch_info ) {
+                       $this->add_allocation_note( $order_id, sprintf( __( 'Allocated %1$s units from batch %2$s.', 'inventory-manager-pro' ), $qty, $batch_info->batch_number ) );
                }
        }
 
@@ -290,6 +311,8 @@ class Inventory_Manager_WooCommerce {
                                            }
 
                        $remaining_qty -= $deduct_qty;
+
+                       $this->add_allocation_note( $order_id, sprintf( __( 'Allocated %1$s units from batch %2$s.', 'inventory-manager-pro' ), $deduct_qty, $batch->batch_number ) );
                }
 
                if ( $selected_batch_id ) {
@@ -297,9 +320,10 @@ class Inventory_Manager_WooCommerce {
                }
 
 		// Handle backorders if remaining quantity
-		if ( $remaining_qty > 0 ) {
-			// Get product ID
-			$product_id = wc_get_product_id_by_sku( $sku );
+                if ( $remaining_qty > 0 ) {
+                        $this->add_allocation_note( $order_id, sprintf( __( 'Insufficient stock for SKU %1$s. Short by %2$s units.', 'inventory-manager-pro' ), $sku, $remaining_qty ) );
+                       // Get product ID
+                       $product_id = wc_get_product_id_by_sku( $sku );
 
 			if ( $product_id ) {
 				// Check if product allows backorders
@@ -318,10 +342,10 @@ class Inventory_Manager_WooCommerce {
 	/**
 	 * Update WooCommerce product stock based on batch quantities.
 	 */
-        private function update_product_stock( $product_id ) {
-                if ( 'yes' !== get_option( 'inventory_manager_sync_stock', 'yes' ) ) {
-                        return;
-                }
+       private function update_product_stock( $product_id ) {
+               if ( 'yes' !== get_option( 'inventory_manager_sync_stock', 'yes' ) ) {
+                       return;
+               }
 
                 global $wpdb;
 
@@ -345,8 +369,18 @@ class Inventory_Manager_WooCommerce {
 		update_post_meta( $product_id, '_stock_status', $stock_status );
 
 		// Clear product cache
-		wc_delete_product_transients( $product_id );
-	}
+               wc_delete_product_transients( $product_id );
+       }
+
+       /**
+        * Add an allocation note to the order.
+        */
+       private function add_allocation_note( $order_id, $message ) {
+               $order = wc_get_order( $order_id );
+               if ( $order ) {
+                       $order->add_order_note( $message );
+               }
+       }
 
 	/**
 	 * Display batch info on single product page.
