@@ -629,7 +629,7 @@
     width: 100%;
 }
 .inv-product-info{
-    display: flex; font-size: 28px; font-weight: 500; text-align: center;
+    display: flex; font-size: 1.4rem; font-weight: 500; text-align: center;
 }
 .inv-product-info span{
     flex: 1;
@@ -651,7 +651,7 @@
   }
   
   .product-summary > div {
-    flex: 1 1 16.66%; /* 100% ÷ 5 = 20% */
+    flex: 1 1 15%;
     min-width: 0;
     box-sizing: border-box;
     padding: 10px;
