@@ -478,7 +478,7 @@ class Inventory_Manager_WooCommerce {
 			foreach ( $batches as $batch ) {
 				$selected = $selected_batch_id == $batch->id ? 'selected' : '';
 				echo '<option value="' . esc_attr( $batch->id ) . '" ' . $selected . '>';
-				echo esc_html( $batch->batch_number ) . ' (' . esc_html( $batch->stock_qty ) . ' ' . __( 'in stock', 'inventory-manager-pro' ) . ')';
+				echo esc_html( $batch->expiry_date ) . ' (' . esc_html( $batch->stock_qty ) . ' ' . __( 'in stock', 'inventory-manager-pro' ) . ')';
 				echo '</option>';
 			}
 
