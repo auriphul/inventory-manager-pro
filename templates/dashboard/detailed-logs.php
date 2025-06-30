@@ -18,23 +18,23 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         font-size: 3rem;
         margin-right: 2rem;
     }
-    .batch-header.expiry-expired {
+    .batch-header.expiry-expired,.expiry-expired {
         background-color:<?php echo $expiry_ranges['expired']['color']; ?> !important;
         color:<?php echo $expiry_ranges['expired']['text_color']; ?> !important;
     }
-    .batch-header.expiry-less1 {
+    .batch-header.expiry-less1,.expiry-less1 {
         background-color:<?php echo $expiry_ranges['less_1']['color']; ?> !important;
         color:<?php echo $expiry_ranges['less_1']['text_color']; ?> !important;
     }
-    .batch-header.expiry-1-3 {
+    .batch-header.expiry-1-3,.expiry-1-3 {
         background-color:<?php echo $expiry_ranges['1_3']['color']; ?> !important;
         color:<?php echo $expiry_ranges['1_3']['text_color']; ?> !important;
     }
-    .batch-header.expiry-3-6 {
+    .batch-header.expiry-3-6,.expiry-3-6 {
         background-color:<?php echo $expiry_ranges['3_6']['color']; ?> !important;
         color:<?php echo $expiry_ranges['3_6']['text_color']; ?> !important;
     }
-    .batch-header.expiry-6plus {
+    .batch-header.expiry-6plus,.expiry-6plus {
         background-color:<?php echo $expiry_ranges['6_plus']['color']; ?> !important;
         color:<?php echo $expiry_ranges['6_plus']['text_color']; ?> !important;
     }
