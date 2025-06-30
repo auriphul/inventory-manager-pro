@@ -10,6 +10,13 @@ class Inventory_Manager_WooCommerce {
        private $plugin;
        private $db;
 
+       /**
+        * Collected checkout stock notice messages.
+        *
+        * @var array
+        */
+       private static $checkout_stock_messages = array();
+
        public function __construct( $plugin ) {
                $this->plugin = $plugin;
                $this->db     = new Inventory_Database();
@@ -453,6 +460,8 @@ class Inventory_Manager_WooCommerce {
                        return;
                }
 
+               self::$checkout_stock_messages = array();
+
                foreach ( WC()->cart->get_cart() as $cart_item ) {
                        $product_id = $cart_item['product_id'];
                        $qty        = $cart_item['quantity'];
@@ -468,6 +477,12 @@ class Inventory_Manager_WooCommerce {
                                        $product->get_name(),
                                        $info['backorder_qty']
                                );
+
+                               $message = apply_filters( 'inventory_manager_stock_notice_message', $message, $product_id, $info, $cart_item );
+
+                               self::$checkout_stock_messages[] = $message;
+
+                               do_action( 'inventory_manager_stock_notice_added', $message, $product_id, $info, $cart_item );
 
                                wc_add_notice( $message, 'notice' );
                        }
@@ -1003,9 +1018,20 @@ class Inventory_Manager_WooCommerce {
                 
                 return $new_statuses;
         }
-        function add_custom_bulk_actions( $bulk_actions ) {
-                $bulk_actions['mark_credit-note'] = 'Mark as Credit Note';
-                $bulk_actions['mark_invoice']     = 'Mark as Invoice';
-                return $bulk_actions;
-        }
+       function add_custom_bulk_actions( $bulk_actions ) {
+               $bulk_actions['mark_credit-note'] = 'Mark as Credit Note';
+               $bulk_actions['mark_invoice']     = 'Mark as Invoice';
+               return $bulk_actions;
+       }
+
+       /**
+        * Retrieve collected checkout stock messages.
+        *
+        * Allows themes to display notices in custom contexts like modals.
+        *
+        * @return array Stock notice messages.
+        */
+       public static function get_checkout_stock_messages() {
+               return self::$checkout_stock_messages;
+       }
 }

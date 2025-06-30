@@ -27,3 +27,17 @@ The shortcode can also be used outside the product loop by specifying a product:
 ```
 
 For example, you can place it in a WooCommerce template such as `content-product.php` to show batch details under each product title.
+
+## Checkout Stock Notices
+
+When items are placed on backorder during checkout, the plugin now captures the
+generated stock notices. These messages are still passed to WooCommerce using
+`wc_add_notice()`, but you can also retrieve them for use in custom interfaces
+(for example a modal) by calling:
+
+```php
+Inventory_Manager_WooCommerce::get_checkout_stock_messages();
+```
+
+Each call returns an array of notice strings that were generated during the
+current request.
