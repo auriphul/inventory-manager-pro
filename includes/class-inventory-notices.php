@@ -36,7 +36,7 @@ class Inventory_Manager_Notices {
      * @param string $type    Notice type: success|error|notice.
      * @return false Always false to prevent WC default handling.
      */
-    public static function capture_notice( $message, $type ) {
+    public static function capture_notice( $message, $type = 'notice' ) {
         self::$notices[] = array(
             'message' => $message,
             'type'    => $type,
