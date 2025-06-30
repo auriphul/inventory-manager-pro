@@ -34,12 +34,16 @@ class Inventory_Manager_WooCommerce {
 		add_action( 'woocommerce_admin_order_item_headers', array( $this, 'add_batch_headers_to_order_items' ) );
 		add_action( 'woocommerce_admin_order_item_values', array( $this, 'add_batch_values_to_order_items' ), 10, 3 );
 
-		// Ajax endpoints for batch selection
+               // Ajax endpoints for batch selection
                add_action( 'wp_ajax_get_product_batches', array( $this, 'get_product_batches' ) );
                add_action( 'wp_ajax_select_order_item_batch', array( $this, 'select_order_item_batch' ) );
 
                // Detect quantity changes on admin order update.
                add_action( 'woocommerce_before_save_order_items', array( $this, 'maybe_adjust_order_item_quantities' ), 10, 2 );
+
+               // Show stock breakdown notices during checkout
+               add_action( 'woocommerce_after_checkout_validation', array( $this, 'add_checkout_stock_notices' ), 10, 2 );
+               add_action( 'woocommerce_check_cart_items', array( $this, 'add_checkout_stock_notices' ) );
         //        add_action( 'init', [$this, 'register_custom_order_statuses'] );
         //        add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
         //        add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
@@ -230,8 +234,9 @@ class Inventory_Manager_WooCommerce {
        private function deduct_stock_by_method( $sku, $qty, $method, $order_id, $item_id ) {
                global $wpdb;
 
-               $remaining_qty = $qty;
+               $remaining_qty     = $qty;
                $selected_batch_id = 0;
+               $allocations       = array();
 
 		// Get batches based on method
 		if ( $method === 'closest_expiry' ) {
@@ -312,11 +317,21 @@ class Inventory_Manager_WooCommerce {
 
                        $remaining_qty -= $deduct_qty;
 
+                       if ( isset( $allocations[ $batch->id ] ) ) {
+                               $allocations[ $batch->id ] += $deduct_qty;
+                       } else {
+                               $allocations[ $batch->id ] = $deduct_qty;
+                       }
+
                        $this->add_allocation_note( $order_id, sprintf( __( 'Allocated %1$s units from batch %2$s.', 'inventory-manager-pro' ), $deduct_qty, $batch->batch_number ) );
                }
 
                if ( $selected_batch_id ) {
                        wc_update_order_item_meta( $item_id, '_selected_batch_id', $selected_batch_id );
+               }
+
+               if ( ! empty( $allocations ) ) {
+                       wc_update_order_item_meta( $item_id, '_batch_allocations', $allocations );
                }
 
 		// Handle backorders if remaining quantity
@@ -379,6 +394,83 @@ class Inventory_Manager_WooCommerce {
                $order = wc_get_order( $order_id );
                if ( $order ) {
                        $order->add_order_note( $message );
+               }
+       }
+
+       /**
+        * Calculate stock availability across batches for a product.
+        *
+        * @param int $product_id    Product ID.
+        * @param float $requested   Requested quantity.
+        * @return array             Breakdown of total, immediate and backorder quantities.
+        */
+       private function get_stock_breakdown( $product_id, $requested ) {
+               global $wpdb;
+
+               $sku = get_post_meta( $product_id, '_sku', true );
+
+               if ( empty( $sku ) ) {
+                       return array(
+                               'total_stock'    => 0,
+                               'immediate_qty'  => 0,
+                               'backorder_qty'  => $requested,
+                       );
+               }
+
+               $batches = $wpdb->get_results(
+                       $wpdb->prepare(
+                               "SELECT stock_qty FROM {$wpdb->prefix}inventory_batches WHERE sku = %s AND stock_qty > 0 ORDER BY expiry_date ASC",
+                               $sku
+                       )
+               );
+
+               $immediate = 0;
+               $remaining = $requested;
+               foreach ( $batches as $batch ) {
+                       if ( $remaining <= 0 ) {
+                               break;
+                       }
+
+                       $take = min( $remaining, $batch->stock_qty );
+                       $immediate += $take;
+                       $remaining -= $take;
+               }
+
+               $total_stock = $wpdb->get_var( $wpdb->prepare( "SELECT COALESCE(SUM(stock_qty),0) FROM {$wpdb->prefix}inventory_batches WHERE sku = %s", $sku ) );
+
+               return array(
+                       'total_stock'   => floatval( $total_stock ),
+                       'immediate_qty' => $immediate,
+                       'backorder_qty' => max( 0, $requested - $immediate ),
+               );
+       }
+
+       /**
+        * Add customer notices during checkout about stock allocation.
+        */
+       public function add_checkout_stock_notices() {
+               if ( ! WC()->cart ) {
+                       return;
+               }
+
+               foreach ( WC()->cart->get_cart() as $cart_item ) {
+                       $product_id = $cart_item['product_id'];
+                       $qty        = $cart_item['quantity'];
+                       $product    = $cart_item['data'];
+
+                       $info = $this->get_stock_breakdown( $product_id, $qty );
+
+                       if ( $info['backorder_qty'] > 0 ) {
+                               $message = sprintf(
+                                       /* translators: 1: immediate qty 2: product name 3: backorder qty */
+                                       __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' ),
+                                       $info['immediate_qty'],
+                                       $product->get_name(),
+                                       $info['backorder_qty']
+                               );
+
+                               wc_add_notice( $message, 'notice' );
+                       }
                }
        }
 
@@ -460,11 +552,19 @@ class Inventory_Manager_WooCommerce {
                                $product_id
                        )
                );
+               if ( empty( $batches ) ) {
+                       if ( $selected_batch_id ) {
+                               $batch = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}inventory_batches WHERE id = %d", $selected_batch_id ) );
+                               if ( $batch ) {
+                                       $batches = array( $batch );
+                               }
+                       }
 
-		if ( empty( $batches ) ) {
-			echo '<td class="batch-info">' . __( 'No batches available', 'inventory-manager-pro' ) . '</td>';
-			return;
-		}
+                       if ( empty( $batches ) ) {
+                               echo '<td class="batch-info">' . __( 'No batches available', 'inventory-manager-pro' ) . '</td>';
+                               return;
+                       }
+               }
 
 		// Check if batch selection is enabled
 		$select_batch = get_option( 'inventory_manager_backend_select_batch', 'no' );
