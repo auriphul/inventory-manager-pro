@@ -16,7 +16,8 @@
             total_pages: 0
         },
         filters: {
-            expiry: ['6+', '3-6', '1-3', '<1', 'expired'],
+            // expiry: ['6+', '3-6', '1-3', '<1', 'expired'],
+            expiry: [],
             search: '',
             orderby: 'sku',
             order: 'ASC'

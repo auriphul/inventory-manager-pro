@@ -12,7 +12,7 @@
         batch_period: 'all',
         search: '',
         order: 'ASC',
-        expiry_filters: ['6+', '3-6', '1-3', '<1', 'expired'],
+        expiry_filters: [],
         products: []
     };
 
@@ -85,7 +85,7 @@
             $('.logs-search-box input').val('');
             state.search = '';
             $('.filter-expiry').prop('checked', true);
-            state.expiry_filters = ['6+', '3-6', '1-3', '<1', 'expired'];
+            state.expiry_filters = [];
             loadLogs();
         });
         
