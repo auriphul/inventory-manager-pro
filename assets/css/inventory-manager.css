@@ -127,6 +127,26 @@
     cursor: pointer;
 }
 
+/* Style expiry filter buttons */
+.inventory-manager .expiry-filters input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.inventory-manager .expiry-filters label span {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.inventory-manager .expiry-filters input[type="checkbox"]:checked + span {
+    border-color: currentColor;
+    border-width: 2px;
+}
+
 .inventory-manager .search-box {
     display: flex;
     align-items: center;

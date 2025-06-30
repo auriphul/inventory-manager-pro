@@ -49,23 +49,23 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         <div class="expiry-filters">
             <label>
                 <input type="checkbox" class="filter-expiry" data-range="6+" checked>
-                <?php echo isset( $expiry_ranges['6_plus']['label'] ) ? esc_html( $expiry_ranges['6_plus']['label'] ) : __( '6+ months', 'inventory-manager-pro' ); ?>
+                <span class="expiry-6plus"><?php echo isset( $expiry_ranges['6_plus']['label'] ) ? esc_html( $expiry_ranges['6_plus']['label'] ) : __( '6+ months', 'inventory-manager-pro' ); ?></span>
             </label>
             <label>
                 <input type="checkbox" class="filter-expiry" data-range="3-6" checked>
-                <?php echo isset( $expiry_ranges['3_6']['label'] ) ? esc_html( $expiry_ranges['3_6']['label'] ) : __( '3-6 months', 'inventory-manager-pro' ); ?>
+                <span class="expiry-3-6"><?php echo isset( $expiry_ranges['3_6']['label'] ) ? esc_html( $expiry_ranges['3_6']['label'] ) : __( '3-6 months', 'inventory-manager-pro' ); ?></span>
             </label>
             <label>
                 <input type="checkbox" class="filter-expiry" data-range="1-3" checked>
-                <?php echo isset( $expiry_ranges['1_3']['label'] ) ? esc_html( $expiry_ranges['1_3']['label'] ) : __( '1-3 months', 'inventory-manager-pro' ); ?>
+                <span class="expiry-1-3"><?php echo isset( $expiry_ranges['1_3']['label'] ) ? esc_html( $expiry_ranges['1_3']['label'] ) : __( '1-3 months', 'inventory-manager-pro' ); ?></span>
             </label>
             <label>
                 <input type="checkbox" class="filter-expiry" data-range="<1" checked>
-                <?php echo isset( $expiry_ranges['less_1']['label'] ) ? esc_html( $expiry_ranges['less_1']['label'] ) : __( '< 1 month', 'inventory-manager-pro' ); ?>
+                <span class="expiry-less1"><?php echo isset( $expiry_ranges['less_1']['label'] ) ? esc_html( $expiry_ranges['less_1']['label'] ) : __( '< 1 month', 'inventory-manager-pro' ); ?></span>
             </label>
             <label>
                 <input type="checkbox" class="filter-expiry" data-range="expired" checked>
-                <?php echo isset( $expiry_ranges['expired']['label'] ) ? esc_html( $expiry_ranges['expired']['label'] ) : __( 'expired', 'inventory-manager-pro' ); ?>
+                <span class="expiry-expired"><?php echo isset( $expiry_ranges['expired']['label'] ) ? esc_html( $expiry_ranges['expired']['label'] ) : __( 'expired', 'inventory-manager-pro' ); ?></span>
             </label>
         </div>
     </div>
