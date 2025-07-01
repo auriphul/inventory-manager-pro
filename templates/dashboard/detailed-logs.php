@@ -38,6 +38,14 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         background-color:<?php echo $expiry_ranges['6_plus']['color']; ?> !important;
         color:<?php echo $expiry_ranges['6_plus']['text_color']; ?> !important;
     }
+    .inventory-manager .batch-header{
+        background-color:transparent !important;
+    }
+    .inventory-manager .batch-header > div{
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+    }
 </style>
 <div class="inventory-manager-logs">
     <div class="section-header">

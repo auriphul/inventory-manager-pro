@@ -170,6 +170,7 @@
                     loadBatches();
                 },
                 error: function(xhr) {
+                    console.log(xhr)
                     let message = 'Error deleting batch';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;

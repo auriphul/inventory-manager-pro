@@ -322,41 +322,31 @@
         
         // Batch header
         const expiryClass = batch.expiry_range ? ' expiry-' + batch.expiry_range : '';
-        html += '<div class="batch-header' + expiryClass + '">';
-        html += '<div class="batch-number">';
+        html += '<div class="batch-header">';
+        
+        html += '<div class="batch-supplier' + expiryClass + '">';
+        html += '<span class="label">Supplier</span>';
+        html += '<span class="value">' + (batch.supplier_name || '-') + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-number' + expiryClass + '">';
         html += '<span class="label">Batch</span>';
         html += '<span class="value">' + batch.batch_number + '</span>';
         html += '</div>';
         
-        html += '<div class="batch-stock">';
-        html += '<span class="label">Stock Qty</span>';
-        html += '<span class="value">' + parseFloat(batch.stock_qty).toFixed(2) + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-expiry">';
+        html += '<div class="batch-expiry' + expiryClass + '">';
         html += '<span class="label">Expiry</span>';
         html += '<span class="value">' + (batch.expiry_formatted || '-') + '</span>';
         html += '</div>';
-
-        // Newly requested fields
-        html += '<div class="batch-unit-cost">';
-        html += '<span class="label">Unit Cost</span>';
-        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</span>';
+        
+        html += '<div class="batch-origin' + expiryClass + '">';
+        html += '<span class="label">Origin</span>';
+        html += '<span class="value">' + (batch.origin || '-') + '</span>';
         html += '</div>';
-
-        html += '<div class="batch-stock-cost">';
-        html += '<span class="label">Stock Cost</span>';
-        html += '<span class="value">' + (batch.stock_cost_formatted || (inventory_manager.currency_symbol + parseFloat(batch.stock_cost || 0).toFixed(2))) + '</span>';
-        html += '</div>';
-
-        html += '<div class="batch-freight">';
-        html += '<span class="label">Freight Markup</span>';
-        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
-        html += '</div>';
-
-        html += '<div class="batch-landed-cost">';
-        html += '<span class="label">Landed Cost</span>';
-        html += '<span class="value">' + (batch.landed_cost_formatted || (inventory_manager.currency_symbol + parseFloat(batch.landed_cost || 0).toFixed(2))) + '</span>';
+        
+        html += '<div class="batch-location' + expiryClass + '">';
+        html += '<span class="label">Location</span>';
+        html += '<span class="value">' + (batch.location || '-') + '</span>';
         html += '</div>';
 
         html += '<span class="toggle-icon dashicons dashicons-arrow-down-alt2"></span>';
@@ -365,29 +355,39 @@
         // Batch details
         html += '<div class="batch-details" style="display: none;">';
         
-        html += '<div class="batch-supplier">';
-        html += '<span class="label">Supplier</span>';
-        html += '<span class="value">' + (batch.supplier_name || '-') + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-origin">';
-        html += '<span class="label">Origin</span>';
-        html += '<span class="value">' + (batch.origin || '-') + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-location">';
-        html += '<span class="label">Location</span>';
-        html += '<span class="value">' + (batch.location || '-') + '</span>';
-        html += '</div>';
-        
-        html += '<div class="batch-actions">';
-        html += '<button class="button add-adjustment-btn" data-batch-id="' + batch.id + '">Add Adjustment</button>';
-        html += '</div>';
         
         html += '</div>'; // End batch-details
         
         // Movement log
         html += '<div class="movement-log" style="display: none;">';
+        html += '<div class="batch-header">';
+        
+        html += '<div class="batch-stock ' + expiryClass + '">';
+        html += '<span class="label">Stock Qty</span>';
+        html += '<span class="value">' + parseFloat(batch.stock_qty).toFixed(2) + '</span>';
+        html += '</div>';
+        // Newly requested fields
+        html += '<div class="batch-unit-cost ' + expiryClass + '">';
+        html += '<span class="label">Unit Cost</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.unit_cost || 0).toFixed(2)) + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-stock-cost ' + expiryClass + '">';
+        html += '<span class="label">Stock Cost</span>';
+        html += '<span class="value">' + (batch.stock_cost_formatted || (inventory_manager.currency_symbol + parseFloat(batch.stock_cost || 0).toFixed(2))) + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-freight ' + expiryClass + '">';
+        html += '<span class="label">Freight Markup</span>';
+        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
+        html += '</div>';
+
+        html += '<div class="batch-landed-cost ' + expiryClass + '">';
+        html += '<span class="label">Landed Cost</span>';
+        html += '<span class="value">' + (batch.landed_cost_formatted || (inventory_manager.currency_symbol + parseFloat(batch.landed_cost || 0).toFixed(2))) + '</span>';
+        html += '</div>';
+        html += '</div>'; // End batch-details
+
         
         if (batch.movements && batch.movements.length > 0) {
             html += '<div class="log-header">';
@@ -396,6 +396,7 @@
             html += '<div class="log-reference">Reference</div>';
             html += '<div class="log-in">Stock In</div>';
             html += '<div class="log-out">Stock Out</div>';
+            html += '<div class="log-out">Action</div>';
             html += '</div>';
             
             html += '<div class="log-entries">';
@@ -411,6 +412,14 @@
                 html += '<div class="log-actions"><button class="button delete-entry-btn" data-id="' + movement.id + '">Delete</button></div>';
                 html += '</div>';
             });
+            html += '<div class="log-entry">';
+            html += '<div class="log-date"></div>';
+            html += '<div class="log-type"></div>';
+            html += '<div class="log-reference"></div>';
+            html += '<div class="log-in"></div>';
+            html += '<div class="log-out"></div>';
+            html += '<div class="log-actions"><button class="button add-adjustment-btn" data-batch-id="' + batch.id + '">Add Adjustment</button></div>';
+            html += '</div>';
             
             html += '</div>'; // End log-entries
         } else {
