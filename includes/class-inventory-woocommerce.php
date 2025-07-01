@@ -56,6 +56,7 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'output_product_stock_badge' ) );
         //        add_action( 'woocommerce_after_cart_item_name', array( $this, 'output_cart_stock_badge' ), 10, 2 );
                add_action( 'woocommerce_review_order_after_cart_contents', array( $this, 'output_checkout_stock_badge' ) );
+               add_filter( 'wc_add_to_cart_message_html', array( $this, 'add_batch_stock_cart_message' ), 10, 2 );
         //        add_action( 'init', [$this, 'register_custom_order_statuses'] );
         //        add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
         //        add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
@@ -1103,6 +1104,49 @@ class Inventory_Manager_WooCommerce {
                $bulk_actions['mark_credit-note'] = 'Mark as Credit Note';
                $bulk_actions['mark_invoice']     = 'Mark as Invoice';
                return $bulk_actions;
+       }
+
+       /**
+        * Append batch stock availability info to add-to-cart messages.
+        *
+        * @param string $message  Original cart message HTML.
+        * @param array  $products Array of product IDs and quantities added.
+        * @return string Modified message with batch info appended.
+        */
+       public function add_batch_stock_cart_message( $message, $products ) {
+               if ( ! is_array( $products ) ) {
+                       $products = array( $products => 1 );
+               }
+
+               $details = array();
+
+               foreach ( $products as $product_id => $qty ) {
+                       $info    = $this->get_stock_breakdown( $product_id, $qty );
+
+                       if ( $info['backorder_qty'] <= 0 ) {
+                               continue;
+                       }
+
+                       $product = wc_get_product( $product_id );
+
+                       if ( ! $product ) {
+                               continue;
+                       }
+
+                       $details[] = sprintf(
+                               /* translators: 1: immediate qty 2: product name 3: backorder qty */
+                               __( '%1$d items of %2$s available now, %3$d on backorder due to batch limits.', 'inventory-manager-pro' ),
+                               $info['immediate_qty'],
+                               $product->get_name(),
+                               $info['backorder_qty']
+                       );
+               }
+
+               if ( ! empty( $details ) ) {
+                       $message .= '<br /><span class="inventory-batch-message">' . implode( '<br />', array_map( 'esc_html', $details ) ) . '</span>';
+               }
+
+               return $message;
        }
 
        /**
