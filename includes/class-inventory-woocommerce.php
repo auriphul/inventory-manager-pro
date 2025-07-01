@@ -462,9 +462,9 @@ class Inventory_Manager_WooCommerce {
                self::$checkout_stock_messages = array();
 
                foreach ( WC()->cart->get_cart() as $cart_item ) {
-                        $product = $cart_item->get_product();
+                        $product_id = $cart_item['product_id'];
+                        $product = wc_get_product( $product_id );
                         $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
-                       $product_id = $cart_item['product_id'];
                        $qty        = $cart_item['quantity'] * $inv_reduction_per_item;
                        $product    = $cart_item['data'];
 
@@ -502,7 +502,6 @@ class Inventory_Manager_WooCommerce {
                if ( ! $product ) {
                        return;
                }
-               $product = $cart_item->get_product();
                $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
 
                $info = $this->get_stock_breakdown( $product_id, $qty );
@@ -560,8 +559,6 @@ class Inventory_Manager_WooCommerce {
                }
 
                foreach ( WC()->cart->get_cart() as $cart_item ) {
-                        // $product = $cart_item->get_product();
-                        // $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
                        $product_id = $cart_item['product_id'];
                        $qty        = $cart_item['quantity'];
                        $product    = $cart_item['data'];
