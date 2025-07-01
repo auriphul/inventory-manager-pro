@@ -85,13 +85,7 @@ class Inventory_Manager_WooCommerce {
 		foreach ( $order->get_items() as $item_id => $item ) {
 			$product_id = $item->get_product_id();
 			$product = $item->get_product();
-			if ( $product && $product->is_type( 'variation' ) ) {
-				$variation_id = $product->get_id();
-				$inv_reduction_per_item	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
-				// $inv_reduction_per_item	=	5;
-			}else{
-				$inv_reduction_per_item	=	1;
-			}
+                        $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
 			$sku        = get_post_meta( $product_id, '_sku', true );
 			$qty        = $item->get_quantity()	*	$inv_reduction_per_item;
 
@@ -468,8 +462,10 @@ class Inventory_Manager_WooCommerce {
                self::$checkout_stock_messages = array();
 
                foreach ( WC()->cart->get_cart() as $cart_item ) {
+                        $product = $cart_item->get_product();
+                        $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
                        $product_id = $cart_item['product_id'];
-                       $qty        = $cart_item['quantity'];
+                       $qty        = $cart_item['quantity'] * $inv_reduction_per_item;
                        $product    = $cart_item['data'];
 
                        $info = $this->get_stock_breakdown( $product_id, $qty );
@@ -506,6 +502,8 @@ class Inventory_Manager_WooCommerce {
                if ( ! $product ) {
                        return;
                }
+               $product = $cart_item->get_product();
+               $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
 
                $info = $this->get_stock_breakdown( $product_id, $qty );
 
@@ -562,6 +560,8 @@ class Inventory_Manager_WooCommerce {
                }
 
                foreach ( WC()->cart->get_cart() as $cart_item ) {
+                        // $product = $cart_item->get_product();
+                        // $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
                        $product_id = $cart_item['product_id'];
                        $qty        = $cart_item['quantity'];
                        $product    = $cart_item['data'];
@@ -1103,6 +1103,15 @@ class Inventory_Manager_WooCommerce {
                $bulk_actions['mark_credit-note'] = 'Mark as Credit Note';
                $bulk_actions['mark_invoice']     = 'Mark as Invoice';
                return $bulk_actions;
+       }
+       function inv_reduction_per_item($product){
+                if ( $product && $product->is_type( 'variation' ) ) {
+                        $variation_id = $product->get_id();
+                        $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+                }else{
+                        $quantity	=	1;
+                }
+                return $quantity;
        }
 
        /**
