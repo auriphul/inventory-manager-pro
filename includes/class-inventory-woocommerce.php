@@ -51,6 +51,11 @@ class Inventory_Manager_WooCommerce {
                // Show stock breakdown notices during checkout
                add_action( 'woocommerce_after_checkout_validation', array( $this, 'add_checkout_stock_notices' ), 10, 2 );
                add_action( 'woocommerce_check_cart_items', array( $this, 'add_checkout_stock_notices' ) );
+
+               // Frontend stock badges
+               add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'output_product_stock_badge' ) );
+               add_action( 'woocommerce_after_cart_item_name', array( $this, 'output_cart_stock_badge' ), 10, 2 );
+               add_action( 'woocommerce_review_order_after_cart_contents', array( $this, 'output_checkout_stock_badge' ) );
         //        add_action( 'init', [$this, 'register_custom_order_statuses'] );
         //        add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
         //        add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
@@ -486,6 +491,82 @@ class Inventory_Manager_WooCommerce {
 
                                wc_add_notice( $message, 'notice' );
                        }
+               }
+       }
+
+       /**
+        * Render a stock/backorder badge for a product.
+        *
+        * @param int    $product_id Product ID.
+        * @param float  $qty        Requested quantity.
+        * @param string $name       Optional name override.
+        */
+       private function render_stock_badge( $product_id, $qty, $name = '' ) {
+               $product = wc_get_product( $product_id );
+               if ( ! $product ) {
+                       return;
+               }
+
+               $info = $this->get_stock_breakdown( $product_id, $qty );
+
+               if ( $info['backorder_qty'] <= 0 ) {
+                       return;
+               }
+
+               $name = $name ? $name : $product->get_name();
+
+               $message = sprintf(
+                       '<div class="wc-block-components-product-badge wc-block-components-product-backorder-badge">%s: %d items available now, %d items on backorder</div>',
+                       esc_html( $name ),
+                       intval( $info['immediate_qty'] ),
+                       intval( $info['backorder_qty'] )
+               );
+
+               echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+       }
+
+       /**
+        * Output badge on single product page.
+        */
+       public function output_product_stock_badge() {
+               global $product;
+
+               if ( ! $product ) {
+                       return;
+               }
+
+               $qty = isset( $_REQUEST['quantity'] ) ? floatval( $_REQUEST['quantity'] ) : 1;
+               $this->render_stock_badge( $product->get_id(), $qty );
+       }
+
+       /**
+        * Output badge for cart items.
+        *
+        * @param string $cart_item_key Cart item key.
+        * @param array  $cart_item     Cart item data.
+        */
+       public function output_cart_stock_badge( $cart_item_key, $cart_item ) {
+               $product_id = $cart_item['product_id'];
+               $qty        = $cart_item['quantity'];
+               $product    = $cart_item['data'];
+
+               $this->render_stock_badge( $product_id, $qty, $product->get_name() );
+       }
+
+       /**
+        * Output badges during checkout.
+        */
+       public function output_checkout_stock_badge() {
+               if ( ! WC()->cart ) {
+                       return;
+               }
+
+               foreach ( WC()->cart->get_cart() as $cart_item ) {
+                       $product_id = $cart_item['product_id'];
+                       $qty        = $cart_item['quantity'];
+                       $product    = $cart_item['data'];
+
+                       $this->render_stock_badge( $product_id, $qty, $product->get_name() );
                }
        }
 
