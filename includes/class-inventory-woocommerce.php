@@ -56,6 +56,7 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'output_product_stock_badge' ) );
         //        add_action( 'woocommerce_after_cart_item_name', array( $this, 'output_cart_stock_badge' ), 10, 2 );
                add_action( 'woocommerce_review_order_after_cart_contents', array( $this, 'output_checkout_stock_badge' ) );
+        //        add_action( 'woocommerce_after_checkout_validation', array( $this, 'output_checkout_stock_badge' ) );
                add_filter( 'wc_add_to_cart_message_html', array( $this, 'add_batch_stock_cart_message' ), 10, 2 );
         //        add_action( 'init', [$this, 'register_custom_order_statuses'] );
         //        add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
@@ -1114,36 +1115,40 @@ class Inventory_Manager_WooCommerce {
         * @return string Modified message with batch info appended.
         */
        public function add_batch_stock_cart_message( $message, $products ) {
-               if ( ! is_array( $products ) ) {
-                       $products = array( $products => 1 );
-               }
 
-               $details = array();
+                if ( ! WC()->cart ) {
+                        return;
+                }
+                $details = array();
 
-               foreach ( $products as $product_id => $qty ) {
-                       $info    = $this->get_stock_breakdown( $product_id, $qty );
+                foreach ( WC()->cart->get_cart() as $cart_item ) {
+                        $product_id = $cart_item['product_id'];
+                        $qty        = $cart_item['quantity'];
+                        $product    = $cart_item['data'];
 
-                       if ( $info['backorder_qty'] <= 0 ) {
-                               continue;
-                       }
+                        $info    = $this->get_stock_breakdown( $product_id, $qty, $product->get_name() );
 
-                       $product = wc_get_product( $product_id );
+                        if ( $info['backorder_qty'] <= 0 ) {
+                                continue;
+                        }
 
-                       if ( ! $product ) {
-                               continue;
-                       }
+                        $product = wc_get_product( $product_id );
 
-                       $details[] = sprintf(
-                               /* translators: 1: immediate qty 2: product name 3: backorder qty */
-                               __( '%1$d items of %2$s available now, %3$d on backorder due to batch limits.', 'inventory-manager-pro' ),
-                               $info['immediate_qty'],
-                               $product->get_name(),
-                               $info['backorder_qty']
-                       );
-               }
+                        if ( ! $product ) {
+                                continue;
+                        }
+
+                        $details[] = sprintf(
+                                /* translators: 1: immediate qty 2: product name 3: backorder qty */
+                                __( '%1$d items of %2$s available now, %3$d on backorder due to batch limits.', 'inventory-manager-pro' ),
+                                $info['immediate_qty'],
+                                $product->get_name(),
+                                $info['backorder_qty']
+                        );
+                }
 
                if ( ! empty( $details ) ) {
-                       $message .= '<br /><span class="inventory-batch-message">' . implode( '<br />', array_map( 'esc_html', $details ) ) . '</span>';
+                       $message .= '<br /><span class="inventory-batch-message" style="background-color:red;color:#fff;font-size: 24px;font-weight: 700;padding: 2px 15px;">' . implode( '<br />', array_map( 'esc_html', $details ) ) . '</span>';
                }
 
                return $message;
