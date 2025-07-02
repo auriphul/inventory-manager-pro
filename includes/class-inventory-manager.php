@@ -104,7 +104,10 @@ class Inventory_Manager {
                 $dashboard = new Inventory_Admin_Dashboard( $this );
                 $this->loader->add_action( 'admin_menu', $dashboard, 'register_menu' );
                 $this->loader->add_action( 'admin_enqueue_scripts', $dashboard, 'enqueue_scripts' );
-	}
+
+                // AJAX handler for batch import
+                $this->loader->add_action( 'wp_ajax_import_batches', $this, 'ajax_import_batches' );
+        }
 
 	/**
 	 * Register all of the hooks related to the public-facing functionality.
@@ -161,14 +164,14 @@ class Inventory_Manager {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_admin_scripts() {
-		wp_enqueue_script(
-			'inventory-manager-admin',
-			INVENTORY_MANAGER_URL . 'assets/js/inventory-manager.js',
-			array( 'jquery' ),
-			INVENTORY_MANAGER_VERSION,
-			true
-		);
+        public function enqueue_admin_scripts() {
+                wp_enqueue_script(
+                        'inventory-manager-admin',
+                        INVENTORY_MANAGER_URL . 'assets/js/inventory-manager.js',
+                        array( 'jquery' ),
+                        INVENTORY_MANAGER_VERSION,
+                        true
+                );
 
 		wp_localize_script(
                         'inventory-manager-admin',
@@ -179,7 +182,31 @@ class Inventory_Manager {
                                 'order_nonce' => wp_create_nonce( 'woocommerce-order' ),
                         )
                 );
-	}
+        }
+
+        /**
+         * Handle AJAX batch import requests.
+         */
+        public function ajax_import_batches() {
+                check_ajax_referer( 'inventory-manager-admin-nonce', 'security' );
+
+                if ( ! current_user_can( 'manage_inventory' ) && ! current_user_can( 'manage_woocommerce' ) ) {
+                        wp_send_json_error( __( 'You do not have permission to do this', 'inventory-manager-pro' ), 403 );
+                }
+
+                if ( empty( $_FILES['file'] ) ) {
+                        wp_send_json_error( __( 'No file uploaded', 'inventory-manager-pro' ) );
+                }
+
+                $api    = new Inventory_API( $this );
+                $result = $api->import_batches( $_FILES['file'] );
+
+                if ( is_wp_error( $result ) ) {
+                        wp_send_json_error( $result->get_error_message() );
+                }
+
+                wp_send_json_success( $result );
+        }
 
 	/**
 	 * Register the stylesheets for the public-facing side of the site.

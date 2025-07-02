@@ -361,7 +361,13 @@
                 
                 const file = fileInput.files[0];
                 const formData = new FormData();
-                
+
+                // Required parameters for WordPress AJAX
+                formData.append('action', 'import_batches');
+                if (typeof inventory_manager_admin !== 'undefined') {
+                    formData.append('security', inventory_manager_admin.nonce);
+                }
+
                 formData.append('file', file);
                 
                 $.ajax({
