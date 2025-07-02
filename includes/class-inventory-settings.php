@@ -426,6 +426,7 @@ class Inventory_Settings {
 			echo '<table class="widefat fixed" cellspacing="0">';
 			echo '<thead>';
 			echo '<tr>';
+			echo '<th>' . __( 'Supplier ID', 'inventory-manager-pro' ) . '</th>';
 			echo '<th>' . __( 'Supplier', 'inventory-manager-pro' ) . '</th>';
 			echo '<th>' . __( 'Transit Time', 'inventory-manager-pro' ) . '</th>';
 			echo '</tr>';
@@ -434,6 +435,7 @@ class Inventory_Settings {
 
 			foreach ( $suppliers as $supplier ) {
 				echo '<tr>';
+				echo '<td>' . esc_html( $supplier->id ) . '</td>';
 				echo '<td>' . esc_html( $supplier->name ) . '</td>';
 				echo '<td>' . esc_html( $supplier->transit_time ) . '</td>';
 				echo '</tr>';

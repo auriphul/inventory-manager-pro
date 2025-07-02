@@ -437,6 +437,108 @@ class Inventory_Database {
 
         return $batch_id;
     }
+
+    /**
+     * Import a new batch.
+     *
+     * @param array $data Batch data.
+     * @return int|WP_Error Batch ID or WP_Error on failure.
+     */
+    public function import_batch($data) {
+        global $wpdb;
+
+        // Sanitize and validate data
+        $sku = sanitize_text_field($data['sku']);
+        $batch_number = sanitize_text_field($data['batch_number']);
+        $stock_qty = floatval($data['stock_qty']);
+        $reference = sanitize_text_field($data['reference']);
+
+        // Get product_id from SKU
+        $product_id = wc_get_product_id_by_sku($sku);
+
+        if (!$product_id) {
+            return new WP_Error('invalid_sku', __('Invalid SKU. Product not found.', 'inventory-manager-pro'));
+        }
+
+        // Check if batch already exists for this product
+        $existing_batch = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM {$wpdb->prefix}inventory_batches 
+                WHERE product_id = %d AND batch_number = %s",
+                $product_id,
+                $batch_number
+            )
+        );
+
+        if ($existing_batch) {
+            return new WP_Error('duplicate_batch', __('A batch with this number already exists for this product.', 'inventory-manager-pro'));
+        }
+
+        // Prepare batch data
+        $batch_data = array(
+            'sku' => $sku,
+            'product_id' => $product_id,
+            'batch_number' => $batch_number,
+            'stock_qty' => $stock_qty,
+            'date_created' => current_time('mysql')
+        );
+
+        // Optional fields
+        $batch_data['supplier_id']  =   sanitize_text_field($data['supplier']);
+
+        if (!empty($data['expiry'])) {
+            $batch_data['expiry_date'] = sanitize_text_field($data['expiry']);
+        }
+        if (!empty($data['expiry_date'])) {
+            $batch_data['expiry_date'] = sanitize_text_field($data['expiry_date']);
+        }
+
+        if (!empty($data['origin'])) {
+            $batch_data['origin'] = sanitize_text_field($data['origin']);
+        }
+
+        if (!empty($data['location'])) {
+            $batch_data['location'] = sanitize_text_field($data['location']);
+        }
+
+        if (isset($data['unit_cost'])) {
+            $batch_data['unit_cost'] = floatval($data['unit_cost']);
+        }
+
+        if (isset($data['freight_markup'])) {
+            $batch_data['freight_markup'] = floatval($data['freight_markup']);
+        }
+
+        // Insert batch
+        $result = $wpdb->insert(
+            $wpdb->prefix . 'inventory_batches',
+            $batch_data
+        );
+
+        if (!$result) {
+            return new WP_Error('db_error', __('Error creating batch.', 'inventory-manager-pro'));
+        }
+
+        $batch_id = $wpdb->insert_id;
+
+        // Create stock movement (initial stock)
+        $wpdb->insert(
+            $wpdb->prefix . 'inventory_stock_movements',
+            array(
+                'batch_id' => $batch_id,
+                'movement_type' => 'initial_stock',
+                'reference' => $reference,
+                'quantity' => $stock_qty,
+                'date_created' => current_time('mysql'),
+                'created_by' => get_current_user_id()
+            )
+        );
+
+        // Update product stock if syncing enabled
+        $this->update_product_stock( $product_id );
+
+        return $batch_id;
+    }
     public function maybe_insert_supplier( $form_data ) {
         global $wpdb;
     

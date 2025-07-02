@@ -305,7 +305,6 @@ class Inventory_API {
 	 */
 	public function create_batch( $request ) {
 		$params = $request->get_params();
-		// echo '<pre>';print_r($params);exit;
 		// Validate required fields
 		$required_fields = array( 'sku', 'batch_number', 'stock_qty', 'reference' );
 		
@@ -318,7 +317,6 @@ class Inventory_API {
 		// Create batch
 		$result = $this->db->create_batch( $params );
 		
-		// echo '<pre>';print_r($result);exit;
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
@@ -1057,7 +1055,7 @@ class Inventory_API {
 		);
 
 		foreach ( $batches as $batch_data ) {
-			$result = $this->create_batch( $batch_data );
+			$result = $this->import_batch( $batch_data );
 
 			if ( is_wp_error( $result ) ) {
 				$results['errors'][] = sprintf(
@@ -1072,6 +1070,34 @@ class Inventory_API {
 		}
 
 		return $results;
+	}
+	public function import_batch( $batch_data ) {
+		// Validate required fields
+		$required_fields = array( 'sku', 'batch_number', 'stock_qty', 'reference' );
+		
+		foreach ( $required_fields as $field ) {
+			if ( empty( $batch_data[ $field ] ) ) {
+				return new WP_Error( 'missing_required_field', sprintf( __( 'Missing required field: %s', 'inventory-manager-pro' ), $field ), array( 'status' => 400 ) );
+			}
+		}
+		
+		// Create batch
+		$result = $this->db->import_batch( $batch_data );
+		
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		// Get created batch
+		$batch = $this->db->get_batch( $result );
+
+		return rest_ensure_response(
+			array(
+				'success'  => true,
+				'batch_id' => $result,
+				'batch'    => $batch,
+			)
+		);
 	}
 
 	/**
@@ -1100,17 +1126,18 @@ class Inventory_API {
 
 		// Map headers to columns
 		$column_map = array(
-			'inventory_sku'            => false,
-			'inventory_product_name'   => false,
-			'inventory_batch'          => false,
-			'inventory_stock_qty'      => false,
-			'inventory_supplier'       => false,
-			'inventory_reference'      => false,
-			'inventory_expiry'         => false,
-			'inventory_origin'         => false,
-			'inventory_location'       => false,
-			'inventory_unit_cost'      => false,
-			'inventory_freight_margin' => false,
+			'inventory_sku'            	=> false,
+			'inventory_product_name'   	=> false,
+			'inventory_batch'          	=> false,
+			'inventory_stock_qty'      	=> false,
+			'inventory_supplier'       	=> false,
+			'inventory_reference'      	=> false,
+			'inventory_expiry'    		=> false,
+			'inventory_origin'         	=> false,
+			'inventory_location'       	=> false,
+			'inventory_unit_cost'      	=> false,
+			'inventory_freight_margin' 	=> false,
+			'inventory_supplier' 		=> false,
 		);
 
 		foreach ( $headers as $index => $header ) {
