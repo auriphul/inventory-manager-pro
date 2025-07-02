@@ -790,6 +790,8 @@ class Inventory_Database {
                 continue; // Skip products with no batches
             }
 
+            $filtered_batches = array();
+
             // Format batches and get movements
             foreach ($batches as &$batch) {
                 // Format expiry date and determine expiry range
@@ -868,25 +870,39 @@ class Inventory_Database {
                 $movements_query .= " ORDER BY m.date_created {$order}";
                 $batch->movements = $wpdb->get_results($movements_query);
 
+                if ( empty( $batch->movements ) ) {
+                    // Skip this batch if no movements in selected period
+                    continue;
+                }
+
                 // Replace initial stock movement type label
-                if ( ! empty( $batch->movements ) ) {
-                    foreach ( $batch->movements as $movement ) {
-                        if ( 'initial_stock' === $movement->movement_type ) {
-                            $movement->movement_type = __( 'Manual Entry', 'inventory-manager-pro' );
-                        } elseif ( 'wc_order_placed' === $movement->movement_type ) {
-                            $movement->movement_type = __( 'Order', 'inventory-manager-pro' );
-                        }
+                foreach ( $batch->movements as $movement ) {
+                    if ( 'initial_stock' === $movement->movement_type ) {
+                        $movement->movement_type = __( 'Manual Entry', 'inventory-manager-pro' );
+                    } elseif ( 'wc_order_placed' === $movement->movement_type ) {
+                        $movement->movement_type = __( 'Order', 'inventory-manager-pro' );
                     }
                 }
+
                 $batch->stock_cost = $batch->unit_cost * $batch->stock_qty;
-                $batch->landed_cost = ($batch->unit_cost * $batch->freight_markup) * $batch->stock_qty;
+                $batch->landed_cost = ( $batch->unit_cost * $batch->freight_markup ) * $batch->stock_qty;
+
+                $filtered_batches[] = $batch;
             }
+
+            // Replace original batches with filtered set
+            $batches = $filtered_batches;
+
+            if ( empty( $batches ) ) {
+                continue; // Skip products with no batches after filtering
+            }
+
             // Add product to result
             $result[] = array(
-                'product_id' => $product['product_id'],
+                'product_id'   => $product['product_id'],
                 'product_name' => $product['product_name'],
-                'sku' => $product['sku'],
-                'batches' => $batches
+                'sku'          => $product['sku'],
+                'batches'      => $batches,
             );
             // echo '<pre>';print_r($result);
         }
