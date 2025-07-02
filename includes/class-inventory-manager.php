@@ -246,9 +246,10 @@ class Inventory_Manager {
                                         'nonce'   => wp_create_nonce( 'wp_rest' ),
                                         'currency_symbol' => get_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() ),
                                         'pages'   => array(
-                                                'add_manually' => add_query_arg( 'tab', 'add-manually', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
-                                                'import'       => add_query_arg( 'tab', 'import', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
-                                                'settings'     => add_query_arg( 'tab', 'settings', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
+                                                'add_manually'   => add_query_arg( 'tab', 'add-manually', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
+                                                'import'         => add_query_arg( 'tab', 'import', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
+                                                'product_import' => add_query_arg( 'tab', 'product-import', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
+                                                'settings'       => add_query_arg( 'tab', 'settings', get_permalink( get_option( 'inventory_dashboard_page_id' ) ) ),
                                         ),
                                 )
 			);

@@ -80,9 +80,10 @@ class Inventory_Admin_Dashboard {
                 'nonce'   => wp_create_nonce( 'wp_rest' ),
                 'currency_symbol' => get_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() ),
                 'pages'   => array(
-                    'add_manually' => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=add-manually' ),
-                    'import'       => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=import' ),
-                    'settings'     => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=settings' ),
+                    'add_manually'   => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=add-manually' ),
+                    'import'         => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=import' ),
+                    'product_import' => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=product-import' ),
+                    'settings'       => admin_url( 'admin.php?page=inventory-manager-dashboard&tab=settings' ),
                 ),
             )
         );
@@ -98,10 +99,11 @@ class Inventory_Admin_Dashboard {
         echo '<h1>' . esc_html__( 'Inventory Manager', 'inventory-manager-pro' ) . '</h1>';
         echo '<h2 class="nav-tab-wrapper">';
         $tabs = array(
-            'overview'      => __( 'Overview', 'inventory-manager-pro' ),
-            'detailed-logs' => __( 'Detailed Logs', 'inventory-manager-pro' ),
-            'add-manually'  => __( 'Add Manually', 'inventory-manager-pro' ),
-            'import'        => __( 'Import', 'inventory-manager-pro' ),
+            'overview'       => __( 'Overview', 'inventory-manager-pro' ),
+            'detailed-logs'  => __( 'Detailed Logs', 'inventory-manager-pro' ),
+            'add-manually'   => __( 'Add Manually', 'inventory-manager-pro' ),
+            'import'         => __( 'Import', 'inventory-manager-pro' ),
+            'product-import' => __( 'Product Import', 'inventory-manager-pro' ),
             // 'settings'      => __( 'Settings', 'inventory-manager-pro' ),
         );
         foreach ( $tabs as $key => $label ) {
@@ -119,6 +121,9 @@ class Inventory_Admin_Dashboard {
                 break;
             case 'import':
                 include $this->plugin->template_path() . 'dashboard/import.php';
+                break;
+            case 'product-import':
+                include $this->plugin->template_path() . 'dashboard/product-import.php';
                 break;
             case 'settings':
                 include $this->plugin->template_path() . 'dashboard/settings.php';

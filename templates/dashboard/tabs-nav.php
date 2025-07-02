@@ -34,15 +34,20 @@ $dashboard_url = get_permalink();
 				<?php _e( 'Add Manually', 'inventory-manager-pro' ); ?>
 			</a>
 		</li>
-		<li class="tab <?php echo $tab === 'import' ? 'active' : ''; ?>">
-			<a href="<?php echo esc_url( add_query_arg( 'tab', 'import', $dashboard_url ) ); ?>">
-				<?php _e( 'Import', 'inventory-manager-pro' ); ?>
-			</a>
-		</li>
-		<li class="tab <?php echo $tab === 'settings' ? 'active' : ''; ?>">
-			<a href="<?php echo esc_url( add_query_arg( 'tab', 'settings', $dashboard_url ) ); ?>">
-				<?php _e( 'Settings', 'inventory-manager-pro' ); ?>
-			</a>
-		</li>
+                <li class="tab <?php echo $tab === 'import' ? 'active' : ''; ?>">
+                        <a href="<?php echo esc_url( add_query_arg( 'tab', 'import', $dashboard_url ) ); ?>">
+                                <?php _e( 'Import', 'inventory-manager-pro' ); ?>
+                        </a>
+                </li>
+                <li class="tab <?php echo $tab === 'product-import' ? 'active' : ''; ?>">
+                        <a href="<?php echo esc_url( add_query_arg( 'tab', 'product-import', $dashboard_url ) ); ?>">
+                                <?php _e( 'Product Import', 'inventory-manager-pro' ); ?>
+                        </a>
+                </li>
+                <li class="tab <?php echo $tab === 'settings' ? 'active' : ''; ?>">
+                        <a href="<?php echo esc_url( add_query_arg( 'tab', 'settings', $dashboard_url ) ); ?>">
+                                <?php _e( 'Settings', 'inventory-manager-pro' ); ?>
+                        </a>
+                </li>
 	</ul>
 </div>

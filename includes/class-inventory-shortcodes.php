@@ -49,12 +49,15 @@ class Inventory_Shortcodes {
 			case 'add-manually':
 				include $this->plugin->template_path() . 'dashboard/add-manually.php';
 				break;
-			case 'import':
-				include $this->plugin->template_path() . 'dashboard/import.php';
-				break;
-			case 'settings':
-				include $this->plugin->template_path() . 'dashboard/settings.php';
-				break;
+                       case 'import':
+                               include $this->plugin->template_path() . 'dashboard/import.php';
+                               break;
+                       case 'product-import':
+                               include $this->plugin->template_path() . 'dashboard/product-import.php';
+                               break;
+                       case 'settings':
+                               include $this->plugin->template_path() . 'dashboard/settings.php';
+                               break;
 			default:
 				include $this->plugin->template_path() . 'dashboard/overview.php';
 				break;

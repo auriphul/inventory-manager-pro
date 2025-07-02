@@ -204,16 +204,37 @@ class Inventory_API {
 			)
 		);
 
-		register_rest_route(
-			'inventory-manager/v1',
-			'/product-info',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_product_info' ),
-				'permission_callback' => array( $this, 'check_api_permissions' ),
-			)
-		);
-	}
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/product-info',
+                        array(
+                                'methods'             => 'GET',
+                                'callback'            => array( $this, 'get_product_info' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                // Product import endpoints
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/preview-products',
+                        array(
+                                'methods'             => 'POST',
+                                'callback'            => array( $this, 'preview_products_endpoint' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager/v1',
+                        '/import-products',
+                        array(
+                                'methods'             => 'POST',
+                                'callback'            => array( $this, 'import_products_endpoint' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+        }
 
 	/**
 	 * Check permissions for API requests.
@@ -1177,15 +1198,15 @@ class Inventory_API {
 	 * @param string $ext File extension.
 	 * @return array|WP_Error Array of batch data or WP_Error on failure.
 	 */
-	private function parse_excel_file( $file, $ext ) {
-		// We need to include PHPExcel library or a similar library for Excel parsing
-		// This example assumes a simple approach similar to CSV but with a hypothetical Excel reader
+        private function parse_excel_file( $file, $ext ) {
+                // We need to include PHPExcel library or a similar library for Excel parsing
+                // This example assumes a simple approach similar to CSV but with a hypothetical Excel reader
 
-		// For this implementation, we'll return an error suggesting to use CSV instead
-		return new WP_Error(
-			'excel_not_supported',
-			__( 'Excel file parsing is not supported in this implementation. Please convert to CSV and try again.', 'inventory-manager-pro' )
-		);
+                // For this implementation, we'll return an error suggesting to use CSV instead
+                return new WP_Error(
+                        'excel_not_supported',
+                        __( 'Excel file parsing is not supported in this implementation. Please convert to CSV and try again.', 'inventory-manager-pro' )
+                );
 
 		// In a full implementation, you would:
 		// 1. Load the Excel file using a library like PHPExcel or PhpSpreadsheet
@@ -1194,7 +1215,292 @@ class Inventory_API {
 		// 4. Map headers to columns similar to CSV parsing
 		// 5. Loop through rows and create batch data
 		// 6. Return the array of batch data
-	}
+        }
+
+        /**
+         * Parse a simple XLSX file and return rows as arrays.
+         *
+         * @param string $file File path.
+         * @return array|WP_Error
+         */
+        private function parse_simple_xlsx( $file ) {
+                if ( ! class_exists( 'ZipArchive' ) ) {
+                        return new WP_Error( 'missing_zip', __( 'ZipArchive not available for XLSX parsing.', 'inventory-manager-pro' ) );
+                }
+
+                $zip = new ZipArchive();
+                if ( $zip->open( $file ) !== true ) {
+                        return new WP_Error( 'xlsx_open', __( 'Unable to open XLSX file.', 'inventory-manager-pro' ) );
+                }
+
+                $shared_strings = array();
+                $strings_xml    = $zip->getFromName( 'xl/sharedStrings.xml' );
+                if ( $strings_xml ) {
+                        $strings = simplexml_load_string( $strings_xml );
+                        if ( $strings && isset( $strings->si ) ) {
+                                foreach ( $strings->si as $i => $val ) {
+                                        $shared_strings[ $i ] = (string) $val->t;
+                                }
+                        }
+                }
+
+                $sheet_xml = $zip->getFromName( 'xl/worksheets/sheet1.xml' );
+                if ( ! $sheet_xml ) {
+                        $zip->close();
+                        return new WP_Error( 'xlsx_sheet', __( 'Worksheet not found in XLSX file.', 'inventory-manager-pro' ) );
+                }
+
+                $sheet   = simplexml_load_string( $sheet_xml );
+                $rows    = array();
+                foreach ( $sheet->sheetData->row as $row ) {
+                        $r = array();
+                        foreach ( $row->c as $c ) {
+                                $v = (string) $c->v;
+                                if ( isset( $c['t'] ) && (string) $c['t'] === 's' ) {
+                                        $v = isset( $shared_strings[ intval( $v ) ] ) ? $shared_strings[ intval( $v ) ] : '';
+                                }
+                                $r[] = $v;
+                        }
+                        $rows[] = $r;
+                }
+
+                $zip->close();
+
+                return $rows;
+        }
+
+        /**
+         * Parse product CSV file.
+         */
+        private function parse_product_csv( $file ) {
+                $rows     = array();
+                $handle   = fopen( $file, 'r' );
+                if ( ! $handle ) {
+                        return new WP_Error( 'file_error', __( 'Error opening file', 'inventory-manager-pro' ) );
+                }
+                $headers = fgetcsv( $handle );
+                if ( ! $headers ) {
+                        fclose( $handle );
+                        return new WP_Error( 'invalid_csv', __( 'Invalid CSV format', 'inventory-manager-pro' ) );
+                }
+                $map = array();
+                foreach ( $headers as $i => $h ) {
+                        $key       = strtolower( trim( $h ) );
+                        $map[ $key ] = $i;
+                }
+                if ( ! isset( $map['sku'] ) || ! isset( $map['product name'] ) ) {
+                        fclose( $handle );
+                        return new WP_Error( 'missing_column', __( 'Missing required columns.', 'inventory-manager-pro' ) );
+                }
+                while ( ( $row = fgetcsv( $handle ) ) !== false ) {
+                        $data = array(
+                                'sku'          => $row[ $map['sku'] ],
+                                'product_name' => $row[ $map['product name'] ],
+                                'price'        => isset( $map['price'] ) ? $row[ $map['price'] ] : '',
+                                'quantity'     => isset( $map['quantity'] ) ? $row[ $map['quantity'] ] : '',
+                                'category'     => isset( $map['category'] ) ? $row[ $map['category'] ] : '',
+                        );
+                        $rows[] = $data;
+                }
+                fclose( $handle );
+                return $rows;
+        }
+
+        /**
+         * Parse product Excel file.
+         */
+        private function parse_product_excel( $file ) {
+                $raw = $this->parse_simple_xlsx( $file );
+                if ( is_wp_error( $raw ) ) {
+                        return $raw;
+                }
+                if ( empty( $raw ) ) {
+                        return array();
+                }
+                $headers = array_map( 'strtolower', $raw[0] );
+                $map     = array();
+                foreach ( $headers as $i => $h ) {
+                        $map[ $h ] = $i;
+                }
+                if ( ! isset( $map['sku'] ) || ! isset( $map['product name'] ) ) {
+                        return new WP_Error( 'missing_column', __( 'Missing required columns.', 'inventory-manager-pro' ) );
+                }
+                $rows = array();
+                for ( $i = 1; $i < count( $raw ); $i++ ) {
+                        $r     = $raw[ $i ];
+                        $data  = array(
+                                'sku'          => $r[ $map['sku'] ] ?? '',
+                                'product_name' => $r[ $map['product name'] ] ?? '',
+                                'price'        => isset( $map['price'] ) ? ( $r[ $map['price'] ] ?? '' ) : '',
+                                'quantity'     => isset( $map['quantity'] ) ? ( $r[ $map['quantity'] ] ?? '' ) : '',
+                                'category'     => isset( $map['category'] ) ? ( $r[ $map['category'] ] ?? '' ) : '',
+                        );
+                        $rows[] = $data;
+                }
+                return $rows;
+        }
+
+        /**
+         * Validate product rows.
+         */
+        private function validate_product_rows( $rows ) {
+                $errors = array();
+                $seen   = array();
+                $i      = 2; // starting row (after headers)
+
+                foreach ( $rows as $row ) {
+                        if ( empty( $row['sku'] ) ) {
+                                $errors[] = sprintf( __( 'Row %d: SKU is required.', 'inventory-manager-pro' ), $i );
+                        } else {
+                                if ( in_array( $row['sku'], $seen, true ) ) {
+                                        $errors[] = sprintf( __( 'Row %d: Duplicate SKU %s in file.', 'inventory-manager-pro' ), $i, $row['sku'] );
+                                } elseif ( wc_get_product_id_by_sku( $row['sku'] ) ) {
+                                        $errors[] = sprintf( __( 'Row %d: SKU %s already exists.', 'inventory-manager-pro' ), $i, $row['sku'] );
+                                }
+                                $seen[] = $row['sku'];
+                        }
+
+                        if ( empty( $row['product_name'] ) ) {
+                                $errors[] = sprintf( __( 'Row %d: Product Name is required.', 'inventory-manager-pro' ), $i );
+                        }
+
+                        if ( $row['price'] !== '' && ! is_numeric( $row['price'] ) ) {
+                                $errors[] = sprintf( __( 'Row %d: Price must be numeric.', 'inventory-manager-pro' ), $i );
+                        }
+
+                        if ( $row['quantity'] !== '' && ! is_numeric( $row['quantity'] ) ) {
+                                $errors[] = sprintf( __( 'Row %d: Quantity must be numeric.', 'inventory-manager-pro' ), $i );
+                        }
+
+                        $i++;
+                }
+
+                return array(
+                        'valid'   => empty( $errors ),
+                        'errors'  => $errors,
+                        'rowCount' => count( $rows ),
+                );
+        }
+
+        /**
+         * Preview products import.
+         */
+        public function preview_products_endpoint( WP_REST_Request $request ) {
+                $files = $request->get_file_params();
+                if ( empty( $files['file'] ) ) {
+                        return new WP_Error( 'no_file', __( 'No file uploaded.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+
+                $file      = $files['file'];
+                $file_type = wp_check_filetype( basename( $file['name'] ) );
+
+                if ( ! in_array( $file_type['ext'], array( 'csv', 'xlsx' ), true ) ) {
+                        return new WP_Error( 'invalid_type', __( 'Invalid file type.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+
+                $rows = ( 'csv' === $file_type['ext'] ) ? $this->parse_product_csv( $file['tmp_name'] ) : $this->parse_product_excel( $file['tmp_name'] );
+                if ( is_wp_error( $rows ) ) {
+                        return $rows;
+                }
+
+                $validation = $this->validate_product_rows( $rows );
+
+                return rest_ensure_response(
+                        array(
+                                'headers'    => array( 'SKU', 'Product Name', 'Price', 'Quantity', 'Category' ),
+                                'rows'       => $rows,
+                                'validation' => $validation,
+                        )
+                );
+        }
+
+        /**
+         * Import products endpoint.
+         */
+        public function import_products_endpoint( WP_REST_Request $request ) {
+                $files = $request->get_file_params();
+                if ( empty( $files['file'] ) ) {
+                        return new WP_Error( 'no_file', __( 'No file uploaded.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+
+                $file      = $files['file'];
+                $file_type = wp_check_filetype( basename( $file['name'] ) );
+                if ( ! in_array( $file_type['ext'], array( 'csv', 'xlsx' ), true ) ) {
+                        return new WP_Error( 'invalid_type', __( 'Invalid file type.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+
+                $rows = ( 'csv' === $file_type['ext'] ) ? $this->parse_product_csv( $file['tmp_name'] ) : $this->parse_product_excel( $file['tmp_name'] );
+                if ( is_wp_error( $rows ) ) {
+                        return $rows;
+                }
+
+                $validation = $this->validate_product_rows( $rows );
+                if ( ! $validation['valid'] ) {
+                        return new WP_Error( 'validation_failed', __( 'Validation failed.', 'inventory-manager-pro' ), array( 'status' => 400, 'errors' => $validation['errors'] ) );
+                }
+
+                $results = array(
+                        'success' => 0,
+                        'errors'  => array(),
+                );
+
+                global $wpdb;
+
+                foreach ( $rows as $row ) {
+                        $wpdb->query( 'START TRANSACTION' );
+                        try {
+                                $product = new WC_Product_Simple();
+                                $product->set_name( $row['product_name'] );
+                                $product->set_sku( $row['sku'] );
+                                if ( $row['price'] !== '' ) {
+                                        $product->set_regular_price( $row['price'] );
+                                }
+                                if ( $row['quantity'] !== '' ) {
+                                        $product->set_manage_stock( true );
+                                        $product->set_stock_quantity( floatval( $row['quantity'] ) );
+                                }
+                                if ( $row['category'] !== '' ) {
+                                        $term = term_exists( $row['category'], 'product_cat' );
+                                        if ( ! $term ) {
+                                                $term = wp_insert_term( $row['category'], 'product_cat' );
+                                        }
+                                        if ( ! is_wp_error( $term ) ) {
+                                                $product->set_category_ids( array( $term['term_id'] ) );
+                                        }
+                                }
+
+                                $product_id = $product->save();
+                                if ( $product_id ) {
+                                        $wpdb->query( 'COMMIT' );
+                                        $results['success']++;
+                                } else {
+                                        $wpdb->query( 'ROLLBACK' );
+                                        $results['errors'][] = sprintf( __( 'Could not create product for SKU %s', 'inventory-manager-pro' ), $row['sku'] );
+                                }
+                        } catch ( Exception $e ) {
+                                $wpdb->query( 'ROLLBACK' );
+                                $results['errors'][] = sprintf( __( 'Error importing SKU %s: %s', 'inventory-manager-pro' ), $row['sku'], $e->getMessage() );
+                        }
+                }
+
+                $this->log_import_activity( 'product', $results );
+
+                return rest_ensure_response( array( 'success' => true, 'results' => $results ) );
+        }
+
+        /**
+         * Log import activity.
+         */
+        private function log_import_activity( $type, $data ) {
+                $upload = wp_upload_dir();
+                $dir    = trailingslashit( $upload['basedir'] ) . 'inventory-import-logs';
+                if ( ! file_exists( $dir ) ) {
+                        wp_mkdir_p( $dir );
+                }
+                $file = $dir . '/' . $type . '-import-' . date( 'Ymd-His' ) . '.log';
+                $content = date( 'Y-m-d H:i:s' ) . "\n" . print_r( $data, true );
+                file_put_contents( $file, $content );
+        }
 
 	/**
 	 * Check for expiring batches and send notifications.
