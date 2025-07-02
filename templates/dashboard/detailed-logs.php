@@ -134,7 +134,15 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                 <option value="DESC"><?php _e( 'Newest First', 'inventory-manager-pro' ); ?></option>
             </select>
         </div>
-        
+
+        <div class="batch-sort">
+            <label for="batch-sort-select"><?php _e( 'Sort Batches By:', 'inventory-manager-pro' ); ?></label>
+            <select id="batch-sort-select" class="batch-sort-select">
+                <option value="created"><?php _e( 'Creation Date', 'inventory-manager-pro' ); ?></option>
+                <option value="expiry"><?php _e( 'Expiry Date', 'inventory-manager-pro' ); ?></option>
+            </select>
+        </div>
+
         <div class="logs-export">
             <select class="logs-export-format">
                 <option value="csv">CSV</option>

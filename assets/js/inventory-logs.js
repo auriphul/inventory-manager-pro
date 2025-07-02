@@ -13,7 +13,8 @@
         search: '',
         order: 'ASC',
         expiry_filters: [],
-        products: []
+        products: [],
+        batch_sort: 'created'
     };
 
     /**
@@ -65,6 +66,12 @@
         $('.order-filter').on('change', function() {
             state.order = $(this).val();
             loadLogs();
+        });
+
+        // Batch sort dropdown
+        $('.batch-sort-select').on('change', function() {
+            state.batch_sort = $(this).val();
+            sortBatches(state.batch_sort);
         });
         
         // Search
@@ -231,6 +238,7 @@
         });
         
         logsContainer.html(html);
+        sortBatches(state.batch_sort);
         $('.product-header').click();
     }
     
@@ -318,7 +326,7 @@
      * Render batch section
      */
     function renderBatch(batch) {
-        let html = '<div class="batch-section">';
+        let html = '<div class="batch-section" data-created="' + batch.date_created + '" data-expiry="' + (batch.expiry_date || '') + '">';
         
         // Batch header
         const expiryClass = batch.expiry_range ? ' expiry-' + batch.expiry_range : '';
@@ -428,8 +436,30 @@
         
         html += '</div>'; // End movement-log
         html += '</div>'; // End batch-section
-        
+
         return html;
+    }
+
+    /**
+     * Sort batch sections in the DOM
+     */
+    function sortBatches(key) {
+        $('.batches-container').each(function() {
+            const container = $(this);
+            const batches = container.children('.batch-section').get();
+
+            batches.sort(function(a, b) {
+                const aVal = $(a).data(key) || '';
+                const bVal = $(b).data(key) || '';
+                const aDate = aVal ? new Date(aVal) : new Date(0);
+                const bDate = bVal ? new Date(bVal) : new Date(0);
+                return aDate - bDate;
+            });
+
+            $.each(batches, function(i, batch) {
+                container.append(batch);
+            });
+        });
     }
     
     /**
