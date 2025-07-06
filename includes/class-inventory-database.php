@@ -452,6 +452,13 @@ class Inventory_Database {
         $batch_number = sanitize_text_field($data['batch_number']);
         $stock_qty = floatval($data['stock_qty']);
         $reference = sanitize_text_field($data['reference']);
+        $expiry_date    =   sanitize_text_field($data['expiry']);
+        $expiry_date_formatted    =   $this->normalize_date($expiry_date);
+
+        if ( $data['supplier_id'] == '') {
+            return new WP_Error('db_error', __('Supplier ID not available.', 'inventory-manager-pro'));
+        }
+        // return $data;
 
         // Get product_id from SKU
         $product_id = wc_get_product_id_by_sku($sku);
@@ -487,7 +494,7 @@ class Inventory_Database {
         $batch_data['supplier_id']  =   sanitize_text_field($data['supplier']);
 
         if (!empty($data['expiry'])) {
-            $batch_data['expiry_date'] = sanitize_text_field($data['expiry']);
+            $batch_data['expiry_date'] = $expiry_date;
         }
         if (!empty($data['expiry_date'])) {
             $batch_data['expiry_date'] = sanitize_text_field($data['expiry_date']);
@@ -1479,4 +1486,22 @@ class Inventory_Database {
 
         return true;
     }
+
+	public function normalize_date($date_str) {
+		// 1. Check format dd/mm/yyyy
+		if (preg_match('#^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$#', $date_str)) {
+	
+			// 2. Create a DateTime object from the given format
+			$dt = DateTime::createFromFormat('d/m/Y', $date_str);
+	
+			// 3. Make sure parsing succeeded and the date is valid
+			if ($dt && $dt->format('d/m/Y') === $date_str) {
+				// 4. Return in Y-m-d
+				return $dt->format('Y-m-d');
+			}
+		}
+	
+		// Not a valid dd/mm/yyyy date
+		return false;
+	}
 }

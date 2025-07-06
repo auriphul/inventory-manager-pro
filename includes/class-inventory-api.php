@@ -1130,14 +1130,14 @@ class Inventory_API {
 			'inventory_product_name'   	=> false,
 			'inventory_batch'          	=> false,
 			'inventory_stock_qty'      	=> false,
-			'inventory_supplier'       	=> false,
+			'inventory_supplier_id'     => false,
 			'inventory_reference'      	=> false,
 			'inventory_expiry'    		=> false,
 			'inventory_origin'         	=> false,
 			'inventory_location'       	=> false,
 			'inventory_unit_cost'      	=> false,
 			'inventory_freight_margin' 	=> false,
-			'inventory_supplier' 		=> false,
+			// 'inventory_supplier' 		=> false,
 		);
 
 		foreach ( $headers as $index => $header ) {

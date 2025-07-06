@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <p><?php _e( 'Import batches from a CSV or Excel file', 'inventory-manager-pro' ); ?></p>
     </div>
 
-    <div class="inventory-form">
+    <div class="inventory-form" style="max-width:100%;">
         <form id="import-form" method="post" enctype="multipart/form-data">
             <div class="form-section">
                 <h3><?php _e( 'File Selection', 'inventory-manager-pro' ); ?></h3>
@@ -27,17 +27,17 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <label for="file"><?php _e( 'Select File', 'inventory-manager-pro' ); ?></label>
                         <div class="file-input-container">
                             <input type="file" id="file" name="file" accept=".csv,.xls,.xlsx" required>
-                            <div class="file-input-button">
+                            <!-- <div class="file-input-button">
                                 <button type="button" class="button"><?php _e( 'Choose File', 'inventory-manager-pro' ); ?></button>
                                 <span id="file-name"><?php _e( 'No file selected', 'inventory-manager-pro' ); ?></span>
-                            </div>
+                            </div> -->
                         </div>
                         <p class="description"><?php _e( 'Upload a CSV or Excel file with batch information', 'inventory-manager-pro' ); ?></p>
                     </div>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" id="preview-import" class="button button-secondary"><?php _e( 'Preview Import', 'inventory-manager-pro' ); ?></button>
+                    <!-- <button type="button" id="preview-import" class="button button-secondary"><?php _e( 'Preview Import', 'inventory-manager-pro' ); ?></button> -->
                     <button type="submit" id="import-btn" class="button button-primary"><?php _e( 'Import', 'inventory-manager-pro' ); ?></button>
                 </div>
             </div>
@@ -82,14 +82,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <td><?php _e( 'Reference number (PO, invoice, etc.)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_supplier</code></td>
-                                <td><span class="optional">No</span></td>
-                                <td><?php _e( 'Supplier name', 'inventory-manager-pro' ); ?></td>
+                                <td><code>inventory_supplier_id</code></td>
+                                <td><span class="required">Yes</span></td>
+                                <td><?php _e( 'Supplier ID (Make sure that all suppliers are entered onto Suppliers & Transit Time tab before importing. Any products with a supplier not pre-entered, will be ignored.)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
                                 <td><code>inventory_expiry</code></td>
                                 <td><span class="optional">No</span></td>
-                                <td><?php _e( 'Expiry date (YYYY-MM-DD)', 'inventory-manager-pro' ); ?></td>
+                                <td><?php _e( 'Expiry date (DD/MM/YYYY)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
                                 <td><code>inventory_origin</code></td>
@@ -127,8 +127,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <ul class="import-notes">
                     <li><?php _e( 'SKUs must exist in WooCommerce before importing.', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'Batch numbers must be unique for each product.', 'inventory-manager-pro' ); ?></li>
-                    <li><?php _e( 'If a supplier does not exist, it will be created automatically.', 'inventory-manager-pro' ); ?></li>
-                    <li><?php _e( 'Dates should be in YYYY-MM-DD format.', 'inventory-manager-pro' ); ?></li>
+                    <li><?php _e( 'If a supplier does not exist, it will not be created automatically.', 'inventory-manager-pro' ); ?></li>
+                    <li><?php _e( 'Dates should be in DD/MM/YYYY format.', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'Use a decimal point (.) for decimal numbers, not a comma.', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'The maximum file size for import is 10MB.', 'inventory-manager-pro' ); ?></li>
                 </ul>
