@@ -452,13 +452,12 @@ class Inventory_Database {
         $batch_number = sanitize_text_field($data['batch_number']);
         $stock_qty = floatval($data['stock_qty']);
         $reference = sanitize_text_field($data['reference']);
-        $expiry_date    =   sanitize_text_field($data['expiry']);
+        $expiry_date    =   sanitize_text_field($data['expiry_date']);
         $expiry_date_formatted    =   $this->normalize_date($expiry_date);
 
         if ( $data['supplier_id'] == '') {
             return new WP_Error('db_error', __('Supplier ID not available.', 'inventory-manager-pro'));
         }
-        // return $data;
 
         // Get product_id from SKU
         $product_id = wc_get_product_id_by_sku($sku);
@@ -491,13 +490,13 @@ class Inventory_Database {
         );
 
         // Optional fields
-        $batch_data['supplier_id']  =   sanitize_text_field($data['supplier']);
+        $batch_data['supplier_id']  =   sanitize_text_field($data['supplier_id']);
 
         if (!empty($data['expiry'])) {
-            $batch_data['expiry_date'] = $expiry_date;
+            $batch_data['expiry_date'] = $expiry_date_formatted;
         }
         if (!empty($data['expiry_date'])) {
-            $batch_data['expiry_date'] = sanitize_text_field($data['expiry_date']);
+            $batch_data['expiry_date'] = $expiry_date_formatted;
         }
 
         if (!empty($data['origin'])) {

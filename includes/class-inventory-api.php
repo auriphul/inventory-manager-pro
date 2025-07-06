@@ -1126,18 +1126,18 @@ class Inventory_API {
 
 		// Map headers to columns
 		$column_map = array(
-			'inventory_sku'            	=> false,
-			'inventory_product_name'   	=> false,
-			'inventory_batch'          	=> false,
-			'inventory_stock_qty'      	=> false,
-			'inventory_supplier_id'     => false,
-			'inventory_reference'      	=> false,
-			'inventory_expiry'    		=> false,
-			'inventory_origin'         	=> false,
-			'inventory_location'       	=> false,
-			'inventory_unit_cost'      	=> false,
-			'inventory_freight_margin' 	=> false,
-			// 'inventory_supplier' 		=> false,
+			'sku'            	=> false,
+			'product_name'   	=> false,
+			'batch'          	=> false,
+			'stock_qty'      	=> false,
+			'supplier_id'     	=> false,
+			'reference'      	=> false,
+			'expiry_date'    	=> false,
+			'origin'         	=> false,
+			'location'       	=> false,
+			'unit_cost'      	=> false,
+			'freight_margin' 	=> false,
+			// 'supplier' 		=> false,
 		);
 
 		foreach ( $headers as $index => $header ) {
@@ -1147,7 +1147,7 @@ class Inventory_API {
 		}
 
 		// Check required columns
-		$required_columns = array( 'inventory_sku', 'inventory_batch', 'inventory_stock_qty' );
+		$required_columns = array( 'sku', 'batch', 'stock_qty' );
 
 		foreach ( $required_columns as $column ) {
 			if ( $column_map[ $column ] === false ) {

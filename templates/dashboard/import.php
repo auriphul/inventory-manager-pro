@@ -62,52 +62,52 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </thead>
                         <tbody>
                             <tr>
-                                <td><code>inventory_sku</code></td>
+                                <td><code>sku</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Product SKU', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_batch</code></td>
+                                <td><code>batch</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Batch number', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_stock_qty</code></td>
+                                <td><code>stock_qty</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Stock quantity', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_reference</code></td>
+                                <td><code>reference</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Reference number (PO, invoice, etc.)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_supplier_id</code></td>
+                                <td><code>supplier_id</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Supplier ID (Make sure that all suppliers are entered onto Suppliers & Transit Time tab before importing. Any products with a supplier not pre-entered, will be ignored.)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_expiry</code></td>
+                                <td><code>expiry_date</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Expiry date (DD/MM/YYYY)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_origin</code></td>
+                                <td><code>origin</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Country or region of origin', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_location</code></td>
+                                <td><code>location</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Storage location', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_unit_cost</code></td>
+                                <td><code>unit_cost</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Unit cost', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>inventory_freight_markup</code></td>
+                                <td><code>freight_markup</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Freight markup per unit', 'inventory-manager-pro' ); ?></td>
                             </tr>
