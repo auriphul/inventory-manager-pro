@@ -462,6 +462,15 @@ class Inventory_Manager_WooCommerce {
 
                self::$checkout_stock_messages = array();
 
+               $settings  = get_option( 'inventory_manager_frontend_notes', array() );
+               $show_note = isset( $settings['show_backorder_popup'] ) && 'yes' === $settings['show_backorder_popup'];
+
+               if ( ! $show_note ) {
+                       return;
+               }
+
+               $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
+
                foreach ( WC()->cart->get_cart() as $cart_item ) {
                         $product_id = $cart_item['product_id'];
 //                         $product = wc_get_product( $product_id );
@@ -472,13 +481,15 @@ class Inventory_Manager_WooCommerce {
                        $info = $this->get_stock_breakdown( $product_id, $qty );
 
                        if ( $info['backorder_qty'] > 0 ) {
-                               $message = sprintf(
-                                       /* translators: 1: immediate qty 2: product name 3: backorder qty */
-                                       __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' ),
-                                       $info['immediate_qty'],
-                                       $product->get_name(),
-                                       $info['backorder_qty']
+                               $message = str_replace(
+                                       array( '{immediate_qty}', '{product_name}', '{backorder_qty}' ),
+                                       array( $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] ),
+                                       $template
                                );
+
+                               if ( $message === $template ) {
+                                       $message = sprintf( $template, $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] );
+                               }
 
                                $message = apply_filters( 'inventory_manager_stock_notice_message', $message, $product_id, $info, $cart_item );
 
