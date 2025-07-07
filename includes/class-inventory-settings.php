@@ -254,10 +254,10 @@ class Inventory_Settings {
                        '40_days' => __( '40 days', 'inventory-manager-pro' ),
                );
 
-               $custom = get_option( 'inventory_manager_suppliers', array() );
-               if ( ! empty( $custom['transit_times'] ) && is_array( $custom['transit_times'] ) ) {
-                       $times = $custom['transit_times'];
-               }
+            //    $custom = get_option( 'inventory_manager_suppliers', array() );
+            //    if ( ! empty( $custom['transit_times'] ) && is_array( $custom['transit_times'] ) ) {
+            //            $times = $custom['transit_times'];
+            //    }
 
                return $times;
        }
@@ -314,14 +314,14 @@ class Inventory_Settings {
                echo '<h3>' . __( 'Add Supplier', 'inventory-manager-pro' ) . '</h3>';
                echo '<form method="post" action="">';
                wp_nonce_field( 'supplier_registration', 'supplier_nonce' );
-               echo '<table class="form-table">';
+               echo '<table class="form-table"style="max-width: 800px;">';
                echo '<tr>';
                echo '<th scope="row"><label for="supplier_name">' . __( 'Supplier Name', 'inventory-manager-pro' ) . '</label></th>';
-               echo '<td><input type="text" name="supplier_name" id="supplier_name" class="regular-text" required></td>';
+               echo '<th scope="row"><label for="transit_time">' . __( 'Transit Time', 'inventory-manager-pro' ) . '</label></th>';
                echo '</tr>';
                echo '<tr>';
-               echo '<th scope="row"><label for="transit_time">' . __( 'Transit Time', 'inventory-manager-pro' ) . '</label></th>';
-               echo '<td><select name="transit_time" id="transit_time" required>';
+               echo '<td><input type="text" name="supplier_name" id="supplier_name" class="regular-text" required></td>';
+               echo '<td><select name="transit_time" id="transit_time" required style="width:100%;">';
                foreach ( $transit_times as $key => $label ) {
                        echo '<option value="' . esc_attr( $key ) . '">' . esc_html( $label ) . '</option>';
                }
