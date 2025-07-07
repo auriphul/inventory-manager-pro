@@ -153,7 +153,7 @@ class Inventory_Shortcodes {
                                 'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
                                 'origin'    => $batch->origin,
                                 'location'  => $batch->location,
-                                'stock_qty' => $batch->stock_qty,
+                                'stock_qty' => number_format( (float) $batch->stock_qty, 2 ),
                         );
                 }
 
@@ -241,7 +241,7 @@ class Inventory_Shortcodes {
                                 'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
                                 'origin'    => $batch->origin,
                                 'location'  => $batch->location,
-                                'stock_qty' => $batch->stock_qty,
+                                'stock_qty' => number_format( (float) $batch->stock_qty, 2 ),
                         );
                 }
 
