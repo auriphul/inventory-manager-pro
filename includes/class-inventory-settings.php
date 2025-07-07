@@ -7,11 +7,14 @@
  */
 
 class Inventory_Settings {
-	private $plugin;
+       private $plugin;
+       /** Database helper */
+       private $db;
 
-	public function __construct( $plugin ) {
-		$this->plugin = $plugin;
-	}
+       public function __construct( $plugin ) {
+               $this->plugin = $plugin;
+               $this->db     = new Inventory_Database();
+       }
 
 	/**
 	 * Add settings page to admin menu.
@@ -99,35 +102,40 @@ class Inventory_Settings {
 		echo '<a href="?page=inventory-manager-settings&tab=logs" class="nav-tab ' . ( $tab === 'logs' ? 'nav-tab-active' : '' ) . '">' . __( 'Detailed Logs Settings', 'inventory-manager-pro' ) . '</a>';
 		echo '</h2>';
 
-		// Settings form
-		echo '<form method="post" action="options.php">';
+                if ( 'suppliers' === $tab ) {
+                        $form_message = $this->handle_supplier_form_submission();
 
-		// Render tab content
-		switch ( $tab ) {
-			case 'frontend':
-				settings_fields( 'inventory_manager_frontend' );
-				$this->render_frontend_settings();
-				break;
-			case 'suppliers':
-				settings_fields( 'inventory_manager_suppliers' );
-				$this->render_supplier_settings();
-				break;
-			case 'logs':
-				settings_fields( 'inventory_manager_logs' );
-				$this->render_logs_settings();
-				break;
-			default:
-				settings_fields( 'inventory_manager_backend' );
-				$this->render_backend_settings();
-				break;
-		}
+                        echo '<form method="post" action="options.php">';
+                        settings_fields( 'inventory_manager_suppliers' );
+                        $this->render_supplier_settings();
+                        submit_button();
+                        echo '</form>';
 
-		// Submit button
-		submit_button();
+                        $this->render_supplier_form( $form_message );
+                } else {
+                        echo '<form method="post" action="options.php">';
 
-		echo '</form>';
-		echo '</div>';
-	}
+                        switch ( $tab ) {
+                                case 'frontend':
+                                        settings_fields( 'inventory_manager_frontend' );
+                                        $this->render_frontend_settings();
+                                        break;
+                                case 'logs':
+                                        settings_fields( 'inventory_manager_logs' );
+                                        $this->render_logs_settings();
+                                        break;
+                                default:
+                                        settings_fields( 'inventory_manager_backend' );
+                                        $this->render_backend_settings();
+                                        break;
+                        }
+
+                        submit_button();
+                        echo '</form>';
+                }
+
+                echo '</div>';
+        }
 
 	/**
 	 * Render backend settings.
@@ -230,6 +238,99 @@ class Inventory_Settings {
                 echo '</tr>';
                 echo '</table>';
         }
+
+       /**
+        * Get transit time options.
+        *
+        * @return array
+        */
+       private function get_transit_time_options() {
+               $times = array(
+                       '3_days'  => __( '3 days', 'inventory-manager-pro' ),
+                       '1_week'  => __( '1 week', 'inventory-manager-pro' ),
+                       '2_weeks' => __( '2 weeks', 'inventory-manager-pro' ),
+                       '20_days' => __( '20 days', 'inventory-manager-pro' ),
+                       '1_month' => __( '1 month', 'inventory-manager-pro' ),
+                       '40_days' => __( '40 days', 'inventory-manager-pro' ),
+               );
+
+               $custom = get_option( 'inventory_manager_suppliers', array() );
+               if ( ! empty( $custom['transit_times'] ) && is_array( $custom['transit_times'] ) ) {
+                       $times = $custom['transit_times'];
+               }
+
+               return $times;
+       }
+
+       /**
+        * Handle supplier form submission.
+        *
+        * @return string|WP_Error
+        */
+       private function handle_supplier_form_submission() {
+               if ( empty( $_POST['add_supplier'] ) ) {
+                       return '';
+               }
+
+               if ( ! isset( $_POST['supplier_nonce'] ) || ! wp_verify_nonce( $_POST['supplier_nonce'], 'supplier_registration' ) ) {
+                       return new WP_Error( 'nonce', __( 'Security check failed.', 'inventory-manager-pro' ) );
+               }
+
+               $name    = isset( $_POST['supplier_name'] ) ? sanitize_text_field( $_POST['supplier_name'] ) : '';
+               $transit = isset( $_POST['transit_time'] ) ? sanitize_text_field( $_POST['transit_time'] ) : '';
+
+               if ( '' === $name ) {
+                       return new WP_Error( 'name', __( 'Supplier name is required.', 'inventory-manager-pro' ) );
+               }
+
+               if ( '' === $transit ) {
+                       return new WP_Error( 'transit', __( 'Transit time is required.', 'inventory-manager-pro' ) );
+               }
+
+               $result = $this->db->create_supplier( $name, $transit );
+               if ( is_wp_error( $result ) ) {
+                       return $result;
+               }
+
+               return __( 'Supplier added successfully.', 'inventory-manager-pro' );
+       }
+
+       /**
+        * Render supplier registration form.
+        *
+        * @param string|WP_Error $message Optional message to display.
+        */
+       private function render_supplier_form( $message = '' ) {
+               $transit_times = $this->get_transit_time_options();
+
+               if ( $message ) {
+                       if ( is_wp_error( $message ) ) {
+                               echo '<div class="notice notice-error"><p>' . esc_html( $message->get_error_message() ) . '</p></div>';
+                       } else {
+                               echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+                       }
+               }
+
+               echo '<h3>' . __( 'Add Supplier', 'inventory-manager-pro' ) . '</h3>';
+               echo '<form method="post" action="">';
+               wp_nonce_field( 'supplier_registration', 'supplier_nonce' );
+               echo '<table class="form-table">';
+               echo '<tr>';
+               echo '<th scope="row"><label for="supplier_name">' . __( 'Supplier Name', 'inventory-manager-pro' ) . '</label></th>';
+               echo '<td><input type="text" name="supplier_name" id="supplier_name" class="regular-text" required></td>';
+               echo '</tr>';
+               echo '<tr>';
+               echo '<th scope="row"><label for="transit_time">' . __( 'Transit Time', 'inventory-manager-pro' ) . '</label></th>';
+               echo '<td><select name="transit_time" id="transit_time" required>';
+               foreach ( $transit_times as $key => $label ) {
+                       echo '<option value="' . esc_attr( $key ) . '">' . esc_html( $label ) . '</option>';
+               }
+               echo '</select></td>';
+               echo '</tr>';
+               echo '</table>';
+               echo '<p><input type="submit" name="add_supplier" class="button button-primary" value="' . esc_attr__( 'Register Supplier', 'inventory-manager-pro' ) . '"></p>';
+               echo '</form>';
+       }
 
 	/**
 	 * Render frontend settings.
