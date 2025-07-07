@@ -1487,20 +1487,18 @@ class Inventory_Database {
     }
 
 	public function normalize_date($date_str) {
-		// 1. Check format dd/mm/yyyy
-		if (preg_match('#^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$#', $date_str)) {
-	
-			// 2. Create a DateTime object from the given format
-			$dt = DateTime::createFromFormat('d/m/Y', $date_str);
-	
-			// 3. Make sure parsing succeeded and the date is valid
-			if ($dt && $dt->format('d/m/Y') === $date_str) {
-				// 4. Return in Y-m-d
-				return $dt->format('Y-m-d');
-			}
-		}
-	
-		// Not a valid dd/mm/yyyy date
-		return false;
+        $dt     = DateTime::createFromFormat( 'j/n/Y', $date_str );
+        $errors = DateTime::getLastErrors();
+    
+        // pull out counts, defaulting to 0 if they're not set
+        $warnCount = isset( $errors['warning_count'] ) ? $errors['warning_count'] : 0;
+        $errCount  = isset( $errors['error_count']   ) ? $errors['error_count']   : 0;
+    
+        // now accept if we got a DateTime and there are truly no errors or warnings
+        if ( $dt && $warnCount === 0 && $errCount === 0 ) {
+            return $dt->format( 'Y-m-d' );
+        }
+    
+        return false;
 	}
 }
