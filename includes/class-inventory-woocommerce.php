@@ -31,8 +31,8 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_order_status_credit-note', array( $this, 'admin_order_credit_note_status' ), 10, 2 );
 
 		// Product display.
-               add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'display_batch_info_single_product' ) );
-               add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_batch_info_archive' ) );
+        //        add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'display_batch_info_single_product' ) );
+        //        add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_batch_info_archive' ) );
 
                // Assign expiring products to special offers category
                add_action( 'init', array( $this, 'assign_special_offers_category' ) );
