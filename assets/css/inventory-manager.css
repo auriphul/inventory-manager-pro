@@ -729,3 +729,7 @@
         overflow-x: auto;
     }
 }
+/* Batch display layout */
+.batch-container{display:flex;flex-wrap:wrap;gap:15px;}
+.batch-column{flex:1 1 30%;min-width:220px;}
+

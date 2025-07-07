@@ -118,48 +118,51 @@ class Inventory_Shortcodes {
 		// Get batch information.
 		global $wpdb;
 
-		// Get closest expiry batch.
-		$batch = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}inventory_batches 
-            WHERE sku = %s AND stock_qty > 0 
-            ORDER BY expiry_date ASC 
-            LIMIT 1",
-				$sku
-			)
-		);
+                // Fetch up to 3 closest expiry batches.
+                $batches = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$wpdb->prefix}inventory_batches
+            WHERE sku = %s AND stock_qty > 0
+            ORDER BY expiry_date ASC
+            LIMIT 3",
+                                $sku
+                        )
+                );
 
-		if ( ! $batch ) {
-			return '';
-		}
+                if ( empty( $batches ) ) {
+                        return '';
+                }
 
-		// Get supplier name.
-		$supplier_name = '';
-		if ( $batch->supplier_id ) {
-			$supplier_name = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
-					$batch->supplier_id
-				)
-			);
-		}
+                $batches_info = array();
 
-		// Prepare batch info.
-		$batch_info = array(
-			'supplier'  => $supplier_name,
-			'batch'     => $batch->batch_number,
-                       'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
-			'origin'    => $batch->origin,
-			'location'  => $batch->location,
-			'stock_qty' => $batch->stock_qty,
-		);
+                foreach ( $batches as $batch ) {
+                        $supplier_name = '';
+
+                        if ( $batch->supplier_id ) {
+                                $supplier_name = $wpdb->get_var(
+                                        $wpdb->prepare(
+                                                "SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
+                                                $batch->supplier_id
+                                        )
+                                );
+                        }
+
+                        $batches_info[] = array(
+                                'supplier'  => $supplier_name,
+                                'batch'     => $batch->batch_number,
+                                'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
+                                'origin'    => $batch->origin,
+                                'location'  => $batch->location,
+                                'stock_qty' => $batch->stock_qty,
+                        );
+                }
 
                 // Render template.
                 ob_start();
                 wc_get_template(
                         'frontend/product-batch-archive.php',
                         array(
-                                'batch_info'       => $batch_info,
+                                'batches_info'    => $batches_info,
                                 'displayed_fields' => $displayed_fields,
                         ),
                         '',
@@ -203,65 +206,69 @@ class Inventory_Shortcodes {
 
 		global $wpdb;
 
-		// Get closest expiry batch.
-		$batch = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}inventory_batches 
-            WHERE sku = %s AND stock_qty > 0 
-            ORDER BY expiry_date ASC 
-            LIMIT 1",
-				$sku
-			)
-		);
+                // Fetch up to 3 closest expiry batches.
+                $batches = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$wpdb->prefix}inventory_batches
+            WHERE sku = %s AND stock_qty > 0
+            ORDER BY expiry_date ASC
+            LIMIT 3",
+                                $sku
+                        )
+                );
 
-		if ( ! $batch ) {
-			return '';
-		}
+                if ( empty( $batches ) ) {
+                        return '';
+                }
 
-		// Get supplier name
-		$supplier_name = '';
-		if ( $batch->supplier_id ) {
-			$supplier_name = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
-					$batch->supplier_id
-				)
-			);
-		}
+                $batches_info = array();
 
-		// Prepare batch info
-		$batch_info = array(
-			'supplier'  => $supplier_name,
-			'batch'     => $batch->batch_number,
-                       'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
-			'origin'    => $batch->origin,
-			'location'  => $batch->location,
-			'stock_qty' => $batch->stock_qty,
-		);
+                foreach ( $batches as $batch ) {
+                        $supplier_name = '';
 
-		$total_stock = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT SUM(stock_qty) FROM {$wpdb->prefix}inventory_batches WHERE sku = %s",
-				$sku
-			)
-		);
+                        if ( $batch->supplier_id ) {
+                                $supplier_name = $wpdb->get_var(
+                                        $wpdb->prepare(
+                                                "SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
+                                                $batch->supplier_id
+                                        )
+                                );
+                        }
 
-		$batch_info['total_stock'] = $total_stock;
+                        $batches_info[] = array(
+                                'supplier'  => $supplier_name,
+                                'batch'     => $batch->batch_number,
+                                'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
+                                'origin'    => $batch->origin,
+                                'location'  => $batch->location,
+                                'stock_qty' => $batch->stock_qty,
+                        );
+                }
 
-                // ob_start();
+                $total_stock = $wpdb->get_var(
+                        $wpdb->prepare(
+                                "SELECT SUM(stock_qty) FROM {$wpdb->prefix}inventory_batches WHERE sku = %s",
+                                $sku
+                        )
+                );
+
+                foreach ( $batches_info as &$info ) {
+                        $info['total_stock'] = $total_stock;
+                }
+                unset( $info );
 
                 wc_get_template(
                         'frontend/product-batch-single.php',
                         array(
-                                'batch_info'       => $batch_info,
+                                'batches_info'    => $batches_info,
                                 'displayed_fields' => $displayed_fields,
                         ),
                         '',
                         $this->plugin->template_path()
                 );
 
-                $this->display_stock_notes( $product, $batch_info );
-				ob_start();
+                $this->display_stock_notes( $product, $batches_info[0] );
+                ob_start();
                 return ob_get_clean();
 	}
 
