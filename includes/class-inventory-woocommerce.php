@@ -78,6 +78,9 @@ class Inventory_Manager_WooCommerce {
 	 */
        public function process_order_stock_reduction( $order_id, $order ) {
                global $wpdb;
+               if ( get_post_meta( $order_id, '_inventory_stock_reduced', true ) ) {
+                   return;
+               }
 
                // Backend orders should only deduct stock when invoiced
                if ( $order && $order->get_created_via() === 'admin' && 'invoice' !== $order->get_status() ) {
@@ -128,6 +131,9 @@ class Inventory_Manager_WooCommerce {
                                $this->deduct_stock_by_method( $sku, $qty, $stock_deduction_method, $order_id, $item_id );
                        }
                }
+               update_post_meta( $order_id, '_inventory_stock_reduced', 'yes' );
+               delete_post_meta( $order_id, '_inventory_stock_restored' );
+        //        echo get_post_meta( $order_id, '_inventory_stock_reduced', true ); exit;
        }
 
 	/**
@@ -135,6 +141,10 @@ class Inventory_Manager_WooCommerce {
 	 */
        public function process_order_stock_restoration( $order_id, $order ) {
                global $wpdb;
+               if ( get_post_meta( $order_id, '_inventory_stock_restored', true ) ) {
+                   return;
+               }
+           
 
                // Backend orders only restore when status is credit-note
                if ( $order && $order->get_created_via() === 'admin' && 'credit-note' !== $order->get_status() ) {
@@ -197,6 +207,8 @@ class Inventory_Manager_WooCommerce {
                        if ( $batch ) {
                                $this->update_product_stock( $batch->product_id );
                        }
+                       delete_post_meta( $order_id, '_inventory_stock_reduced' );
+                       update_post_meta( $order_id, '_inventory_stock_restored', 'yes' );
                }
 	}
 
@@ -1148,7 +1160,8 @@ class Inventory_Manager_WooCommerce {
        function inv_reduction_per_item($product){
                 if ( $product && $product->is_type( 'variation' ) ) {
                         $variation_id = $product->get_id();
-                        $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+                        // $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+                        $quantity	=	5;
                 }else{
                         $quantity	=	1;
                 }

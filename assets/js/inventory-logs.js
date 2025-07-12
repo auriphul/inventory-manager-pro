@@ -296,7 +296,7 @@
 
         html += '<div class="avg-freight">';
         html += '<span class="label">Avg Freight Markup</span>';
-        html += '<span class="value">' + inventory_manager.currency_symbol + avgFreight.toFixed(2) + '</span>';
+        html += '<span class="value">' + avgFreight.toFixed(2) + '</span>';
         html += '</div>';
 
         html += '<div class="total-landed-cost">';
@@ -387,7 +387,7 @@
 
         html += '<div class="batch-freight ' + expiryClass + '">';
         html += '<span class="label">Freight Markup</span>';
-        html += '<span class="value">' + inventory_manager.currency_symbol + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
+        html += '<span class="value">' + (parseFloat(batch.freight_markup || 0).toFixed(2)) + '</span>';
         html += '</div>';
 
         html += '<div class="batch-landed-cost ' + expiryClass + '">';
