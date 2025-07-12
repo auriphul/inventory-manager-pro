@@ -510,28 +510,39 @@ class Inventory_Manager_WooCommerce {
         * @param string $name       Optional name override.
         */
        private function render_stock_badge( $product_id, $qty, $name = '' ) {
-               $product = wc_get_product( $product_id );
-               if ( ! $product ) {
-                       return;
-               }
-               $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
+                $product = wc_get_product( $product_id );
+                if ( ! $product ) {
+                        return;
+                }
+                $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
+                $settings  = get_option( 'inventory_manager_frontend_notes', array() );
+                $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
 
-               $info = $this->get_stock_breakdown( $product_id, $qty );
 
-               if ( $info['backorder_qty'] <= 0 ) {
-                       return;
-               }
+                $info = $this->get_stock_breakdown( $product_id, $qty );
+                if ( $info['backorder_qty'] <= 0 ) {
+                        return;
+                }
 
-               $name = $name ? $name : $product->get_name();
+                $name = $name ? $name : $product->get_name();
+                                $message = str_replace(
+                                        array( '{immediate_qty}', '{product_name}', '{backorder_qty}' ),
+                                        array( $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] ),
+                                        $template
+                                );
 
-               $message = sprintf(
-                       '<div class="wc-block-components-product-badge wc-block-components-product-backorder-badge">%s: %d items available now, %d items on backorder</div>',
-                       esc_html( $name ),
-                       intval( $info['immediate_qty'] ),
-                       intval( $info['backorder_qty'] )
-               );
+                                if ( $message === $template ) {
+                                        $message = sprintf( $template, $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] );
+                                }
 
-               echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                //                $message = sprintf(
+                //                        '<div class="wc-block-components-product-badge wc-block-components-product-backorder-badge">%s: %d items available now, %d items on backorder</div>',
+                //                        esc_html( $name ),
+                //                        intval( $info['immediate_qty'] ),
+                //                        intval( $info['backorder_qty'] )
+                //                );
+
+                echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
        }
 
        /**

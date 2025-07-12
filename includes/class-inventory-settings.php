@@ -521,7 +521,7 @@ class Inventory_Settings {
 		echo '<p>' . __( 'This is a read-only view of current supplier transit times.', 'inventory-manager-pro' ) . '</p>';
 
 		global $wpdb;
-		$suppliers = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}inventory_suppliers ORDER BY name ASC" );
+		$suppliers = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}inventory_suppliers ORDER BY id ASC" );
 
 		if ( $suppliers ) {
 			echo '<table class="widefat fixed" cellspacing="0">';
@@ -535,10 +535,11 @@ class Inventory_Settings {
 			echo '<tbody>';
 
 			foreach ( $suppliers as $supplier ) {
+				$pretty_time = ucwords( str_replace( '_', ' ', $supplier->transit_time ) );
 				echo '<tr>';
 				echo '<td>' . esc_html( $supplier->id ) . '</td>';
 				echo '<td>' . esc_html( $supplier->name ) . '</td>';
-				echo '<td>' . esc_html( $supplier->transit_time ) . '</td>';
+				echo '<td>' . esc_html( $pretty_time ) . '</td>';
 				echo '</tr>';
 			}
 

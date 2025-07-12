@@ -12,7 +12,9 @@
     padding: 20px;
     box-sizing: border-box;
 }
-
+.d-none{
+    display: none;
+}
 .inventory-manager * {
     box-sizing: border-box;
 }
@@ -596,7 +598,7 @@
 
 /* WooCommerce Product Display */
 .inventory-batch-info {
-    margin: 15px 0;
+    margin: 0;
     padding: 10px;
     border: 1px solid #f0f0f0;
     border-radius: 4px;

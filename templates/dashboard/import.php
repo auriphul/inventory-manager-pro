@@ -127,9 +127,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <ul class="import-notes">
                     <li><?php _e( 'SKUs must exist in WooCommerce before importing.', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'Batch numbers must be unique for each product.', 'inventory-manager-pro' ); ?></li>
-                    <li><?php _e( 'If a supplier does not exist, it will not be created automatically.', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'Dates should be in DD/MM/YYYY format.', 'inventory-manager-pro' ); ?></li>
+                    <li><?php _e( 'Unit costs should be entered without the currency symbol. If the cost on CVS has currency, then the system does not import it', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'Use a decimal point (.) for decimal numbers, not a comma.', 'inventory-manager-pro' ); ?></li>
+                    <li><?php _e( 'Freight Markup > if 25% enter 1.25', 'inventory-manager-pro' ); ?></li>
                     <li><?php _e( 'The maximum file size for import is 10MB.', 'inventory-manager-pro' ); ?></li>
                 </ul>
             </div>

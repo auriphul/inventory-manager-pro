@@ -45,7 +45,6 @@ $transit_times  = $inventory_db->get_transit_times();
 			
 			<div class="form-section">
 				<h3><?php _e( 'Batch Information', 'inventory-manager-pro' ); ?></h3>
-				x
 				<div class="form-row">
 					<div class="form-field required">
 						<label for="batch_number"><?php _e( 'Batch Number', 'inventory-manager-pro' ); ?></label>

@@ -100,7 +100,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
             </div>
         </div>
 
-        <div class="batch-period-filter-container">
+        <div class="batch-period-filter-container d-none">
             <label for="batch-period-filter"><?php _e( 'Batch Period:', 'inventory-manager-pro' ); ?></label>
             <select id="batch-period-filter" class="batch-period-filter">
                 <option value="all"><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
