@@ -41,3 +41,18 @@ Inventory_Manager_WooCommerce::get_checkout_stock_messages();
 
 Each call returns an array of notice strings that were generated during the
 current request.
+
+## Stock Deduction Logic
+
+Inventory Manager Pro tracks stock movements for each order item. The workflow
+differs slightly depending on where the order originated:
+
+- **Frontend orders** – stock is deducted immediately when a customer checks out.
+- **Backend orders** – created via the WooCommerce admin screen – stock is only
+  deducted once the order status is changed to `Invoice`.
+- When a backend order is changed to `Credit Note` the deducted quantities are
+  restored.
+
+Stock movements are logged against the order and item identifiers so the plugin
+can safely ignore duplicate events and maintain consistent product inventory
+levels.

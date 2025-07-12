@@ -79,6 +79,11 @@ class Inventory_Manager_WooCommerce {
        public function process_order_stock_reduction( $order_id, $order ) {
                global $wpdb;
 
+               // Backend orders should only deduct stock when invoiced
+               if ( $order && $order->get_created_via() === 'admin' && 'invoice' !== $order->get_status() ) {
+                       return;
+               }
+
 		// Get settings
 		$stock_deduction_method = get_option( 'inventory_manager_frontend_deduction_method', 'closest_expiry' );
 
@@ -128,8 +133,24 @@ class Inventory_Manager_WooCommerce {
 	/**
 	 * Restore stock when order is cancelled or refunded.
 	 */
-	public function process_order_stock_restoration( $order_id, $order ) {
-		global $wpdb;
+       public function process_order_stock_restoration( $order_id, $order ) {
+               global $wpdb;
+
+               // Backend orders only restore when status is credit-note
+               if ( $order && $order->get_created_via() === 'admin' && 'credit-note' !== $order->get_status() ) {
+                       return;
+               }
+
+               // Prevent duplicate restorations
+               $existing = $wpdb->get_var( $wpdb->prepare(
+                       "SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements WHERE reference = %s AND movement_type = %s",
+                       'return_' . $order_id,
+                       'credit_note'
+               ) );
+
+               if ( $existing ) {
+                       return;
+               }
 
                $movements = $wpdb->get_results(
                        $wpdb->prepare(
