@@ -53,7 +53,7 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_check_cart_items', array( $this, 'add_checkout_stock_notices' ) );
 
                // Frontend stock badges
-               add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'output_product_stock_badge' ) );
+               add_shortcode( 'inv_pro_output_product_stock_badge', array( $this, 'output_product_stock_badge' ) );
         //        add_action( 'woocommerce_after_cart_item_name', array( $this, 'output_cart_stock_badge' ), 10, 2 );
                add_action( 'woocommerce_review_order_after_cart_contents', array( $this, 'output_checkout_stock_badge' ) );
                add_filter( 'wc_add_to_cart_message_html', array( $this, 'add_batch_stock_cart_message' ), 10, 2 );
@@ -546,6 +546,50 @@ class Inventory_Manager_WooCommerce {
        }
 
        /**
+        * Render a stock/backorder badge for a single product page.
+        *
+        * @param int    $product_id Product ID.
+        * @param float  $qty        Requested quantity.
+        * @param string $transit_time       Optional transit_time override.
+        * @param string $name       Optional name override.
+        */
+       private function render_stock_badge_for_single_product_page( $product_id, $qty, $transit_time, $name = '' ) {
+                $product = wc_get_product( $product_id );
+                if ( ! $product ) {
+                        return;
+                }
+                $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
+                $settings  = get_option( 'inventory_manager_frontend_notes', array() );
+                $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
+
+                if ( ! empty( $transit_time ) && strpos( $template, '{transit_time}' ) !== false ) {
+                // replace the placeholder with the actual transit time (escaped)
+                $template = str_replace( '{transit_time}', esc_html( $transit_time ), $template );
+                } else {
+                        // no valid placeholder → strip any stray {transit_time} bits
+                        $template = preg_replace( '/\{transit_time\}/i', '', $template );
+                    }
+
+                $info = $this->get_stock_breakdown( $product_id, $qty );
+                if ( $info['backorder_qty'] <= 0 ) {
+                        return;
+                }
+
+                $name = $name ? $name : $product->get_name();
+                $message = str_replace(
+                        array( '{immediate_qty}', '{product_name}', '{backorder_qty}' ),
+                        array( $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] ),
+                        $template
+                );
+
+                if ( $message === $template ) {
+                        $message = sprintf( $template, $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] );
+                }
+
+                echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+       }
+
+       /**
         * Output badge on single product page.
         */
        public function output_product_stock_badge() {
@@ -554,9 +598,34 @@ class Inventory_Manager_WooCommerce {
                if ( ! $product ) {
                        return;
                }
+               $product_id      =       $product->get_id();
 
                $qty = isset( $_REQUEST['quantity'] ) ? floatval( $_REQUEST['quantity'] ) : 1;
-               $this->render_stock_badge( $product->get_id(), $qty );
+
+               global $wpdb;
+               $batches = $wpdb->get_results(
+                       $wpdb->prepare(
+                               "SELECT * FROM {$wpdb->prefix}inventory_batches
+            WHERE product_id = %d AND supplier_id IS NOT NULL
+            ORDER BY expiry_date ASC",
+                               $product_id
+                       )
+               );
+               $supplier_id    =   isset( $batches[0]->supplier_id ) ? intval( $batches[0]->supplier_id ) : 0;
+               $transit_time    =       0;
+               if ( $supplier_id ) {
+                   $supplier = $wpdb->get_row(
+                       $wpdb->prepare(
+                           "SELECT * 
+                            FROM {$wpdb->prefix}inventory_suppliers
+                            WHERE id = %d",
+                            $supplier_id
+                       ),
+                       OBJECT    // or ARRAY_A if you prefer an associative array
+                   );
+                   $transit_time = ucwords( str_replace( '_', ' ', $supplier->transit_time ) );
+               }
+               $this->render_stock_badge_for_single_product_page( $product->get_id(), $qty, $transit_time );
        }
 
        /**
@@ -1127,7 +1196,8 @@ class Inventory_Manager_WooCommerce {
        function inv_reduction_per_item($product){
                 if ( $product && $product->is_type( 'variation' ) ) {
                         $variation_id = $product->get_id();
-                        $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+                        // $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+                        $quantity	=	5;
                 }else{
                         $quantity	=	1;
                 }
