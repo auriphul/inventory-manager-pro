@@ -19,8 +19,8 @@ class Inventory_Shortcodes {
 	public function register_shortcodes() {
 		add_shortcode( 'inventory_dashboard', array( $this, 'render_dashboard' ) );
 		add_shortcode( 'inventory_batch_archive', array( $this, 'render_batch_archive' ) );
-		add_shortcode( 'inventory_batch_single', array( $this, 'render_batch_single' ) );
-		add_shortcode( 'inventory_stock_single_page', array( $this, 'render_stock_single_page' ) );
+		add_shortcode( 'inventory_pro_batch_info', array( $this, 'render_batch_single' ) );
+		add_shortcode( 'inventory_pro_stock_note', array( $this, 'render_stock_single_page' ) );
 	}
 
 	/**

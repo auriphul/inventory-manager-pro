@@ -53,7 +53,7 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_check_cart_items', array( $this, 'add_checkout_stock_notices' ) );
 
                // Frontend stock badges
-               add_shortcode( 'inv_pro_output_product_stock_badge', array( $this, 'output_product_stock_badge' ) );
+               add_shortcode( 'inventory_pro_backorder_note', array( $this, 'output_product_stock_badge' ) );
         //        add_action( 'woocommerce_after_cart_item_name', array( $this, 'output_cart_stock_badge' ), 10, 2 );
                add_action( 'woocommerce_review_order_after_cart_contents', array( $this, 'output_checkout_stock_badge' ) );
                add_filter( 'wc_add_to_cart_message_html', array( $this, 'add_batch_stock_cart_message' ), 10, 2 );
