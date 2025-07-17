@@ -20,6 +20,7 @@ class Inventory_Shortcodes {
 		add_shortcode( 'inventory_dashboard', array( $this, 'render_dashboard' ) );
 		add_shortcode( 'inventory_batch_archive', array( $this, 'render_batch_archive' ) );
 		add_shortcode( 'inventory_batch_single', array( $this, 'render_batch_single' ) );
+		add_shortcode( 'inventory_stock_single_page', array( $this, 'render_stock_single_page' ) );
 	}
 
 	/**
@@ -292,6 +293,7 @@ class Inventory_Shortcodes {
 
 			if ( isset( $settings['show_stock_qty'] ) && $settings['show_stock_qty'] === 'yes' ) {
 				$qty   = isset( $batch_info['total_stock'] ) ? $batch_info['total_stock'] : $product->get_stock_quantity();
+				$qty 	=	number_format($qty, 2);
 				$note  = isset( $settings['stock_qty_note'] ) ? str_replace( '{qty}', $qty, $settings['stock_qty_note'] ) : $qty . ' ' . __( 'units in stock', 'inventory-manager-pro' );
 				$style = '';
 
@@ -354,5 +356,89 @@ class Inventory_Shortcodes {
 				);
 			}
 		}
+	}
+	public function render_stock_single_page(){
+		global $product;
+
+		if ( ! $product ) {
+			return '';
+		}
+
+		$sku = $product->get_sku();
+
+		if ( empty( $sku ) ) {
+			return '';
+		}
+
+		// Get batch info settings.
+		$show_fields      = get_option( 'inventory_manager_frontend_fields', array() );
+		$displayed_fields = array_filter(
+			$show_fields,
+			function ( $field ) {
+				return isset( $field['display_single'] ) && $field['display_single'] === 'yes';
+			}
+		);
+
+		if ( empty( $displayed_fields ) ) {
+			return '';
+		}
+
+		global $wpdb;
+
+                // Fetch up to 3 closest expiry batches.
+                $batches = $wpdb->get_results(
+                        $wpdb->prepare(
+                                "SELECT * FROM {$wpdb->prefix}inventory_batches
+            WHERE sku = %s AND stock_qty > 0
+            ORDER BY expiry_date ASC
+            LIMIT 3",
+                                $sku
+                        )
+                );
+
+                if ( empty( $batches ) ) {
+                        return '';
+                }
+
+                $batches_info = array();
+
+                foreach ( $batches as $batch ) {
+                        $supplier_name = '';
+
+                        if ( $batch->supplier_id ) {
+                                $supplier_name = $wpdb->get_var(
+                                        $wpdb->prepare(
+                                                "SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
+                                                $batch->supplier_id
+                                        )
+                                );
+                        }
+
+                        $batches_info[] = array(
+                                'supplier'  => $supplier_name,
+                                'batch'     => $batch->batch_number,
+                                'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
+                                'origin'    => $batch->origin,
+                                'location'  => $batch->location,
+                                'stock_qty' => number_format( (float) $batch->stock_qty, 2 ),
+                        );
+                }
+
+                $total_stock = $wpdb->get_var(
+                        $wpdb->prepare(
+                                "SELECT SUM(stock_qty) FROM {$wpdb->prefix}inventory_batches WHERE sku = %s",
+                                $sku
+                        )
+                );
+
+                foreach ( $batches_info as &$info ) {
+                        $info['total_stock'] = $total_stock;
+                }
+                unset( $info );
+
+                $this->display_stock_notes( $product, $batches_info[0] );
+                ob_start();
+                return ob_get_clean();
+
 	}
 }
