@@ -17,6 +17,13 @@ class Inventory_Manager_WooCommerce {
         */
        private static $checkout_stock_messages = array();
 
+       /**
+        * Flag to ensure order item headers are only added once.
+        *
+        * @var bool
+        */
+       private static $headers_added = false;
+
        public function __construct( $plugin ) {
                $this->plugin = $plugin;
                $this->db     = new Inventory_Database();
@@ -598,16 +605,22 @@ class Inventory_Manager_WooCommerce {
 	/**
 	 * Add batch headers to admin order items.
 	 */
-	public function add_batch_headers_to_order_items() {
-		// Check if show fields option is enabled
-		$show_fields = get_option( 'inventory_manager_backend_fields', array() );
+        public function add_batch_headers_to_order_items() {
+                if ( self::$headers_added ) {
+                        return;
+                }
 
-		if ( empty( $show_fields ) ) {
-			return;
-		}
+                // Check if show fields option is enabled
+                $show_fields = get_option( 'inventory_manager_backend_fields', array() );
 
-		echo '<th class="batch-info">' . __( 'Batch Info', 'inventory-manager-pro' ) . '</th>';
-	}
+                if ( empty( $show_fields ) ) {
+                        return;
+                }
+
+                self::$headers_added = true;
+
+                echo '<th class="batch-info">' . __( 'Batch Info', 'inventory-manager-pro' ) . '</th>';
+        }
 
 	/**
 	 * Add batch values to admin order items.
