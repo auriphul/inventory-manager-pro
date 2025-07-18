@@ -52,8 +52,6 @@ class Inventory_Manager_WooCommerce {
                add_action( 'woocommerce_after_checkout_validation', array( $this, 'add_checkout_stock_notices' ), 10, 2 );
                add_action( 'woocommerce_check_cart_items', array( $this, 'add_checkout_stock_notices' ) );
 
-               // Frontend stock badges
-               add_shortcode( 'inventory_pro_backorder_note', array( $this, 'output_product_stock_badge' ) );
         //        add_action( 'woocommerce_after_cart_item_name', array( $this, 'output_cart_stock_badge' ), 10, 2 );
                add_action( 'woocommerce_review_order_after_cart_contents', array( $this, 'output_checkout_stock_badge' ) );
                add_filter( 'wc_add_to_cart_message_html', array( $this, 'add_batch_stock_cart_message' ), 10, 2 );
@@ -452,6 +450,13 @@ class Inventory_Manager_WooCommerce {
                );
        }
 
+        /**
+         * Public proxy for shortcodes or templates
+         */
+        public function fetch_stock_breakdown( $product_id, $requested ) {
+                return $this->get_stock_breakdown( $product_id, $requested );
+        }
+
        /**
         * Add customer notices during checkout about stock allocation.
         */
@@ -546,89 +551,6 @@ class Inventory_Manager_WooCommerce {
        }
 
        /**
-        * Render a stock/backorder badge for a single product page.
-        *
-        * @param int    $product_id Product ID.
-        * @param float  $qty        Requested quantity.
-        * @param string $transit_time       Optional transit_time override.
-        * @param string $name       Optional name override.
-        */
-       private function render_stock_badge_for_single_product_page( $product_id, $qty, $transit_time, $name = '' ) {
-                $product = wc_get_product( $product_id );
-                if ( ! $product ) {
-                        return;
-                }
-                $inv_reduction_per_item	=	$this->inv_reduction_per_item($product);
-                $settings  = get_option( 'inventory_manager_frontend_notes', array() );
-                $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
-
-                if ( ! empty( $transit_time ) && strpos( $template, '{transit_time}' ) !== false ) {
-                // replace the placeholder with the actual transit time (escaped)
-                $template = str_replace( '{transit_time}', esc_html( $transit_time ), $template );
-                } else {
-                        // no valid placeholder → strip any stray {transit_time} bits
-                        $template = preg_replace( '/\{transit_time\}/i', '', $template );
-                    }
-
-                $info = $this->get_stock_breakdown( $product_id, $qty );
-                if ( $info['backorder_qty'] <= 0 ) {
-                        return;
-                }
-
-                $name = $name ? $name : $product->get_name();
-                $message = str_replace(
-                        array( '{immediate_qty}', '{product_name}', '{backorder_qty}' ),
-                        array( $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] ),
-                        $template
-                );
-
-                if ( $message === $template ) {
-                        $message = sprintf( $template, $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] );
-                }
-
-                echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-       }
-
-       /**
-        * Output badge on single product page.
-        */
-       public function output_product_stock_badge() {
-               global $product;
-
-               if ( ! $product ) {
-                       return;
-               }
-               $product_id      =       $product->get_id();
-
-               $qty = isset( $_REQUEST['quantity'] ) ? floatval( $_REQUEST['quantity'] ) : 1;
-
-               global $wpdb;
-               $batches = $wpdb->get_results(
-                       $wpdb->prepare(
-                               "SELECT * FROM {$wpdb->prefix}inventory_batches
-            WHERE product_id = %d AND supplier_id IS NOT NULL
-            ORDER BY expiry_date ASC",
-                               $product_id
-                       )
-               );
-               $supplier_id    =   isset( $batches[0]->supplier_id ) ? intval( $batches[0]->supplier_id ) : 0;
-               $transit_time    =       0;
-               if ( $supplier_id ) {
-                   $supplier = $wpdb->get_row(
-                       $wpdb->prepare(
-                           "SELECT * 
-                            FROM {$wpdb->prefix}inventory_suppliers
-                            WHERE id = %d",
-                            $supplier_id
-                       ),
-                       OBJECT    // or ARRAY_A if you prefer an associative array
-                   );
-                   $transit_time = ucwords( str_replace( '_', ' ', $supplier->transit_time ) );
-               }
-               $this->render_stock_badge_for_single_product_page( $product->get_id(), $qty, $transit_time );
-       }
-
-       /**
         * Output badge for cart items.
         *
         * @param string $cart_item_key Cart item key.
@@ -691,6 +613,11 @@ class Inventory_Manager_WooCommerce {
 	 * Add batch values to admin order items.
 	 */
 	public function add_batch_values_to_order_items( $product, $item, $item_id ) {
+                static $ran_for = [];
+                if ( in_array( $item_id, $ran_for, true ) ) {
+                  return;
+                }
+                $ran_for[] = $item_id;
 		// Check if show fields option is enabled
 		$show_fields = get_option( 'inventory_manager_backend_fields', array() );
 
@@ -746,7 +673,7 @@ class Inventory_Manager_WooCommerce {
                        }
 
                        if ( empty( $batches ) ) {
-                               echo '<td class="batch-info">' . __( 'No batches available', 'inventory-manager-pro' ) . '</td>';
+                               echo '<td class="batch-info 1324">' . __( 'No batches available', 'inventory-manager-pro' ) . '</td>';
                                return;
                        }
                }
@@ -756,7 +683,7 @@ class Inventory_Manager_WooCommerce {
 
 		if ( $select_batch === 'yes' ) {
 			// Batch selection dropdown
-			echo '<td class="batch-info">';
+			echo '<td class="batch-info 12345">';
 			echo '<select class="batch-select" name="_selected_batch_id" data-item-id="' . esc_attr( $item_id ) . '">';
 			echo '<option value="">' . __( 'Select batch', 'inventory-manager-pro' ) . '</option>';
 
