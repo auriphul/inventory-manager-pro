@@ -507,10 +507,10 @@ class Inventory_Shortcodes {
 
 			 if ( ! empty( $transit_time ) && strpos( $template, '{transit_time}' ) !== false ) {
 			 // replace the placeholder with the actual transit time (escaped)
-			 $template = '<strong style="color:'.$backorder_title_color.'">'.$backorder_title.'</strong> <span style="color:'.$backorder_popup_color.'">'.str_replace( '{transit_time}', esc_html( $transit_time ), $template ).'</span>';
+			 $template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'">'.str_replace( '{transit_time}', esc_html( $transit_time ), $template ).'</span>';
 			 } else {
 					 // no valid placeholder → strip any stray {transit_time} bits
-					 $template = '<strong style="color:'.$backorder_title_color.'">'.$backorder_title.'</strong> <span style="color:'.$backorder_popup_color.'"> '.preg_replace( '/\{transit_time\}/i', '', $template ).'</span>';
+					 $template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'"> '.preg_replace( '/\{transit_time\}/i', '', $template ).'</span>';
 				 }
 
 			 $info = $this->iwc->fetch_stock_breakdown( $product_id, $qty );
