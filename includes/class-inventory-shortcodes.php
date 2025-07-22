@@ -539,17 +539,25 @@ class Inventory_Shortcodes {
 			 }
 			 $inv_reduction_per_item	=	$this->inv_reduction_per_item_shortcode($product);
 			 $settings  = get_option( 'inventory_manager_frontend_notes', array() );
+			//  echo '<pre>';print_r($settings);exit;
 			 $backorder_title_color 	=	isset( $settings['backorder_color'] ) ? $settings['backorder_color'] : '';
 			 $backorder_popup_color 	=	isset( $settings['backorder_popup_color'] ) ? $settings['backorder_popup_color'] : '';
-			 $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
-			 $backorder_title = isset( $settings['backorder_note'] ) ? $settings['backorder_note'] : __( 'Backorder:', 'inventory-manager-pro' );
 
+			if ( isset( $settings['show_backorder_popup'] ) && $settings['show_backorder_popup'] === 'yes' ) {
+			 $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
+			}else{
+				$template	=	'';
+			}
+			if ( isset( $settings['show_backorder'] ) && $settings['show_backorder'] === 'yes' ) {
+			 	$backorder_title = isset( $settings['backorder_note'] ) ? $settings['backorder_note'] : __( 'Backorder:', 'inventory-manager-pro' );
+			}else{
+				$backorder_title = '';
+			}
 			 if ( ! empty( $transit_time ) && strpos( $template, '{transit_time}' ) !== false ) {
-			 // replace the placeholder with the actual transit time (escaped)
-			 $template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'">'.str_replace( '{transit_time}', esc_html( $transit_time ), $template ).'</span>';
+
+			 	$template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'">'.str_replace( '{transit_time}', esc_html( $transit_time ), $template ).'</span>';
 			 } else {
-					 // no valid placeholder → strip any stray {transit_time} bits
-					 $template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'"> '.preg_replace( '/\{transit_time\}/i', '', $template ).'</span>';
+					 	$template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'"> '.preg_replace( '/\{transit_time\}/i', '', $template ).'</span>';
 				 }
 
 			 $info = $this->iwc->fetch_stock_breakdown( $product_id, $qty );
