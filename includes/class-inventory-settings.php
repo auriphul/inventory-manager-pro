@@ -61,8 +61,11 @@ class Inventory_Settings {
 		register_setting( 'inventory_manager_frontend', 'inventory_manager_frontend_deduction_method' );
 		register_setting( 'inventory_manager_frontend', 'inventory_manager_frontend_notes' );
 
-		// Supplier settings
-		register_setting( 'inventory_manager_suppliers', 'inventory_manager_suppliers' );
+               // Supplier settings
+               register_setting( 'inventory_manager_suppliers', 'inventory_manager_suppliers' );
+
+               // Brand transit time settings
+               register_setting( 'inventory_manager_brands', 'inventory_manager_brand_transit' );
 
 		// Detailed logs settings
 		register_setting( 'inventory_manager_logs', 'inventory_manager_expiry_ranges' );
@@ -98,21 +101,32 @@ class Inventory_Settings {
 		echo '<h2 class="nav-tab-wrapper">';
 		echo '<a href="?page=inventory-manager-settings&tab=backend" class="nav-tab ' . ( $tab === 'backend' ? 'nav-tab-active' : '' ) . '">' . __( 'Backend Settings', 'inventory-manager-pro' ) . '</a>';
 		echo '<a href="?page=inventory-manager-settings&tab=frontend" class="nav-tab ' . ( $tab === 'frontend' ? 'nav-tab-active' : '' ) . '">' . __( 'Frontend Settings', 'inventory-manager-pro' ) . '</a>';
-		echo '<a href="?page=inventory-manager-settings&tab=suppliers" class="nav-tab ' . ( $tab === 'suppliers' ? 'nav-tab-active' : '' ) . '">' . __( 'Suppliers & Transit Time', 'inventory-manager-pro' ) . '</a>';
-		echo '<a href="?page=inventory-manager-settings&tab=logs" class="nav-tab ' . ( $tab === 'logs' ? 'nav-tab-active' : '' ) . '">' . __( 'Detailed Logs Settings', 'inventory-manager-pro' ) . '</a>';
+               echo '<a href="?page=inventory-manager-settings&tab=suppliers" class="nav-tab ' . ( $tab === 'suppliers' ? 'nav-tab-active' : '' ) . '">' . __( 'Suppliers & Transit Time', 'inventory-manager-pro' ) . '</a>';
+               echo '<a href="?page=inventory-manager-settings&tab=brands" class="nav-tab ' . ( $tab === 'brands' ? 'nav-tab-active' : '' ) . '">' . __( 'WooCommerce Brands', 'inventory-manager-pro' ) . '</a>';
+               echo '<a href="?page=inventory-manager-settings&tab=logs" class="nav-tab ' . ( $tab === 'logs' ? 'nav-tab-active' : '' ) . '">' . __( 'Detailed Logs Settings', 'inventory-manager-pro' ) . '</a>';
 		echo '</h2>';
 
-                if ( 'suppliers' === $tab ) {
-                        $form_message = $this->handle_supplier_form_submission();
+               if ( 'suppliers' === $tab ) {
+                       $form_message = $this->handle_supplier_form_submission();
 
-                        echo '<form method="post" action="options.php">';
-                        settings_fields( 'inventory_manager_suppliers' );
-                        $this->render_supplier_settings();
-                        submit_button();
-                        echo '</form>';
+                       echo '<form method="post" action="options.php">';
+                       settings_fields( 'inventory_manager_suppliers' );
+                       $this->render_supplier_settings();
+                       submit_button();
+                       echo '</form>';
 
-                        $this->render_supplier_form( $form_message );
-                } else {
+                       $this->render_supplier_form( $form_message );
+               } elseif ( 'brands' === $tab ) {
+                       $brand_message = $this->handle_brand_form_submission();
+
+                       echo '<form method="post" action="options.php">';
+                       settings_fields( 'inventory_manager_brands' );
+                       $this->render_brands_settings();
+                       submit_button();
+                       echo '</form>';
+
+                       $this->render_brand_form( $brand_message );
+               } else {
                         echo '<form method="post" action="options.php">';
 
                         switch ( $tab ) {
@@ -120,14 +134,14 @@ class Inventory_Settings {
                                         settings_fields( 'inventory_manager_frontend' );
                                         $this->render_frontend_settings();
                                         break;
-                                case 'logs':
-                                        settings_fields( 'inventory_manager_logs' );
-                                        $this->render_logs_settings();
-                                        break;
-                                default:
-                                        settings_fields( 'inventory_manager_backend' );
-                                        $this->render_backend_settings();
-                                        break;
+                               case 'logs':
+                                       settings_fields( 'inventory_manager_logs' );
+                                       $this->render_logs_settings();
+                                       break;
+                               default:
+                                       settings_fields( 'inventory_manager_backend' );
+                                       $this->render_backend_settings();
+                                       break;
                         }
 
                         submit_button();
@@ -330,6 +344,140 @@ class Inventory_Settings {
                echo '</table>';
                echo '<p><input type="submit" name="add_supplier" class="button button-primary" value="' . esc_attr__( 'Register Supplier', 'inventory-manager-pro' ) . '"></p>';
                echo '</form>';
+       }
+
+       /**
+        * Handle brand form submission.
+        *
+        * @return string|WP_Error
+        */
+       private function handle_brand_form_submission() {
+               if ( empty( $_POST['add_brand_transit'] ) && empty( $_POST['remove_brand_transit'] ) ) {
+                       return '';
+               }
+
+               if ( ! isset( $_POST['brand_nonce'] ) || ! wp_verify_nonce( $_POST['brand_nonce'], 'brand_transit_assignment' ) ) {
+                       return new WP_Error( 'nonce', __( 'Security check failed.', 'inventory-manager-pro' ) );
+               }
+
+               $brand_id = isset( $_POST['brand_id'] ) ? absint( $_POST['brand_id'] ) : 0;
+               $transit  = isset( $_POST['brand_transit_time'] ) ? sanitize_text_field( $_POST['brand_transit_time'] ) : '';
+
+               $mappings = get_option( 'inventory_manager_brand_transit', array() );
+
+               if ( isset( $_POST['remove_brand_transit'] ) ) {
+                       if ( $brand_id && isset( $mappings[ $brand_id ] ) ) {
+                               unset( $mappings[ $brand_id ] );
+                               update_option( 'inventory_manager_brand_transit', $mappings );
+                       }
+
+                       return __( 'Brand transit time removed.', 'inventory-manager-pro' );
+               }
+
+               if ( ! $brand_id ) {
+                       return new WP_Error( 'brand', __( 'Brand is required.', 'inventory-manager-pro' ) );
+               }
+
+               if ( '' === $transit ) {
+                       return new WP_Error( 'transit', __( 'Transit time is required.', 'inventory-manager-pro' ) );
+               }
+
+               $mappings[ $brand_id ] = $transit;
+
+               update_option( 'inventory_manager_brand_transit', $mappings );
+
+               return __( 'Brand transit time saved.', 'inventory-manager-pro' );
+       }
+
+       /**
+        * Render form for assigning transit times to brands.
+        *
+        * @param string|WP_Error $message Optional message to display.
+        */
+       private function render_brand_form( $message = '' ) {
+               $brands        = taxonomy_exists( 'product_brand' ) ? get_terms( array( 'taxonomy' => 'product_brand', 'hide_empty' => false ) ) : array();
+               $transit_times = $this->get_transit_time_options();
+
+               if ( $message ) {
+                       if ( is_wp_error( $message ) ) {
+                               echo '<div class="notice notice-error"><p>' . esc_html( $message->get_error_message() ) . '</p></div>';
+                       } else {
+                               echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+                       }
+               }
+
+               if ( empty( $brands ) ) {
+                       echo '<p>' . __( 'No brands found.', 'inventory-manager-pro' ) . '</p>';
+                       return;
+               }
+
+               echo '<h3>' . __( 'Assign Transit Time to Brand', 'inventory-manager-pro' ) . '</h3>';
+               echo '<form method="post" action="">';
+               wp_nonce_field( 'brand_transit_assignment', 'brand_nonce' );
+               echo '<table class="form-table" style="max-width: 800px;">';
+               echo '<tr>';
+               echo '<th scope="row"><label for="brand_id">' . __( 'Brand', 'inventory-manager-pro' ) . '</label></th>';
+               echo '<th scope="row"><label for="brand_transit_time">' . __( 'Transit Time', 'inventory-manager-pro' ) . '</label></th>';
+               echo '</tr>';
+               echo '<tr>';
+               echo '<td><select name="brand_id" id="brand_id" class="brand-select" style="width:100%;">';
+               foreach ( $brands as $brand ) {
+                       echo '<option value="' . esc_attr( $brand->term_id ) . '">' . esc_html( $brand->name ) . '</option>';
+               }
+               echo '</select></td>';
+
+               echo '<td><select name="brand_transit_time" id="brand_transit_time" style="width:100%;">';
+               foreach ( $transit_times as $key => $label ) {
+                       echo '<option value="' . esc_attr( $key ) . '">' . esc_html( $label ) . '</option>';
+               }
+               echo '</select></td>';
+               echo '</tr>';
+               echo '</table>';
+               echo '<p><input type="submit" name="add_brand_transit" class="button button-primary" value="' . esc_attr__( 'Assign Transit Time', 'inventory-manager-pro' ) . '"></p>';
+               echo '</form>';
+       }
+
+       /**
+        * Render WooCommerce brand transit time settings.
+        */
+       private function render_brands_settings() {
+               $brands   = taxonomy_exists( 'product_brand' ) ? get_terms( array( 'taxonomy' => 'product_brand', 'hide_empty' => false ) ) : array();
+               $mappings = get_option( 'inventory_manager_brand_transit', array() );
+               $transit_times = $this->get_transit_time_options();
+
+               echo '<h2>' . __( 'WooCommerce Brands Transit Times', 'inventory-manager-pro' ) . '</h2>';
+
+               if ( empty( $brands ) ) {
+                       echo '<p>' . __( 'No brands found.', 'inventory-manager-pro' ) . '</p>';
+                       return;
+               }
+
+               echo '<table class="widefat fixed" cellspacing="0" style="max-width:800px;">';
+               echo '<thead><tr><th>' . __( 'Brand', 'inventory-manager-pro' ) . '</th><th>' . __( 'Transit Time', 'inventory-manager-pro' ) . '</th><th>' . __( 'Actions', 'inventory-manager-pro' ) . '</th></tr></thead>';
+               echo '<tbody>';
+               foreach ( $brands as $brand ) {
+                       $selected = isset( $mappings[ $brand->term_id ] ) ? $mappings[ $brand->term_id ] : '';
+                       echo '<tr>';
+                       echo '<td>' . esc_html( $brand->name ) . '</td>';
+                       echo '<td>';
+                       echo '<select name="inventory_manager_brand_transit[' . esc_attr( $brand->term_id ) . ']" class="brand-transit-select" style="width:100%;">';
+                       echo '<option value="">' . esc_html__( 'Default', 'inventory-manager-pro' ) . '</option>';
+                       foreach ( $transit_times as $key => $label ) {
+                               echo '<option value="' . esc_attr( $key ) . '" ' . selected( $selected, $key, false ) . '>' . esc_html( $label ) . '</option>';
+                       }
+                       echo '</select>';
+                       echo '</td>';
+                       echo '<td>';
+                       echo '<form method="post" style="display:inline;">';
+                       wp_nonce_field( 'brand_transit_assignment', 'brand_nonce' );
+                       echo '<input type="hidden" name="brand_id" value="' . esc_attr( $brand->term_id ) . '">';
+                       echo '<input type="submit" name="remove_brand_transit" class="button" value="' . esc_attr__( 'Remove', 'inventory-manager-pro' ) . '">';
+                       echo '</form>';
+                       echo '</td>';
+                       echo '</tr>';
+               }
+               echo '</tbody></table>';
+               echo '<p class="description">' . __( 'Use the form below to assign new transit times. Existing selections can be adjusted above and saved.', 'inventory-manager-pro' ) . '</p>';
        }
 
 	/**

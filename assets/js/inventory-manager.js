@@ -34,6 +34,9 @@
 
             // Notification system
             this.initNotifications();
+
+            // Initialize brand selects on settings page
+            this.initBrandSelect();
         },
 
         /**
@@ -225,6 +228,9 @@
 
             // Dynamic field addition
             this.initDynamicFields();
+
+            // Initialize brand dropdowns
+            this.initBrandSelect();
         },
 
         /**
@@ -705,6 +711,17 @@
                 
                 $(this).closest('.dynamic-field').remove();
             });
+        },
+
+        /**
+         * Initialize Select2 for brand dropdowns
+         */
+        initBrandSelect: function() {
+            if ($.fn.selectWoo) {
+                $('.brand-select').selectWoo();
+            } else if ($.fn.select2) {
+                $('.brand-select').select2();
+            }
         },
 
         /**
