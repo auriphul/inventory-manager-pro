@@ -469,22 +469,61 @@ class Inventory_Shortcodes {
 			);
 			$supplier_id    =   isset( $batches[0]->supplier_id ) ? intval( $batches[0]->supplier_id ) : 0;
 			$transit_time    =       0;
-			if ( $supplier_id ) {
-				$supplier = $wpdb->get_row(
-					$wpdb->prepare(
-						"SELECT * 
-						 FROM {$wpdb->prefix}inventory_suppliers
-						 WHERE id = %d",
-						 $supplier_id
-					),
-					OBJECT    // or ARRAY_A if you prefer an associative array
-				);
-				$transit_time = ucwords( str_replace( '_', ' ', $supplier->transit_time ) );
+			
+			$brands = wp_get_post_terms( $product_id, 'product_brand' );
+			$brand_transits = get_option( 'inventory_manager_brand_transit', array() );
+			$transit_map    = array(); // [label => total_days]
+			$transit_labels = array();
+
+			
+			if ( ! is_wp_error( $brands ) && ! empty( $brands ) ) {
+				foreach ( $brands as $brand ) {
+					$brand_id = $brand->term_id;
+					if ( isset( $brand_transits[ $brand_id ] ) ) {
+						$label = $brand_transits[ $brand_id ];
+						if($brand_transits[ $brand_id ] == ''){
+							continue;
+						}
+						$transit_map[ $label ] = $this->convert_transit_to_days( $label );
+					}
+				}
 			}
+
+			if ( ! empty( $transit_map ) ) {
+				// Sort by numeric duration
+				asort( $transit_map );
+
+				$sorted_labels = array_keys( $transit_map );
+
+				if ( count( $sorted_labels ) === 1 ) {
+					$transit_labels	=	$this->format_transit_label( $sorted_labels[0] );
+				} else {
+					$transit_labels	=	$this->format_transit_label( $sorted_labels[0] ) . ' to ' . $this->format_transit_label( end( $sorted_labels ) );
+				}
+			} else {
+				$transit_labels	=	'0 Days';
+			}
+			// echo '</pre>';print_r($transit_labels);echo '</pre>';
+			$transit_time 	=	$transit_labels;
+			// $transit_time = ucwords( str_replace( '_', ' ', $transit_time ) );
 			$this->render_stock_badge_for_single_product_page( $product->get_id(), $qty, $transit_time );
 			$this->render_stock_single_page();
 	}
-
+	function format_transit_label( $label ) {
+		return ucwords( str_replace( '_', ' ', $label ) );
+	}
+	function convert_transit_to_days( $label ) {
+		if ( preg_match( '/(\d+)_day(s)?/', $label, $m ) ) {
+			return (int) $m[1];
+		}
+		if ( preg_match( '/(\d+)_week(s)?/', $label, $m ) ) {
+			return (int) $m[1] * 7;
+		}
+		if ( preg_match( '/(\d+)_month(s)?/', $label, $m ) ) {
+			return (int) $m[1] * 30; // Approximate a month as 30 days
+		}
+		return 9999; // fallback high number
+	}
 	/**
 	 * Render a stock/backorder badge for a single product page.
 	 *

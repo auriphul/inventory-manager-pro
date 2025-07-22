@@ -411,30 +411,30 @@ class Inventory_Settings {
                        return;
                }
 
-               echo '<h3>' . __( 'Assign Transit Time to Brand', 'inventory-manager-pro' ) . '</h3>';
-               echo '<form method="post" action="">';
-               wp_nonce_field( 'brand_transit_assignment', 'brand_nonce' );
-               echo '<table class="form-table" style="max-width: 800px;">';
-               echo '<tr>';
-               echo '<th scope="row"><label for="brand_id">' . __( 'Brand', 'inventory-manager-pro' ) . '</label></th>';
-               echo '<th scope="row"><label for="brand_transit_time">' . __( 'Transit Time', 'inventory-manager-pro' ) . '</label></th>';
-               echo '</tr>';
-               echo '<tr>';
-               echo '<td><select name="brand_id" id="brand_id" class="brand-select" style="width:100%;">';
-               foreach ( $brands as $brand ) {
-                       echo '<option value="' . esc_attr( $brand->term_id ) . '">' . esc_html( $brand->name ) . '</option>';
-               }
-               echo '</select></td>';
+            //    echo '<h3>' . __( 'Assign Transit Time to Brand', 'inventory-manager-pro' ) . '</h3>';
+            //    echo '<form method="post" action="">';
+            //    wp_nonce_field( 'brand_transit_assignment', 'brand_nonce' );
+            //    echo '<table class="form-table" style="max-width: 800px;">';
+            //    echo '<tr>';
+            //    echo '<th scope="row"><label for="brand_id">' . __( 'Brand', 'inventory-manager-pro' ) . '</label></th>';
+            //    echo '<th scope="row"><label for="brand_transit_time">' . __( 'Transit Time', 'inventory-manager-pro' ) . '</label></th>';
+            //    echo '</tr>';
+            //    echo '<tr>';
+            //    echo '<td><select name="brand_id" id="brand_id" class="brand-select" style="width:100%;">';
+            //    foreach ( $brands as $brand ) {
+            //            echo '<option value="' . esc_attr( $brand->term_id ) . '">' . esc_html( $brand->name ) . '</option>';
+            //    }
+            //    echo '</select></td>';
 
-               echo '<td><select name="brand_transit_time" id="brand_transit_time" style="width:100%;">';
-               foreach ( $transit_times as $key => $label ) {
-                       echo '<option value="' . esc_attr( $key ) . '">' . esc_html( $label ) . '</option>';
-               }
-               echo '</select></td>';
-               echo '</tr>';
-               echo '</table>';
-               echo '<p><input type="submit" name="add_brand_transit" class="button button-primary" value="' . esc_attr__( 'Assign Transit Time', 'inventory-manager-pro' ) . '"></p>';
-               echo '</form>';
+            //    echo '<td><select name="brand_transit_time" id="brand_transit_time" style="width:100%;">';
+            //    foreach ( $transit_times as $key => $label ) {
+            //            echo '<option value="' . esc_attr( $key ) . '">' . esc_html( $label ) . '</option>';
+            //    }
+            //    echo '</select></td>';
+            //    echo '</tr>';
+            //    echo '</table>';
+            //    echo '<p><input type="submit" name="add_brand_transit" class="button button-primary" value="' . esc_attr__( 'Assign Transit Time', 'inventory-manager-pro' ) . '"></p>';
+            //    echo '</form>';
        }
 
        /**
