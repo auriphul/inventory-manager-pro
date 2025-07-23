@@ -65,8 +65,51 @@ class Inventory_Manager_WooCommerce {
         //        add_action( 'init', [$this, 'register_custom_order_statuses'] );
         //        add_filter( 'wc_order_statuses', [$this,'add_custom_order_statuses'] );
         //        add_filter( 'bulk_actions-edit-shop_order', [$this, 'add_custom_bulk_actions'] );
+        // add_filter( 'woocommerce_stock_amount', [$this, 'allow_decimal_stock_quantity'] );
+        // add_filter( 'woocommerce_quantity_input_args', [$this,'allow_decimal_quantities'], 9999999, 2 );
+        // add_action( 'plugins_loaded', [ $this, 'init_hooks' ] );
+        add_action('admin_footer',[$this, 'use_custom_js_on_admin_footer']);
+        // add_filter( 'woocommerce_quantity_input_args', [ $this, 'allow_decimal_quantities' ], 999999999, 2 );
+        // add_filter( 'woocommerce_stock_amount', [ $this, 'allow_decimal_stock_amount' ],999999999 );
+        // add_filter( 'woocommerce_order_item_quantity', [ $this, 'allow_decimal_order_item_quantity' ], 999999999, 2 );
+        // add_filter( 'woocommerce_new_order_item', [ $this, 'save_decimal_quantities_in_admin' ], 999999999, 3 );
        }
 
+
+	public function allow_decimal_quantities( $args, $product ) {
+		$args['step'] = 0.02;
+		return $args;
+	}
+
+	public function allow_decimal_stock_amount( $qty ) {
+		return (float) $qty;
+	}
+
+	public function allow_decimal_order_item_quantity( $quantity, $order_item ) {
+		return (float) $quantity;
+	}
+
+	public function save_decimal_quantities_in_admin( $item_id, $item, $order_id ) {
+		if ( isset( $item['quantity'] ) ) {
+			wc_update_order_item_meta( $item_id, '_qty', (float) $item['quantity'] );
+		}
+		return $item_id;
+	}
+        public function use_custom_js_on_admin_footer(){
+                global $pagenow;
+                // if ( $pagenow === 'admin.php' && get_post_type() === 'wc-orders' ) {
+                        ?>
+                        <script>
+                                jQuery(document).ready(function($){
+                                        setInterval(() => {
+                                                console.log('shop_order','<?php echo get_post_type();?>');
+                                                $('input.quantity').attr('step', '0.01');
+                                        }, 2000);
+                                });
+                        </script>
+                        <?php
+                // }
+        }
        /**
         * Reduce stock when an order is placed during checkout.
         *
@@ -1201,4 +1244,7 @@ class Inventory_Manager_WooCommerce {
        public static function get_checkout_stock_messages() {
                return self::$checkout_stock_messages;
        }
+       public function allow_decimal_stock_quantity( $quantity ) {
+	return floatval( $quantity );
+        }
 }
