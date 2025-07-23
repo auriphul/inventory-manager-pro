@@ -581,8 +581,8 @@ class Inventory_Shortcodes {
 	private function inv_reduction_per_item_shortcode($product){
 			 if ( $product && $product->is_type( 'variation' ) ) {
 					 $variation_id = $product->get_id();
-					 // $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
-					 $quantity	=	5;
+					 $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );
+					//  $quantity	=	5;
 			 }else{
 					 $quantity	=	1;
 			 }
