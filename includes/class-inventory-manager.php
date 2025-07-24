@@ -232,11 +232,31 @@ class Inventory_Manager {
 	 * @since    1.0.0
 	 */
 	public function enqueue_public_scripts() {
-		if ( $this->is_inventory_page() ) {
-			wp_enqueue_script(
-				'inventory-tables',
-				INVENTORY_MANAGER_URL . 'assets/js/inventory-tables.js',
-				array( 'jquery' ),
+               if ( is_cart() || is_checkout() ) {
+                       wp_enqueue_script(
+                               'inventory-stock-notices',
+                               INVENTORY_MANAGER_URL . 'assets/js/stock-notifications.js',
+                               array( 'jquery' ),
+                               INVENTORY_MANAGER_VERSION,
+                               true
+                       );
+
+                       wp_localize_script(
+                               'inventory-stock-notices',
+                               'inventory_stock_notices',
+                               array(
+                                       'ajax_url' => admin_url( 'admin-ajax.php' ),
+                                       'nonce'    => wp_create_nonce( 'inventory-manager-stock' ),
+                                       'title'    => __( 'Stock Notice', 'inventory-manager-pro' ),
+                               )
+                       );
+               }
+
+               if ( $this->is_inventory_page() ) {
+                       wp_enqueue_script(
+                               'inventory-tables',
+                               INVENTORY_MANAGER_URL . 'assets/js/inventory-tables.js',
+                               array( 'jquery' ),
 				INVENTORY_MANAGER_VERSION,
 				true
 			);
