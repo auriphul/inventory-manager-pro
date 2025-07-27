@@ -505,22 +505,13 @@
                     }
                 });
                 
-                // Check supplier selection
-                const supplierOption = $('input[name="supplier_option"]:checked').val();
-                
-                if (supplierOption === 'existing' && !$('#supplier_id').val()) {
+                // Check brand selection
+                if (!$('#brand_id').val()) {
                     isValid = false;
-                    $('#supplier_id').addClass('error');
-                    
-                    if (!$('#supplier_id').next('.error-message').length) {
-                        $('#supplier_id').after('<span class="error-message">Please select a supplier</span>');
-                    }
-                } else if (supplierOption === 'new' && !$('#new_supplier').val()) {
-                    isValid = false;
-                    $('#new_supplier').addClass('error');
-                    
-                    if (!$('#new_supplier').next('.error-message').length) {
-                        $('#new_supplier').after('<span class="error-message">Please enter a supplier name</span>');
+                    $('#brand_id').addClass('error');
+
+                    if (!$('#brand_id').next('.error-message').length) {
+                        $('#brand_id').after('<span class="error-message">Please select a brand</span>');
                     }
                 }
                 

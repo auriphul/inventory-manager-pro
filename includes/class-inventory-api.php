@@ -237,7 +237,7 @@ class Inventory_API {
 		$args = array(
 			'sku'            => isset( $params['sku'] ) ? sanitize_text_field( $params['sku'] ) : '',
 			'product_id'     => isset( $params['product_id'] ) ? intval( $params['product_id'] ) : 0,
-			'supplier_id'    => isset( $params['supplier_id'] ) ? intval( $params['supplier_id'] ) : 0,
+                        'brand_id'       => isset( $params['brand_id'] ) ? intval( $params['brand_id'] ) : 0,
 			'expiry_filters' => isset( $params['expiry_filters'] ) ? (array) $params['expiry_filters'] : array(),
 			'search'         => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
 			'orderby'        => isset( $params['orderby'] ) ? sanitize_text_field( $params['orderby'] ) : 'sku',
@@ -257,7 +257,7 @@ class Inventory_API {
 			array(
 				'sku'            => $args['sku'],
 				'product_id'     => $args['product_id'],
-				'supplier_id'    => $args['supplier_id'],
+                                'brand_id'       => $args['brand_id'],
 				'expiry_filters' => $args['expiry_filters'],
 				'search'         => $args['search'],
 			)
@@ -306,7 +306,7 @@ class Inventory_API {
 	public function create_batch( $request ) {
 		$params = $request->get_params();
 		// Validate required fields
-		$required_fields = array( 'sku', 'batch_number', 'stock_qty', 'reference' );
+                $required_fields = array( 'sku', 'batch_number', 'stock_qty', 'reference', 'brand_id' );
 		
 		foreach ( $required_fields as $field ) {
 			if ( empty( $params[ $field ] ) ) {
@@ -528,8 +528,8 @@ class Inventory_API {
 			// Add optional columns based on visible_columns parameter
 			$visible_columns = isset( $params['visible_columns'] ) ? (array) $params['visible_columns'] : array();
 
-			$optional_columns = array(
-				'supplier_name'         => __( 'SUPPLIER', 'inventory-manager-pro' ),
+                        $optional_columns = array(
+                                'brand_name'           => __( 'BRAND', 'inventory-manager-pro' ),
 				'expiry_formatted'      => __( 'EXPIRY', 'inventory-manager-pro' ),
 				'origin'                => __( 'ORIGIN', 'inventory-manager-pro' ),
 				'location'              => __( 'LOCATION', 'inventory-manager-pro' ),
@@ -579,7 +579,7 @@ class Inventory_API {
 			$columns = array(
 				'sku'          => __( 'SKU', 'inventory-manager-pro' ),
 				'product_name' => __( 'PRODUCT NAME', 'inventory-manager-pro' ),
-				'supplier'     => __( 'SUPPLIER', 'inventory-manager-pro' ),
+                                'brand'        => __( 'BRAND', 'inventory-manager-pro' ),
 				'batch'        => __( 'BATCH', 'inventory-manager-pro' ),
 				'expiry'       => __( 'EXPIRY', 'inventory-manager-pro' ),
 				'origin'       => __( 'ORIGIN', 'inventory-manager-pro' ),
@@ -602,7 +602,7 @@ class Inventory_API {
 							$row = array(
 								'sku'          => $product['sku'],
 								'product_name' => $product['product_name'],
-								'supplier'     => $batch->supplier_name,
+                                                                'brand'        => $batch->brand_name,
 								'batch'        => $batch->batch_number,
 								'expiry'       => $batch->expiry_formatted,
 								'origin'       => $batch->origin,
@@ -622,7 +622,7 @@ class Inventory_API {
 						$row = array(
 							'sku'          => $product['sku'],
 							'product_name' => $product['product_name'],
-							'supplier'     => $batch->supplier_name,
+                                                        'brand'        => $batch->brand_name,
 							'batch'        => $batch->batch_number,
 							'expiry'       => $batch->expiry_formatted,
 							'origin'       => $batch->origin,
@@ -1130,7 +1130,7 @@ class Inventory_API {
 			'product_name'   	=> false,
 			'batch'          	=> false,
 			'stock_qty'      	=> false,
-			'supplier_id'     	=> false,
+			'brand_id'           => false,
 			'reference'      	=> false,
 			'expiry_date'    	=> false,
 			'origin'         	=> false,
@@ -1264,8 +1264,8 @@ class Inventory_API {
 			// Get batches in this range
 			$batches = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT b.*, p.post_title as product_name, 
-                (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) as supplier_name 
+                                        "SELECT b.*, p.post_title as product_name,
+                (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id LIMIT 1) as brand_name
                 FROM {$wpdb->prefix}inventory_batches b
                 LEFT JOIN {$wpdb->posts} p ON b.product_id = p.ID
                 WHERE b.expiry_date IS NOT NULL AND " . $range['condition'] . '
