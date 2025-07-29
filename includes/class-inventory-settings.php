@@ -101,7 +101,7 @@ class Inventory_Settings {
 		echo '<h2 class="nav-tab-wrapper">';
 		echo '<a href="?page=inventory-manager-settings&tab=backend" class="nav-tab ' . ( $tab === 'backend' ? 'nav-tab-active' : '' ) . '">' . __( 'Backend Settings', 'inventory-manager-pro' ) . '</a>';
 		echo '<a href="?page=inventory-manager-settings&tab=frontend" class="nav-tab ' . ( $tab === 'frontend' ? 'nav-tab-active' : '' ) . '">' . __( 'Frontend Settings', 'inventory-manager-pro' ) . '</a>';
-               echo '<a href="?page=inventory-manager-settings&tab=suppliers" class="nav-tab ' . ( $tab === 'suppliers' ? 'nav-tab-active' : '' ) . '">' . __( 'Suppliers & Transit Time', 'inventory-manager-pro' ) . '</a>';
+            //    echo '<a href="?page=inventory-manager-settings&tab=suppliers" class="nav-tab ' . ( $tab === 'suppliers' ? 'nav-tab-active' : '' ) . '">' . __( 'Suppliers & Transit Time', 'inventory-manager-pro' ) . '</a>';
                echo '<a href="?page=inventory-manager-settings&tab=brands" class="nav-tab ' . ( $tab === 'brands' ? 'nav-tab-active' : '' ) . '">' . __( 'WooCommerce Brands', 'inventory-manager-pro' ) . '</a>';
                echo '<a href="?page=inventory-manager-settings&tab=logs" class="nav-tab ' . ( $tab === 'logs' ? 'nav-tab-active' : '' ) . '">' . __( 'Detailed Logs Settings', 'inventory-manager-pro' ) . '</a>';
 		echo '</h2>';
