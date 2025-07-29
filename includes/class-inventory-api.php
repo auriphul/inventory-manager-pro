@@ -1080,7 +1080,7 @@ class Inventory_API {
 				return new WP_Error( 'missing_required_field', sprintf( __( 'Missing required field: %s', 'inventory-manager-pro' ), $field ), array( 'status' => 400 ) );
 			}
 		}
-		
+		// echo '<pre>';print_r($batch_data);
 		// Create batch
 		$result = $this->db->import_batch( $batch_data );
 		

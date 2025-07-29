@@ -102,7 +102,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 				<th data-sort="location" class="column-location"><?php _e( 'LOCATION', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="stock_cost" class="column-stock_cost"><?php _e( 'STOCK COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
                                 <th data-sort="landed_cost" class="column-landed_cost"><?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
-                                <th><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th>
+                                <!-- <th><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th> -->
 			</tr>
 		</thead>
 		<tbody>
@@ -129,6 +129,6 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                 <td class="column-location">{{location}}</td>
                 <td class="column-stock_cost">{{stock_cost_formatted}}</td>
                 <td class="column-landed_cost">{{landed_cost_formatted}}</td>
-                <td><button class="button delete-batch" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></td>
+                <!-- <td><button class="button delete-batch" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></td> -->
         </tr>
 </script>
