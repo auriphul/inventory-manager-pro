@@ -82,7 +82,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 			</select>
 			<button class="button export-btn"><?php _e( 'EXPORT', 'inventory-manager-pro' ); ?></button>
 		</div>
-		<div class="logs-search-box">
+		<div class="search-box">
 			<input type="text" placeholder="<?php _e( 'Search...', 'inventory-manager-pro' ); ?>">
 			<button class="button search-btn"><?php _e( 'Search', 'inventory-manager-pro' ); ?></button>
 			<button class="button show-all-btn"><?php _e( 'Show All Batches', 'inventory-manager-pro' ); ?></button>
