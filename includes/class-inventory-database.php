@@ -21,7 +21,7 @@ class Inventory_Database {
         $defaults = array(
             'sku' => '',
             'product_id' => 0,
-            'supplier_id' => 0,
+            'brand_id' => 0,
             'expiry_filters' => array(),
             'search' => '',
             'orderby' => 'sku',
@@ -33,8 +33,8 @@ class Inventory_Database {
         $args = wp_parse_args($args, $defaults);
 
         // Start building query
-        $query = "SELECT b.*, p.post_title as product_name, 
-                  (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) as supplier_name 
+        $query = "SELECT b.*, p.post_title as product_name,
+                  (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id LIMIT 1) as brand_name
                   FROM {$wpdb->prefix}inventory_batches b
                   LEFT JOIN {$wpdb->posts} p ON b.product_id = p.ID
                   WHERE 1=1";
@@ -53,10 +53,10 @@ class Inventory_Database {
             $query_args[] = $args['product_id'];
         }
 
-        // Filter by supplier ID
-        if (!empty($args['supplier_id'])) {
+        // Filter by brand ID
+        if (!empty($args['brand_id'])) {
             $query .= " AND b.supplier_id = %d";
-            $query_args[] = $args['supplier_id'];
+            $query_args[] = $args['brand_id'];
         }
 
         // Filter by expiry range
@@ -97,7 +97,7 @@ class Inventory_Database {
                 b.sku LIKE %s OR
                 p.post_title LIKE %s OR
                 b.batch_number LIKE %s OR
-                (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) LIKE %s OR
+                (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id) LIKE %s OR
                 b.origin LIKE %s OR
                 b.location LIKE %s
             )";
@@ -120,7 +120,7 @@ class Inventory_Database {
                 'product_name' => 'p.post_title',
                 'batch' => 'b.batch_number',
                 'stock_qty' => 'b.stock_qty',
-                'supplier' => 'supplier_name',
+                'supplier' => 'brand_name',
                 'expiry' => 'b.expiry_date',
                 'origin' => 'b.origin',
                 'location' => 'b.location',
@@ -203,7 +203,7 @@ class Inventory_Database {
         $defaults = array(
             'sku' => '',
             'product_id' => 0,
-            'supplier_id' => 0,
+            'brand_id' => 0,
             'expiry_filters' => array(),
             'search' => '',
         );
@@ -229,10 +229,10 @@ class Inventory_Database {
             $query_args[] = $args['product_id'];
         }
 
-        // Filter by supplier ID
-        if (!empty($args['supplier_id'])) {
+        // Filter by brand ID
+        if (!empty($args['brand_id'])) {
             $query .= " AND b.supplier_id = %d";
-            $query_args[] = $args['supplier_id'];
+            $query_args[] = $args['brand_id'];
         }
 
         // Filter by expiry range
@@ -273,7 +273,7 @@ class Inventory_Database {
                 b.sku LIKE %s OR 
                 p.post_title LIKE %s OR 
                 b.batch_number LIKE %s OR
-                (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) LIKE %s OR
+                (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id) LIKE %s OR
                 b.origin LIKE %s OR
                 b.location LIKE %s
             )";
@@ -304,8 +304,8 @@ class Inventory_Database {
 
         $batch = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT b.*, p.post_title as product_name, 
-                (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) as supplier_name 
+                "SELECT b.*, p.post_title as product_name,
+                (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id LIMIT 1) as brand_name
                 FROM {$wpdb->prefix}inventory_batches b
                 LEFT JOIN {$wpdb->posts} p ON b.product_id = p.ID
                 WHERE b.id = %d",
@@ -381,10 +381,11 @@ class Inventory_Database {
         );
 
         // Optional fields
-        if (!empty($data['supplier_id'])) {
-            $batch_data['supplier_id'] = intval($data['supplier_id']);
-        }else{
-            $batch_data['supplier_id']  =   $this->maybe_insert_supplier($data);
+        if (!empty($data['brand_id'])) {
+            if ( ! term_exists( intval( $data['brand_id'] ), 'product_brand' ) ) {
+                return new WP_Error( 'invalid_brand', __( 'Brand ID does not exist.', 'inventory-manager-pro' ) );
+            }
+            $batch_data['supplier_id'] = intval($data['brand_id']);
         }
 
         if (!empty($data['expiry_date'])) {
@@ -455,8 +456,12 @@ class Inventory_Database {
         $expiry_date    =   sanitize_text_field($data['expiry_date']);
         $expiry_date_formatted    =   $this->normalize_date($expiry_date);
 
-        if ( $data['supplier_id'] == '') {
-            return new WP_Error('db_error', __('Supplier ID not available.', 'inventory-manager-pro'));
+        if ( empty( $data['brand_id'] ) ) {
+            return new WP_Error('db_error', __('Brand ID not available.', 'inventory-manager-pro'));
+        }
+
+        if ( ! term_exists( intval( $data['brand_id'] ), 'product_brand' ) ) {
+            return new WP_Error( 'invalid_brand', __( 'Brand ID does not exist.', 'inventory-manager-pro' ) );
         }
 
         // Get product_id from SKU
@@ -490,7 +495,7 @@ class Inventory_Database {
         );
 
         // Optional fields
-        $batch_data['supplier_id']  =   sanitize_text_field($data['supplier_id']);
+        $batch_data['supplier_id']  =   intval($data['brand_id']);
 
         if (!empty($data['expiry'])) {
             $batch_data['expiry_date'] = $expiry_date_formatted;
@@ -723,7 +728,7 @@ class Inventory_Database {
         foreach ($products as $product) {
             // Get batches for this product
             $batches_query = "SELECT b.*,
-                            (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) as supplier_name
+                            (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id LIMIT 1) as brand_name
                             FROM {$wpdb->prefix}inventory_batches b
                             WHERE b.product_id = %d";
             if ( ! empty( $args['batch_period'] ) && 'all' !== $args['batch_period'] ) {
@@ -1239,8 +1244,8 @@ class Inventory_Database {
             $formats[] = '%s';
         }
 
-        if (isset($data['supplier_id'])) {
-            $batch_data['supplier_id'] = intval($data['supplier_id']);
+        if (isset($data['brand_id'])) {
+            $batch_data['supplier_id'] = intval($data['brand_id']);
             $formats[] = '%d';
         }
 
@@ -1421,7 +1426,7 @@ class Inventory_Database {
                 b.batch_number,
                 b.expiry_date,
                 b.stock_qty,
-                (SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = b.supplier_id) as supplier_name
+                (SELECT t.name FROM {$wpdb->terms} t INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id AND tt.taxonomy = 'product_brand' WHERE t.term_id = b.supplier_id LIMIT 1) as brand_name
                 FROM {$wpdb->posts} p
                 JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_sku'
                 JOIN {$wpdb->prefix}inventory_batches b ON b.product_id = p.ID

@@ -16,8 +16,8 @@
         // Set up SKU autocomplete
         setupSkuAutocomplete();
         
-        // Set up supplier fields
-        setupSupplierFields();
+        // Set up brand fields
+        setupBrandFields();
         
         // Set up form submission
         setupFormSubmission();
@@ -132,62 +132,23 @@
     }
     
     /**
-     * Set up supplier fields
+     * Set up brand fields
      */
-    function setupSupplierFields() {
-        const supplierSelect = $('#supplier_id');
-        const newSupplierInput = $('#new_supplier');
-        const newSupplierTransitSelect = $('#new_supplier_transit');
-        const useExistingRadio = $('input[name="supplier_option"][value="existing"]');
-        const useNewRadio = $('input[name="supplier_option"][value="new"]');
-        
-        if (supplierSelect.length) {
-            // Fetch suppliers
+    function setupBrandFields() {
+        const brandSelect = $('#brand_id');
+
+        if (brandSelect.length) {
+            const baseUrl = inventory_manager.api_url.replace(/inventory-manager\/v1$/, '');
+
             $.ajax({
-                url: inventory_manager.api_url + '/suppliers',
+                url: baseUrl + 'wp/v2/product_brand?per_page=100',
                 method: 'GET',
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
-                },
                 success: function(response) {
-                    if (response.suppliers && response.suppliers.length) {
-                        // Add options to select
-                        $.each(response.suppliers, function(index, supplier) {
-                            supplierSelect.append('<option value="' + supplier.id + '">' + supplier.name + '</option>');
+                    if (response && response.length) {
+                        $.each(response, function(index, brand) {
+                            brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
                         });
                     }
-                }
-            });
-            
-            // Fetch transit times
-            $.ajax({
-                url: inventory_manager.api_url + '/transit-times',
-                method: 'GET',
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
-                },
-                success: function(response) {
-                    if (response.transit_times && response.transit_times.length) {
-                        // Add options to select
-                        $.each(response.transit_times, function(index, transit) {
-                            newSupplierTransitSelect.append('<option value="' + transit.id + '">' + transit.name + '</option>');
-                        });
-                    }
-                }
-            });
-            
-            // Toggle supplier fields based on radio selection
-            useExistingRadio.on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('.existing-supplier-row').show();
-                    $('.new-supplier-row').hide();
-                }
-            });
-            
-            useNewRadio.on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('.existing-supplier-row').hide();
-                    $('.new-supplier-row').show();
                 }
             });
         }
@@ -233,15 +194,8 @@
                     formData.freight_markup = $('#freight_markup').val();
                 }
                 
-                // Supplier info
-                const supplierOption = $('input[name="supplier_option"]:checked').val();
-                
-                if (supplierOption === 'existing') {
-                    formData.supplier_id = $('#supplier_id').val();
-                } else if (supplierOption === 'new' && $('#new_supplier').val()) {
-                    formData.new_supplier = $('#new_supplier').val();
-                    formData.new_supplier_transit = $('#new_supplier_transit').val();
-                }
+                // Brand info
+                formData.brand_id = $('#brand_id').val();
                 
                 // Validate required fields
                 if (!formData.sku) {
@@ -265,6 +219,12 @@
                 if (!formData.reference) {
                     alert('Please enter a reference');
                     $('#reference').focus();
+                    return;
+                }
+
+                if (!formData.brand_id) {
+                    alert('Please select a brand');
+                    $('#brand_id').focus();
                     return;
                 }
                 
@@ -324,9 +284,9 @@
                 e.preventDefault();
                 
                 const sampleData = [
-                    ['inventory_sku', 'inventory_batch', 'inventory_stock_qty', 'inventory_reference', 'inventory_supplier', 'inventory_expiry', 'inventory_origin', 'inventory_location', 'inventory_unit_cost', 'inventory_freight_margin'],
-                    ['SKU123', 'BATCH001', '10', 'Initial Stock', 'Supplier A', '2023-12-31', 'USA', 'Warehouse A', '10.50', '1.25'],
-                    ['SKU456', 'BATCH002', '5', 'Initial Stock', 'Supplier B', '2023-10-15', 'China', 'Warehouse B', '8.75', '2.00']
+                    ['inventory_sku', 'inventory_batch', 'inventory_stock_qty', 'inventory_reference', 'inventory_brand_id', 'inventory_expiry', 'inventory_origin', 'inventory_location', 'inventory_unit_cost', 'inventory_freight_margin'],
+                    ['SKU123', 'BATCH001', '10', 'Initial Stock', '5', '2023-12-31', 'USA', 'Warehouse A', '10.50', '1.25'],
+                    ['SKU456', 'BATCH002', '5', 'Initial Stock', '2', '2023-10-15', 'China', 'Warehouse B', '8.75', '2.00']
                 ];
                 
                 let csvContent = '';

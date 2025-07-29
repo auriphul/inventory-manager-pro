@@ -333,8 +333,8 @@
         html += '<div class="batch-header">';
         
         html += '<div class="batch-supplier' + expiryClass + '">';
-        html += '<span class="label">Supplier</span>';
-        html += '<span class="value">' + (batch.supplier_name || '-') + '</span>';
+        html += '<span class="label">Brand</span>';
+        html += '<span class="value">' + (batch.brand_name || '-') + '</span>';
         html += '</div>';
 
         html += '<div class="batch-number' + expiryClass + '">';

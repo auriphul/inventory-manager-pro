@@ -82,9 +82,9 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <td><?php _e( 'Reference number (PO, invoice, etc.)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>supplier_id</code></td>
+                                <td><code>brand_id</code></td>
                                 <td><span class="required">Yes</span></td>
-                                <td><?php _e( 'Supplier ID (Make sure that all suppliers are entered onto Suppliers & Transit Time tab before importing. Any products with a supplier not pre-entered, will be ignored.)', 'inventory-manager-pro' ); ?></td>
+                                <td><?php _e( 'Brand ID (must match an existing WooCommerce brand). Rows with unknown brand IDs will be skipped.', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
                                 <td><code>expiry_date</code></td>

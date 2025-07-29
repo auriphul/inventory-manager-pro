@@ -66,7 +66,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 			<label><input type="checkbox" class="toggle-column" data-column="product_name" checked disabled> <?php _e( 'PRODUCT NAME', 'inventory-manager-pro' ); ?></label>
 			<label><input type="checkbox" class="toggle-column" data-column="batch" checked disabled> <?php _e( 'BATCH', 'inventory-manager-pro' ); ?></label>
 			<label><input type="checkbox" class="toggle-column" data-column="stock_qty" checked disabled> <?php _e( 'STOCK QTY', 'inventory-manager-pro' ); ?></label>
-			<label><input type="checkbox" class="toggle-column" data-column="supplier" checked> <?php _e( 'SUPPLIER', 'inventory-manager-pro' ); ?></label>
+                        <label><input type="checkbox" class="toggle-column" data-column="supplier" checked> <?php _e( 'BRAND', 'inventory-manager-pro' ); ?></label>
 			<label><input type="checkbox" class="toggle-column" data-column="expiry" checked> <?php _e( 'EXPIRY', 'inventory-manager-pro' ); ?></label>
 			<label><input type="checkbox" class="toggle-column" data-column="origin" checked> <?php _e( 'ORIGIN', 'inventory-manager-pro' ); ?></label>
 			<label><input type="checkbox" class="toggle-column" data-column="location" checked> <?php _e( 'LOCATION', 'inventory-manager-pro' ); ?></label>
@@ -96,13 +96,13 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 				<th data-sort="product_name"><?php _e( 'PRODUCT NAME', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="batch"><?php _e( 'BATCH', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="stock_qty"><?php _e( 'STOCK QTY', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
-				<th data-sort="supplier" class="column-supplier"><?php _e( 'SUPPLIER', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
+                                <th data-sort="supplier" class="column-supplier"><?php _e( 'BRAND', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="expiry" class="column-expiry"><?php _e( 'EXPIRY', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="origin" class="column-origin"><?php _e( 'ORIGIN', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="location" class="column-location"><?php _e( 'LOCATION', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="stock_cost" class="column-stock_cost"><?php _e( 'STOCK COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
                                 <th data-sort="landed_cost" class="column-landed_cost"><?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
-                                <th><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th>
+                                <!-- <th><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th> -->
 			</tr>
 		</thead>
 		<tbody>
@@ -123,12 +123,12 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                 <td>{{product_name}}</td>
                 <td>{{batch_number}}</td>
                 <td>{{stock_qty}}</td>
-                <td class="column-supplier">{{supplier_name}}</td>
+                <td class="column-supplier">{{brand_name}}</td>
                 <td class="column-expiry">{{expiry_formatted}}</td>
                 <td class="column-origin">{{origin}}</td>
                 <td class="column-location">{{location}}</td>
                 <td class="column-stock_cost">{{stock_cost_formatted}}</td>
                 <td class="column-landed_cost">{{landed_cost_formatted}}</td>
-                <td><button class="button delete-batch" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></td>
+                <!-- <td><button class="button delete-batch" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></td> -->
         </tr>
 </script>

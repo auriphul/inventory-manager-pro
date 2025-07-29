@@ -229,8 +229,8 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         
         <div class="batch-details" style="display: none;">
             <div class="batch-supplier">
-                <span class="label"><?php _e( 'Supplier', 'inventory-manager-pro' ); ?></span>
-                <span class="value">{{supplier_name}}</span>
+                <span class="label"><?php _e( 'Brand', 'inventory-manager-pro' ); ?></span>
+                <span class="value">{{brand_name}}</span>
             </div>
             
             <div class="batch-origin">

@@ -82,51 +82,19 @@ $transit_times  = $inventory_db->get_transit_times();
 				</div>
 			</div>
 			
-			<div class="form-section">
-				<h3><?php _e( 'Supplier Information', 'inventory-manager-pro' ); ?></h3>
-				
-				<div class="form-row supplier-option-row">
-					<div class="form-field">
-						<label>
-							<input type="radio" name="supplier_option" value="existing" checked>
-							<?php _e( 'Use existing supplier', 'inventory-manager-pro' ); ?>
-						</label>
-						<label>
-							<input type="radio" name="supplier_option" value="new">
-							<?php _e( 'Add new supplier', 'inventory-manager-pro' ); ?>
-						</label>
-					</div>
-				</div>
-				
-				<div class="form-row existing-supplier-row">
-					<div class="form-field">
-						<label for="supplier_id"><?php _e( 'Supplier', 'inventory-manager-pro' ); ?></label>
-						<select id="supplier_id" name="supplier_id">
-							<option value=""><?php _e( 'Select supplier', 'inventory-manager-pro' ); ?></option>
-							<!-- Suppliers will be populated via JavaScript -->
-						</select>
-					</div>
-				</div>
-				
-				<div class="form-row new-supplier-row" style="display:none;">
-					<div class="form-field">
-						<label for="new_supplier"><?php _e( 'New Supplier Name', 'inventory-manager-pro' ); ?></label>
-						<input type="text" id="new_supplier" name="new_supplier">
-					</div>
-					
-					<div class="form-field">
-						<label for="new_supplier_transit"><?php _e( 'Transit Time', 'inventory-manager-pro' ); ?></label>
-                                                <select id="new_supplier_transit" name="new_supplier_transit">
-                                                        <option value=""><?php _e( 'Select transit time', 'inventory-manager-pro' ); ?></option>
-                                                        <?php foreach ( $transit_times as $time ) : ?>
-                                                                <option value="<?php echo esc_attr( $time['id'] ); ?>">
-                                                                        <?php echo esc_html( $time['name'] ); ?>
-                                                                </option>
-                                                        <?php endforeach; ?>
+                        <div class="form-section">
+                                <h3><?php _e( 'Brand Information', 'inventory-manager-pro' ); ?></h3>
+
+                                <div class="form-row">
+                                        <div class="form-field required">
+                                                <label for="brand_id"><?php _e( 'Brand', 'inventory-manager-pro' ); ?></label>
+                                                <select id="brand_id" name="brand_id">
+                                                        <option value=""><?php _e( 'Select brand', 'inventory-manager-pro' ); ?></option>
+                                                        <!-- Brands will be populated via JavaScript -->
                                                 </select>
-					</div>
-				</div>
-			</div>
+                                        </div>
+                                </div>
+                        </div>
 			
 			<div class="form-section">
 				<h3><?php _e( 'Additional Information', 'inventory-manager-pro' ); ?></h3>
