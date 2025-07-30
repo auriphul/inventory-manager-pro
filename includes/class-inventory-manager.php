@@ -269,7 +269,7 @@ class Inventory_Manager {
 				'inventory-tables',
 				'inventory_manager',
                                 array(
-                                        'api_url' => rest_url( 'inventory-manager/v1' ),
+                                        'api_url' => rest_url( 'inventory-manager-pro/v1' ),
                                         'nonce'   => wp_create_nonce( 'wp_rest' ),
                                         'currency_symbol' => get_option( 'inventory_manager_currency', get_woocommerce_currency_symbol() ),
                                         'pages'   => array(

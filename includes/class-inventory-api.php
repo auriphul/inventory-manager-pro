@@ -21,7 +21,7 @@ class Inventory_API {
 	public function register_routes() {
 		// Batches endpoints
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/batches',
 			array(
 				'methods'             => 'GET',
@@ -31,7 +31,7 @@ class Inventory_API {
 		);
 
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/batch/(?P<id>\d+)',
 			array(
 				'methods'             => 'GET',
@@ -41,7 +41,7 @@ class Inventory_API {
 		);
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/batch',
                         array(
                                 'methods'             => 'POST',
@@ -51,7 +51,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/batch/(?P<id>\d+)',
                         array(
                                 'methods'             => 'DELETE',
@@ -61,7 +61,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/movement/(?P<id>\d+)',
                         array(
                                 'methods'             => 'DELETE',
@@ -72,7 +72,7 @@ class Inventory_API {
 
 		// Adjustment endpoint
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/adjustment',
 			array(
 				'methods'             => 'POST',
@@ -83,7 +83,7 @@ class Inventory_API {
 
 		// Detailed logs endpoint
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/detailed-logs',
 			array(
 				'methods'             => 'GET',
@@ -94,7 +94,7 @@ class Inventory_API {
 
 		// Export endpoints
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/export',
 			array(
 				'methods'             => 'GET',
@@ -105,7 +105,7 @@ class Inventory_API {
 
 		// Helper endpoints
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/suppliers',
                         array(
                                 'methods'             => 'GET',
@@ -115,7 +115,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/suppliers',
                         array(
                                 'methods'             => 'POST',
@@ -125,7 +125,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/suppliers/(?P<id>\d+)',
                         array(
                                 'methods'             => 'PUT',
@@ -135,7 +135,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/suppliers/(?P<id>\d+)',
                         array(
                                 'methods'             => 'DELETE',
@@ -145,7 +145,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/transit-times',
                         array(
                                 'methods'             => 'GET',
@@ -155,7 +155,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/transit-times',
                         array(
                                 'methods'             => 'POST',
@@ -165,7 +165,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/transit-times/(?P<id>[a-zA-Z0-9_-]+)',
                         array(
                                 'methods'             => 'PUT',
@@ -175,7 +175,7 @@ class Inventory_API {
                 );
 
                 register_rest_route(
-                        'inventory-manager/v1',
+                        'inventory-manager-pro/v1',
                         '/transit-times/(?P<id>[a-zA-Z0-9_-]+)',
                         array(
                                 'methods'             => 'DELETE',
@@ -185,7 +185,7 @@ class Inventory_API {
                 );
 
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/adjustment-types',
 			array(
 				'methods'             => 'GET',
@@ -195,7 +195,7 @@ class Inventory_API {
 		);
 
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/skus',
 			array(
 				'methods'             => 'GET',
@@ -205,7 +205,7 @@ class Inventory_API {
 		);
 
 		register_rest_route(
-			'inventory-manager/v1',
+			'inventory-manager-pro/v1',
 			'/product-info',
 			array(
 				'methods'             => 'GET',

@@ -138,7 +138,7 @@
         const brandSelect = $('#brand_id');
 
         if (brandSelect.length) {
-            const baseUrl = inventory_manager.api_url.replace(/inventory-manager\/v1$/, '');
+            const baseUrl = inventory_manager.api_url.replace(/inventory-manager-pro\/v1$/, '');
 
             $.ajax({
                 url: baseUrl + 'wp/v2/product_brand?per_page=100',
