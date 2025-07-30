@@ -59,6 +59,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                                 <input type="checkbox" class="filter-expiry" data-range="expired" >
                                 <span class="expiry-expired"><?php echo isset( $expiry_ranges['expired']['label'] ) ? esc_html( $expiry_ranges['expired']['label'] ) : __( 'expired', 'inventory-manager-pro' ); ?></span>
                         </label>
+						<span>click/unclick here to filter by expiry ranges</span>
                 </div>
 		
 		<div class="column-filters">
