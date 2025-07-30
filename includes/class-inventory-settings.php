@@ -560,9 +560,9 @@ class Inventory_Settings {
 		echo '<h3>' . __( 'Fields to Show on Frontend', 'inventory-manager-pro' ) . '</h3>';
 		echo '<table class="form-table">';
 
-		$field_options = array(
-			'supplier'  => __( 'Supplier', 'inventory-manager-pro' ),
-			'batch'     => __( 'Batch', 'inventory-manager-pro' ),
+                $field_options = array(
+                        'supplier'  => __( 'Brands', 'inventory-manager-pro' ),
+                        'batch'     => __( 'Batch', 'inventory-manager-pro' ),
 			'expiry'    => __( 'Expiry', 'inventory-manager-pro' ),
 			'origin'    => __( 'Origin', 'inventory-manager-pro' ),
 			'location'  => __( 'Location', 'inventory-manager-pro' ),

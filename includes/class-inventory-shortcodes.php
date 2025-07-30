@@ -139,20 +139,15 @@ class Inventory_Shortcodes {
 
                 $batches_info = array();
 
+                $brands      = wp_get_post_terms( $product_obj->get_id(), 'product_brand' );
+                $brand_names = '';
+                if ( ! is_wp_error( $brands ) && ! empty( $brands ) ) {
+                        $brand_names = implode( ', ', wp_list_pluck( $brands, 'name' ) );
+                }
+
                 foreach ( $batches as $batch ) {
-                        $supplier_name = '';
-
-                        if ( $batch->supplier_id ) {
-                                $supplier_name = $wpdb->get_var(
-                                        $wpdb->prepare(
-                                                "SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
-                                                $batch->supplier_id
-                                        )
-                                );
-                        }
-
                         $batches_info[] = array(
-                                'supplier'  => $supplier_name,
+                                'supplier'  => $brand_names,
                                 'batch'     => $batch->batch_number,
                                 'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
                                 'origin'    => $batch->origin,
@@ -227,20 +222,15 @@ class Inventory_Shortcodes {
 
                 $batches_info = array();
 
+                $brands      = wp_get_post_terms( $product->get_id(), 'product_brand' );
+                $brand_names = '';
+                if ( ! is_wp_error( $brands ) && ! empty( $brands ) ) {
+                        $brand_names = implode( ', ', wp_list_pluck( $brands, 'name' ) );
+                }
+
                 foreach ( $batches as $batch ) {
-                        $supplier_name = '';
-
-                        if ( $batch->supplier_id ) {
-                                $supplier_name = $wpdb->get_var(
-                                        $wpdb->prepare(
-                                                "SELECT name FROM {$wpdb->prefix}inventory_suppliers WHERE id = %d",
-                                                $batch->supplier_id
-                                        )
-                                );
-                        }
-
                         $batches_info[] = array(
-                                'supplier'  => $supplier_name,
+                                'supplier'  => $brand_names,
                                 'batch'     => $batch->batch_number,
                                 'expiry'    => $batch->expiry_date ? date_i18n( INVENTORY_MANAGER_DATE_FORMAT, strtotime( $batch->expiry_date ) ) : '',
                                 'origin'    => $batch->origin,
