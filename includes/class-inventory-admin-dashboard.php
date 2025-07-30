@@ -95,7 +95,7 @@ class Inventory_Admin_Dashboard {
 
         $tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'overview';
         echo '<div class="wrap inventory-manager">';
-        echo '<h1>' . esc_html__( 'Inventory Manager', 'inventory-manager-pro' ) . '</h1>';
+        echo '<h1>' . esc_html__( 'Inventory Manager Pro', 'inventory-manager-pro' ) . '</h1>';
         echo '<h2 class="nav-tab-wrapper">';
         $tabs = array(
             'overview'      => __( 'Overview', 'inventory-manager-pro' ),
