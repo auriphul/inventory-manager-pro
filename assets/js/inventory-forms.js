@@ -24,6 +24,9 @@
         
         // Set up import form
         setupImportForm();
+
+        // Product import form
+        setupProductImportForm();
     }
 
     /**
@@ -377,6 +380,171 @@
                 });
             });
         }
+    }
+
+    /**
+     * Set up product import form
+     */
+    function setupProductImportForm() {
+        const form = $('#product-import-form');
+
+        if (form.length) {
+            $('#product-file').on('change', function() {
+                const fileName = $(this).val().split('\\').pop();
+                $('#product-file-name').text(fileName || 'No file selected');
+            });
+
+            $('#download-product-sample').on('click', function(e) {
+                e.preventDefault();
+
+                const sample = [
+                    ['SKU', 'Product Name', 'Price', 'Quantity', 'Category'],
+                    ['PROD001', 'Blue Widget', '19.99', '100', 'Electronics'],
+                    ['PROD002', 'Red Gadget', '29.99', '50', 'Accessories']
+                ];
+
+                let csvContent = '';
+                sample.forEach(function(row) {
+                    csvContent += row.join(',') + '\r\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('href', url);
+                a.setAttribute('download', 'product_import_sample.csv');
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+
+            $('#preview-product-import').on('click', function(e) {
+                e.preventDefault();
+
+                const fileInput = $('#product-file')[0];
+                if (!fileInput.files.length) {
+                    alert('Please select a file to preview');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                $.ajax({
+                    url: inventory_manager.api_url + '/preview-products',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+                        $('#preview-product-import').prop('disabled', true).text('Loading preview...');
+                    },
+                    success: function(response) {
+                        $('#preview-product-import').prop('disabled', false).text('Preview Import');
+
+                        if (response.rows) {
+                            renderProductImportPreview(response);
+                        } else {
+                            alert('Error previewing file: ' + (response.message || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        $('#preview-product-import').prop('disabled', false).text('Preview Import');
+                        alert('Error previewing file');
+                    }
+                });
+            });
+
+            form.on('submit', function(e) {
+                e.preventDefault();
+
+                const fileInput = $('#product-file')[0];
+                if (!fileInput.files.length) {
+                    alert('Please select a file to import');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                $.ajax({
+                    url: inventory_manager.api_url + '/import-products',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+                        $('#product-import-btn').prop('disabled', true).text('Importing...');
+                    },
+                    success: function(response) {
+                        $('#product-import-btn').prop('disabled', false).text('Import');
+
+                        if (response.success) {
+                            let message = 'Import completed';
+                            if (response.results) {
+                                message += '\n\n' + response.results.success + ' products imported successfully';
+                                if (response.results.errors && response.results.errors.length) {
+                                    message += '\n\n' + response.results.errors.length + ' errors:';
+                                    $.each(response.results.errors, function(i, err) {
+                                        message += '\n- ' + err;
+                                    });
+                                }
+                            }
+                            alert(message);
+                            form[0].reset();
+                            $('#product-file-name').text('No file selected');
+                        } else {
+                            alert('Error importing products: ' + (response.message || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        $('#product-import-btn').prop('disabled', false).text('Import');
+                        alert('Error importing products');
+                    }
+                });
+            });
+        }
+    }
+
+    function renderProductImportPreview(data) {
+        if (!data.rows || !data.rows.length) {
+            $('.product-import-preview').html('<p>No data to preview</p>');
+            return;
+        }
+
+        let html = '<div class="preview-container">';
+        html += '<h3>Import Preview</h3>';
+        html += '<p>Showing ' + Math.min(data.rows.length, 10) + ' of ' + data.rows.length + ' rows</p>';
+        html += '<table class="preview-table"><thead><tr>';
+        $.each(data.headers, function(i, h) { html += '<th>' + h + '</th>'; });
+        html += '</tr></thead><tbody>';
+        const maxRows = Math.min(data.rows.length, 10);
+        for (let i = 0; i < maxRows; i++) {
+            html += '<tr>';
+            $.each(data.headers, function(_, h) {
+                html += '<td>' + (data.rows[i][h] || '') + '</td>';
+            });
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        if (data.validation) {
+            html += '<div class="validation-results">';
+            if (data.validation.valid) {
+                html += '<p class="success">File is valid and ready to import</p>';
+            } else {
+                html += '<p class="error">There are issues with the import file:</p><ul class="error-list">';
+                $.each(data.validation.errors, function(_, err) {
+                    html += '<li>' + err + '</li>';
+                });
+                html += '</ul>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        $('.product-import-preview').html(html);
     }
     
     // Initialize on document ready
