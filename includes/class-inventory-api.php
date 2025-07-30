@@ -537,11 +537,21 @@ class Inventory_API {
 				'landed_cost_formatted' => __( 'LANDED COST', 'inventory-manager-pro' ),
 			);
 
-			foreach ( $optional_columns as $column_key => $column_label ) {
-				if ( in_array( str_replace( '_formatted', '', $column_key ), $visible_columns ) ) {
-					$columns[ $column_key ] = $column_label;
-				}
-			}
+                        foreach ( $optional_columns as $column_key => $column_label ) {
+                                $check_key = str_replace( '_formatted', '', $column_key );
+
+                                // Handle brand column which may be sent as 'brand' or 'supplier'
+                                if ( 'brand_name' === $check_key ) {
+                                        if ( in_array( 'brand', $visible_columns, true ) || in_array( 'supplier', $visible_columns, true ) ) {
+                                                $columns[ $column_key ] = $column_label;
+                                        }
+                                        continue;
+                                }
+
+                                if ( in_array( $check_key, $visible_columns, true ) ) {
+                                        $columns[ $column_key ] = $column_label;
+                                }
+                        }
 
 			// Prepare data for export
 			$data = array();
@@ -693,34 +703,36 @@ class Inventory_API {
 			header( 'Content-Type: application/vnd.ms-excel' );
 			header( 'Content-Disposition: attachment; filename=' . $filename . '.xls' );
 
-			echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-			echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">';
-			echo "\n";
-			echo '<Worksheet ss:Name="Sheet1">';
+                        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+                        echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">';
+                        echo "\n";
+                        echo '<Styles><Style ss:ID="center"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style></Styles>';
+                        echo "\n";
+                        echo '<Worksheet ss:Name="Sheet1">';
 			echo "\n";
 			echo '<Table>';
 			echo "\n";
 
 			// Add headers
-			echo '<Row>';
-			foreach ( $columns as $header ) {
-				echo '<Cell><Data ss:Type="String">' . htmlspecialchars( $header ) . '</Data></Cell>';
-			}
-			echo '</Row>';
+                        echo '<Row>';
+                        foreach ( $columns as $header ) {
+                                echo '<Cell ss:StyleID="center"><Data ss:Type="String">' . htmlspecialchars( $header ) . '</Data></Cell>';
+                        }
+                        echo '</Row>';
 			echo "\n";
 
 			// Add data
 			foreach ( $data as $row ) {
-				echo '<Row>';
-				foreach ( $row as $cell ) {
-					// Determine cell type
-					if ( is_numeric( $cell ) ) {
-						echo '<Cell><Data ss:Type="Number">' . $cell . '</Data></Cell>';
-					} else {
-						echo '<Cell><Data ss:Type="String">' . htmlspecialchars( $cell ) . '</Data></Cell>';
-					}
-				}
-				echo '</Row>';
+                                echo '<Row>';
+                                foreach ( $row as $cell ) {
+                                        // Determine cell type
+                                        if ( is_numeric( $cell ) ) {
+                                                echo '<Cell ss:StyleID="center"><Data ss:Type="Number">' . $cell . '</Data></Cell>';
+                                        } else {
+                                                echo '<Cell ss:StyleID="center"><Data ss:Type="String">' . htmlspecialchars( $cell ) . '</Data></Cell>';
+                                        }
+                                }
+                                echo '</Row>';
 				echo "\n";
 			}
 
