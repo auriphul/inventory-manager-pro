@@ -20,18 +20,24 @@ class Inventory_Settings {
 	 * Add settings page to admin menu.
 	 */
         public function add_settings_page() {
-                add_menu_page(
-                        __( 'Inventory Manager Pro', 'inventory-manager-pro' ),
-                        __( 'Inventory Manager Pro', 'inventory-manager-pro' ),
-                        'manage_inventory',
-                        'inventory-manager-settings',
-                        array( $this, 'render_settings_page' ),
-                        'dashicons-clipboard',
-                        56
-                );
+			add_menu_page(
+					__( 'Inventory Manager Pro', 'inventory-manager-pro' ),
+					__( 'Inventory Manager Pro', 'inventory-manager-pro' ),
+					'manage_inventory',
+					'inventory-manager-settings',
+					array( $this, 'render_settings_page' ),
+					'dashicons-clipboard',
+					56
+			);
 
-                // Remove automatically added first submenu to avoid duplicate
-                remove_submenu_page( 'inventory-manager-settings', 'inventory-manager-settings' );
+			add_submenu_page(
+					'inventory-manager-settings',
+					__( 'Settings', 'inventory-manager-pro' ),
+					__( 'Settings', 'inventory-manager-pro' ),
+					'manage_inventory',
+					'inventory-manager-settings',
+					array( $this, 'render_settings_page' )
+			);
 
         }
 

@@ -28,7 +28,7 @@ class Inventory_Admin_Dashboard {
     }
 
     public function enqueue_scripts( $hook ) {
-        if ( $hook !== 'inventory-manager-settings_page_inventory-manager-dashboard' ) {
+        if ( $hook !== 'inventory-manager-pro_page_inventory-manager-dashboard' ) {
             return;
         }
 
