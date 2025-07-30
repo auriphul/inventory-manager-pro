@@ -29,7 +29,7 @@ $transit_times  = $inventory_db->get_transit_times();
 					<div class="form-field required">
 						<label for="sku"><?php _e( 'SKU', 'inventory-manager-pro' ); ?></label>
 						<input type="text" id="sku" name="sku" required>
-						<p class="description"><?php _e( 'Enter the product SKU to add a batch', 'inventory-manager-pro' ); ?></p>
+						<p class="description"><?php _e( 'Enter SKU, and Product Name will automatically appear', 'inventory-manager-pro' ); ?></p>
 					</div>
 					
 					<div class="form-field">

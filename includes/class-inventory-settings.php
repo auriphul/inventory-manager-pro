@@ -162,35 +162,35 @@ class Inventory_Settings {
 		echo '<h2>' . __( 'Backend Settings', 'inventory-manager-pro' ) . '</h2>';
 
 		// Fields to show on order page
-		echo '<h3>' . __( 'Fields to Show on Backend: Order Page', 'inventory-manager-pro' ) . '</h3>';
-		echo '<table class="form-table">';
+		// echo '<h3>' . __( 'Fields to Show on Backend: Order Page', 'inventory-manager-pro' ) . '</h3>';
+		// echo '<table class="form-table">';
 
-		$field_options = array(
-			'supplier'  => __( 'Supplier', 'inventory-manager-pro' ),
-			'batch'     => __( 'Batch', 'inventory-manager-pro' ),
-			'expiry'    => __( 'Expiry', 'inventory-manager-pro' ),
-			'origin'    => __( 'Origin', 'inventory-manager-pro' ),
-			'location'  => __( 'Location', 'inventory-manager-pro' ),
-			'stock_qty' => __( 'Stock Qty', 'inventory-manager-pro' ),
-		);
+		// $field_options = array(
+		// 	'supplier'  => __( 'Supplier', 'inventory-manager-pro' ),
+		// 	'batch'     => __( 'Batch', 'inventory-manager-pro' ),
+		// 	'expiry'    => __( 'Expiry', 'inventory-manager-pro' ),
+		// 	'origin'    => __( 'Origin', 'inventory-manager-pro' ),
+		// 	'location'  => __( 'Location', 'inventory-manager-pro' ),
+		// 	'stock_qty' => __( 'Stock Qty', 'inventory-manager-pro' ),
+		// );
 
-		foreach ( $field_options as $field_key => $field_label ) {
-			$checked = isset( $backend_fields[ $field_key ]['show'] ) && $backend_fields[ $field_key ]['show'] === 'yes' ? 'checked' : '';
-			$color   = isset( $backend_fields[ $field_key ]['color'] ) ? $backend_fields[ $field_key ]['color'] : '#333333';
+		// foreach ( $field_options as $field_key => $field_label ) {
+		// 	$checked = isset( $backend_fields[ $field_key ]['show'] ) && $backend_fields[ $field_key ]['show'] === 'yes' ? 'checked' : '';
+		// 	$color   = isset( $backend_fields[ $field_key ]['color'] ) ? $backend_fields[ $field_key ]['color'] : '#333333';
 
-			echo '<tr>';
-			echo '<th scope="row">' . esc_html( $field_label ) . '</th>';
-			echo '<td>';
-			echo '<label>';
-			echo '<input type="checkbox" name="inventory_manager_backend_fields[' . esc_attr( $field_key ) . '][show]" value="yes" ' . $checked . '>';
-			echo '</label>';
-			echo '<input type="text" name="inventory_manager_backend_fields[' . esc_attr( $field_key ) . '][label]" value="' . esc_attr( isset( $backend_fields[ $field_key ]['label'] ) ? $backend_fields[ $field_key ]['label'] : $field_label ) . '" class="regular-text">';
-			echo '<input type="color" name="inventory_manager_backend_fields[' . esc_attr( $field_key ) . '][color]" value="' . esc_attr( $color ) . '">';
-			echo '</td>';
-			echo '</tr>';
-		}
+		// 	echo '<tr>';
+		// 	echo '<th scope="row">' . esc_html( $field_label ) . '</th>';
+		// 	echo '<td>';
+		// 	echo '<label>';
+		// 	echo '<input type="checkbox" name="inventory_manager_backend_fields[' . esc_attr( $field_key ) . '][show]" value="yes" ' . $checked . '>';
+		// 	echo '</label>';
+		// 	echo '<input type="text" name="inventory_manager_backend_fields[' . esc_attr( $field_key ) . '][label]" value="' . esc_attr( isset( $backend_fields[ $field_key ]['label'] ) ? $backend_fields[ $field_key ]['label'] : $field_label ) . '" class="regular-text">';
+		// 	echo '<input type="color" name="inventory_manager_backend_fields[' . esc_attr( $field_key ) . '][color]" value="' . esc_attr( $color ) . '">';
+		// 	echo '</td>';
+		// 	echo '</tr>';
+		// }
 
-		echo '</table>';
+		// echo '</table>';
 
 		// Stock deduction method
 		echo '<h3>' . __( 'Stock Deduction for Orders Placed on Backend', 'inventory-manager-pro' ) . '</h3>';
@@ -567,6 +567,7 @@ class Inventory_Settings {
 			'origin'    => __( 'Origin', 'inventory-manager-pro' ),
 			'location'  => __( 'Location', 'inventory-manager-pro' ),
 			'stock_qty' => __( 'Stock Qty', 'inventory-manager-pro' ),
+			'background_color' => __( 'Background Color', 'inventory-manager-pro' ),
 		);
 
 		foreach ( $field_options as $field_key => $field_label ) {

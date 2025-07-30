@@ -17,7 +17,7 @@ $batch_list = isset( $batches_info ) ? $batches_info : array( $batch_info );
 ?>
 <div class="batch-container">
 <?php foreach ( $batch_list as $batch_info ) : ?>
-    <table class="inventory-batch-info product-archive batch-column">
+    <table class="inventory-batch-info product-archive batch-column" style="<?php if($displayed_fields['background_color']['display_archive'] == 'yes'){?>background-color:<?php echo $displayed_fields['background_color']['color'].';';}?>;">
     <?php foreach ( $displayed_fields as $field_key => $field ) : ?>
         <?php if ( isset( $batch_info[ $field_key ] ) && ! empty( $batch_info[ $field_key ] ) ) : ?>
             <?php $style = ! empty( $field['color'] ) ? ' style="color:' . esc_attr( $field['color'] ) . ';"' : ''; ?>
