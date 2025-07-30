@@ -18,7 +18,7 @@ class Inventory_Admin_Dashboard {
 
     public function register_menu() {
         add_submenu_page(
-            'inventory-manager',
+            'inventory-manager-settings',
             __( 'Dashboard', 'inventory-manager-pro' ),
             __( 'Dashboard', 'inventory-manager-pro' ),
             'manage_inventory',
@@ -28,7 +28,7 @@ class Inventory_Admin_Dashboard {
     }
 
     public function enqueue_scripts( $hook ) {
-        if ( $hook !== 'inventory-manager_page_inventory-manager-dashboard' ) {
+        if ( $hook !== 'inventory-manager-settings_page_inventory-manager-dashboard' ) {
             return;
         }
 
