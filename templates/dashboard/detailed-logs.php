@@ -18,23 +18,23 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         font-size: 3rem;
         margin-right: 2rem;
     }
-    .batch-header.expiry-expired,.expiry-expired {
+    .batch-header.expiry-expired,.expiry-expired,.expiry-expired span,.expiry-expired span.value,.expiry-expired span.label {
         background-color:<?php echo $expiry_ranges['expired']['color']; ?> !important;
         color:<?php echo $expiry_ranges['expired']['text_color']; ?> !important;
     }
-    .batch-header.expiry-less1,.expiry-less1 {
+    .batch-header.expiry-less1,.expiry-less1,.expiry-less1 span,.expiry-less1 span.value,.expiry-less1 span.label {
         background-color:<?php echo $expiry_ranges['less_1']['color']; ?> !important;
         color:<?php echo $expiry_ranges['less_1']['text_color']; ?> !important;
     }
-    .batch-header.expiry-1-3,.expiry-1-3 {
+    .batch-header.expiry-1-3,.expiry-1-3,.expiry-expiry-1-3 span,.expiry-expiry-1-3 span.value,.expiry-expiry-1-3 span.label {
         background-color:<?php echo $expiry_ranges['1_3']['color']; ?> !important;
         color:<?php echo $expiry_ranges['1_3']['text_color']; ?> !important;
     }
-    .batch-header.expiry-3-6,.expiry-3-6 {
+    .batch-header.expiry-3-6,.expiry-3-6,.expiry-expiry-3-6 span,.expiry-expiry-3-6 span.value,.expiry-expiry-3-6 span.label {
         background-color:<?php echo $expiry_ranges['3_6']['color']; ?> !important;
         color:<?php echo $expiry_ranges['3_6']['text_color']; ?> !important;
     }
-    .batch-header.expiry-6plus,.expiry-6plus {
+    .batch-header.expiry-6plus,.expiry-6plus,.expiry-expiry-6plus span,.expiry-expiry-6plus span.value,.expiry-expiry-6plus span.label {
         background-color:<?php echo $expiry_ranges['6_plus']['color']; ?> !important;
         color:<?php echo $expiry_ranges['6_plus']['text_color']; ?> !important;
     }
