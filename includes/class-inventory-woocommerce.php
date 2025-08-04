@@ -511,6 +511,12 @@ class Inventory_Manager_WooCommerce {
         * Add customer notices during checkout about stock allocation.
         */
        public function add_checkout_stock_notices() {
+                static $has_run = false;
+
+                if ( $has_run ) {
+                return; // Prevent duplicate execution
+                }
+                $has_run = true;
                if ( ! WC()->cart ) {
                        return;
                }

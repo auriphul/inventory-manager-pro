@@ -136,7 +136,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
             </select>
         </div>
 
-        <div class="logs-order">
+        <div class="logs-order d-none">
             <label for="order-filter"><?php _e( 'Order:', 'inventory-manager-pro' ); ?></label>
             <select id="order-filter" class="order-filter">
                 <option value="ASC"><?php _e( 'Oldest First', 'inventory-manager-pro' ); ?></option>
