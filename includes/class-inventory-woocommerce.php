@@ -530,8 +530,6 @@ class Inventory_Manager_WooCommerce {
                        return;
                }
 
-               $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
-
                foreach ( WC()->cart->get_cart() as $cart_item ) {
                         $product_id = $cart_item['product_id'];
 //                         $product = wc_get_product( $product_id );
@@ -542,17 +540,20 @@ class Inventory_Manager_WooCommerce {
                        $info = $this->get_stock_breakdown( $product_id, $qty );
 
                        if ( $info['backorder_qty'] > 0 ) {
-                               $message = str_replace(
-                                       array( '{immediate_qty}', '{product_name}', '{backorder_qty}' ),
-                                       array( $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] ),
-                                       $template
-                               );
+                        //        $message = str_replace(
+                        //                array( '{immediate_qty}', '{product_name}', '{backorder_qty}' ),
+                        //                array( $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] ),
+                        //                $template
+                        //        );
 
-                               if ( $message === $template ) {
-                                       $message = sprintf( $template, $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] );
-                               }
+                        //        if ( $message === $template ) {
+                        //                $message = sprintf( $template, $info['immediate_qty'], $product->get_name(), $info['backorder_qty'] );
+                        //        }
+                               $transit_time    =       $this->inventory_manager_pro_get_item_brands($product_id);
+                               $template        =       $this->inventory_manager_pro_woo_backorder_template($transit_time,$settings,$product->get_name());
+                        //        echo '<pre>';print_r($template);echo '</pre>';
 
-                               $message = apply_filters( 'inventory_manager_stock_notice_message', $message, $product_id, $info, $cart_item );
+                               $message = apply_filters( 'inventory_manager_stock_notice_message', $template, $product_id, $info, $cart_item );
 
                                self::$checkout_stock_messages[] = $message;
 
@@ -561,6 +562,79 @@ class Inventory_Manager_WooCommerce {
                                wc_add_notice( $message, 'notice' );
                        }
                }
+       }
+       private function inventory_manager_pro_get_item_brands($product_id){
+
+                $brands = wp_get_post_terms( $product_id, 'product_brand' );
+                $brand_transits = get_option( 'inventory_manager_brand_transit', array() );
+                $transit_map    = array(); // [label => total_days]
+                $transit_labels = array();
+
+                
+                if ( ! is_wp_error( $brands ) && ! empty( $brands ) ) {
+                        foreach ( $brands as $brand ) {
+                                $brand_id = $brand->term_id;
+                                if ( isset( $brand_transits[ $brand_id ] ) ) {
+                                        $label = $brand_transits[ $brand_id ];
+                                        if($brand_transits[ $brand_id ] == ''){
+                                                continue;
+                                        }
+                                        $transit_map[ $label ] = $this->inventory_manager_pro_woo_convert_transit_to_days( $label );
+                                }
+                        }
+                }
+
+                if ( ! empty( $transit_map ) ) {
+                        // Sort by numeric duration
+                        asort( $transit_map );
+
+                        $sorted_labels = array_keys( $transit_map );
+
+                        if ( count( $sorted_labels ) === 1 ) {
+                                $transit_labels	=	$this->inventory_manager_pro_woo_format_transit_label( $sorted_labels[0] );
+                        } else {
+                                $transit_labels	=	$this->inventory_manager_pro_woo_format_transit_label( $sorted_labels[0] ) . ' to ' . $this->inventory_manager_pro_woo_format_transit_label( end( $sorted_labels ) );
+                        }
+                } else {
+                        $transit_labels	=	'0 Days';
+                }
+                // echo '</pre>';print_r($transit_labels);echo '</pre>';
+                $transit_time 	=	$transit_labels;
+                return $transit_time;
+       }
+       private function inventory_manager_pro_woo_format_transit_label( $label ) {
+               return ucwords( str_replace( '_', ' ', $label ) );
+       }
+       private function inventory_manager_pro_woo_convert_transit_to_days( $label ) {
+               if ( preg_match( '/(\d+)_day(s)?/', $label, $m ) ) {
+                       return (int) $m[1];
+               }
+               if ( preg_match( '/(\d+)_week(s)?/', $label, $m ) ) {
+                       return (int) $m[1] * 7;
+               }
+               if ( preg_match( '/(\d+)_month(s)?/', $label, $m ) ) {
+                       return (int) $m[1] * 30; // Approximate a month as 30 days
+               }
+               return 9999; // fallback high number
+       }
+       private function inventory_manager_pro_woo_backorder_template($transit_time,$settings,$product_name){
+                $backorder_title_color 	=	isset( $settings['backorder_color'] ) ? $settings['backorder_color'] : '';
+                $backorder_popup_color 	=	isset( $settings['backorder_popup_color'] ) ? $settings['backorder_popup_color'] : '';
+
+                if ( isset( $settings['show_backorder_popup'] ) && $settings['show_backorder_popup'] === 'yes' ) {
+                $template = isset( $settings['backorder_popup'] ) ? $settings['backorder_popup'] : __( '%1$d items of %2$s will be delivered immediately. %3$d items will be in backorder and delivered when stock arrives.', 'inventory-manager-pro' );
+               }else{
+                       $template	=	'';
+               }
+               $backorder_title =       $product_name.': ';
+               if ( ! empty( $transit_time ) && strpos( $template, '{transit_time}' ) !== false ) {
+
+                       $template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'">'.str_replace( '{transit_time}', esc_html( $transit_time ), $template ).'</span>';
+               } else {
+                                       $template = '<span style="color:'.$backorder_title_color.'">'.$backorder_title.'</span> <span style="color:'.$backorder_popup_color.'"> '.preg_replace( '/\{transit_time\}/i', '', $template ).'</span>';
+                       }
+                       return $template;
+
        }
 
        /**

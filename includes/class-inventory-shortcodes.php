@@ -474,7 +474,7 @@ class Inventory_Shortcodes {
 						if($brand_transits[ $brand_id ] == ''){
 							continue;
 						}
-						$transit_map[ $label ] = $this->convert_transit_to_days( $label );
+						$transit_map[ $label ] = $this->inventory_manager_pro_convert_transit_to_days( $label );
 					}
 				}
 			}
@@ -486,9 +486,9 @@ class Inventory_Shortcodes {
 				$sorted_labels = array_keys( $transit_map );
 
 				if ( count( $sorted_labels ) === 1 ) {
-					$transit_labels	=	$this->format_transit_label( $sorted_labels[0] );
+					$transit_labels	=	$this->inventory_manager_pro_format_transit_label( $sorted_labels[0] );
 				} else {
-					$transit_labels	=	$this->format_transit_label( $sorted_labels[0] ) . ' to ' . $this->format_transit_label( end( $sorted_labels ) );
+					$transit_labels	=	$this->inventory_manager_pro_format_transit_label( $sorted_labels[0] ) . ' to ' . $this->inventory_manager_pro_format_transit_label( end( $sorted_labels ) );
 				}
 			} else {
 				$transit_labels	=	'0 Days';
@@ -499,10 +499,10 @@ class Inventory_Shortcodes {
 			$this->render_stock_badge_for_single_product_page( $product->get_id(), $qty, $transit_time );
 			$this->render_stock_single_page();
 	}
-	function format_transit_label( $label ) {
+	private function inventory_manager_pro_format_transit_label( $label ) {
 		return ucwords( str_replace( '_', ' ', $label ) );
 	}
-	function convert_transit_to_days( $label ) {
+	private function inventory_manager_pro_convert_transit_to_days( $label ) {
 		if ( preg_match( '/(\d+)_day(s)?/', $label, $m ) ) {
 			return (int) $m[1];
 		}
@@ -527,7 +527,7 @@ class Inventory_Shortcodes {
 			 if ( ! $product ) {
 					 return;
 			 }
-			 $inv_reduction_per_item	=	$this->inv_reduction_per_item_shortcode($product);
+			//  $inv_reduction_per_item	=	$this->inv_reduction_per_item_shortcode($product);
 			 $settings  = get_option( 'inventory_manager_frontend_notes', array() );
 			//  echo '<pre>';print_r($settings);exit;
 			 $backorder_title_color 	=	isset( $settings['backorder_color'] ) ? $settings['backorder_color'] : '';
