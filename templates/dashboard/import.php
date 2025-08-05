@@ -62,59 +62,59 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </thead>
                         <tbody>
                             <tr>
-                                <td><code>sku</code></td>
+                                <td><code>SKU</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Product SKU', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>batch</code></td>
+                                <td><code>BATCH</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Batch number', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>stock_qty</code></td>
+                                <td><code>STOCK QTY</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Stock quantity', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>reference</code></td>
+                                <td><code>REFERENCE</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Reference number (PO, invoice, etc.)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>brand_id</code></td>
+                                <td><code>BRAND</code></td>
                                 <td><span class="required">Yes</span></td>
                                 <td><?php _e( 'Brand ID (must match an existing WooCommerce brand). Rows with unknown brand IDs will be skipped.', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>expiry_date</code></td>
+                                <td><code>EXPIRY</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Expiry date (DD/MM/YYYY)', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>origin</code></td>
+                                <td><code>ORIGIN</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Country or region of origin', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>location</code></td>
+                                <td><code>LOCATION</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Storage location', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>unit_cost</code></td>
+                                <td><code>UNIT COST</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Unit cost', 'inventory-manager-pro' ); ?></td>
                             </tr>
                             <tr>
-                                <td><code>freight_markup</code></td>
+                                <td><code>FREIGHT MARKUP</code></td>
                                 <td><span class="optional">No</span></td>
                                 <td><?php _e( 'Freight markup per unit', 'inventory-manager-pro' ); ?></td>
                             </tr>
                         </tbody>
                     </table>
                     
-                    <div class="sample-download">
+                    <div class="sample-download d-none">
                         <p><?php _e( 'Download a sample import file:', 'inventory-manager-pro' ); ?></p>
                         <button type="button" id="download-sample" class="button"><?php _e( 'Download Sample CSV', 'inventory-manager-pro' ); ?></button>
                     </div>

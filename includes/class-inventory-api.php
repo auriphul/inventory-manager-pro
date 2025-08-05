@@ -1138,17 +1138,17 @@ class Inventory_API {
 
 		// Map headers to columns
 		$column_map = array(
-			'sku'            	=> false,
-			'product_name'   	=> false,
-			'batch'          	=> false,
-			'stock_qty'      	=> false,
-			'brand_id'           => false,
-			'reference'      	=> false,
-			'expiry_date'    	=> false,
-			'origin'         	=> false,
-			'location'       	=> false,
-			'unit_cost'      	=> false,
-			'freight_margin' 	=> false,
+			'SKU'            	=> false,
+			'PRODUCT NAME'   	=> false,
+			'BATCH'          	=> false,
+			'STOCK QTY'      	=> false,
+			'BRAND'           => false,
+			'REFERENCE'      	=> false,
+			'EXPIRY'    	=> false,
+			'ORIGIN'         	=> false,
+			'LOCATION'       	=> false,
+			'UNIT COST'      	=> false,
+			'FREIGHT MARKUP' 	=> false,
 			// 'supplier' 		=> false,
 		);
 
@@ -1159,7 +1159,7 @@ class Inventory_API {
 		}
 
 		// Check required columns
-		$required_columns = array( 'sku', 'batch', 'stock_qty' );
+		$required_columns = array( 'SKU', 'BATCH', 'STOCK QTY' );
 
 		foreach ( $required_columns as $column ) {
 			if ( $column_map[ $column ] === false ) {
@@ -1180,11 +1180,35 @@ class Inventory_API {
 
 					// Special handling for some fields
 					switch ( $field_key ) {
-						case 'batch':
+						case 'BATCH':
 							$batch_data['batch_number'] = $row[ $column_index ];
 							break;
-						case 'freight_margin':
+						case 'FREIGHT MARKUP':
 							$batch_data['freight_markup'] = $row[ $column_index ];
+							break;
+						case 'SKU':
+							$batch_data['sku'] = $row[ $column_index ];
+							break;
+						case 'STOCK QTY':
+							$batch_data['stock_qty'] = $row[ $column_index ];
+							break;
+						case 'BRAND':
+							$batch_data['brand_id'] = $row[ $column_index ];
+							break;
+						case 'REFERENCE':
+							$batch_data['reference'] = $row[ $column_index ];
+							break;
+						case 'EXPIRY':
+							$batch_data['expiry_date'] = $row[ $column_index ];
+							break;
+						case 'ORIGIN':
+							$batch_data['origin'] = $row[ $column_index ];
+							break;
+						case 'LOCATION':
+							$batch_data['location'] = $row[ $column_index ];
+							break;
+						case 'UNIT COST':
+							$batch_data['unit_cost'] = $row[ $column_index ];
 							break;
 						default:
 							$batch_data[ $field_key ] = $row[ $column_index ];
