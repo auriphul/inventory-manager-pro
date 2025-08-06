@@ -456,16 +456,25 @@ class Inventory_Database {
         $expiry_date    =   sanitize_text_field($data['expiry_date']);
         $expiry_date_formatted    =   $this->normalize_date($expiry_date);
 
-        if ( empty( $data['brand_id'] ) ) {
-            return new WP_Error('db_error', __('Brand ID not available.', 'inventory-manager-pro'));
-        }
 
-        if ( ! term_exists( intval( $data['brand_id'] ), 'product_brand' ) ) {
-            return new WP_Error( 'invalid_brand', __( 'Brand ID does not exist.', 'inventory-manager-pro' ) );
-        }
+        // if ( ! term_exists( intval( $data['brand_id'] ), 'product_brand' ) ) {
+        //     return new WP_Error( 'invalid_brand', __( 'Brand ID does not exist.', 'inventory-manager-pro' ) );
+        // }
 
         // Get product_id from SKU
         $product_id = wc_get_product_id_by_sku($sku);
+        if ( empty( $data['brand_id'] ) ) {
+            $brand_ids = wp_get_post_terms( $product_id, 'product_brand', array( 'fields' => 'ids' ) );
+            if ( ! is_wp_error( $brand_ids ) && ! empty( $brand_ids ) ) {
+                    $data['brand_ids'] = array_map( 'intval', $brand_ids );
+            }
+            if(isset($data['brand_ids'][0])){
+                $data['brand_id'] = $data['brand_ids'][0];
+            }else{
+                $data['brand_id'] = 0;
+            }
+            // return new WP_Error('db_error', __('Brand ID not available.', 'inventory-manager-pro'));
+        }
 
         if (!$product_id) {
             return new WP_Error('invalid_sku', __('Invalid SKU. Product not found.', 'inventory-manager-pro'));

@@ -88,7 +88,7 @@ $transit_times  = $inventory_db->get_transit_times();
                                 <div class="form-row">
                                         <div class="form-field required">
                                                 <label for="brand_id"><?php _e( 'Brand', 'inventory-manager-pro' ); ?></label>
-                                                <select id="brand_id" name="brand_id">
+                                                <select id="brand_id" name="brand_id"  onfocus="this.defaultIndex=this.selectedIndex;" onchange="this.selectedIndex=this.defaultIndex;">
                                                         <option value=""><?php _e( 'Select brand', 'inventory-manager-pro' ); ?></option>
                                                         <!-- Brands will be populated via JavaScript -->
                                                 </select>
@@ -124,3 +124,10 @@ $transit_times  = $inventory_db->get_transit_times();
 		</form>
 	</div>
 </div>
+<script>
+  const select = document.getElementById("brand_id");
+  select.addEventListener("mousedown", function(e) {
+    e.preventDefault(); // Prevent opening dropdown
+    this.blur(); // Remove focus
+  });
+</script>
