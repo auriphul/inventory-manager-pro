@@ -348,15 +348,21 @@ class Inventory_API {
 			return new WP_Error( 'product_not_found', 'Product not found for the given SKU.', array( 'status' => 404 ) );
 		}
 	
-		$product = wc_get_product( $product_id );
-		if ( ! $product ) {
-			return new WP_Error( 'invalid_product', 'Unable to load product object.', array( 'status' => 500 ) );
-		}
-	
-		// Initialize response
-		$response = array(
-			'product_name' => $product->get_name(),
-		);
+                $product = wc_get_product( $product_id );
+                if ( ! $product ) {
+                        return new WP_Error( 'invalid_product', 'Unable to load product object.', array( 'status' => 500 ) );
+                }
+
+                // Initialize response
+                $response = array(
+                        'product_name' => $product->get_name(),
+                );
+
+                // Get assigned brands for the product
+                $brand_ids = wp_get_post_terms( $product_id, 'product_brand', array( 'fields' => 'ids' ) );
+                if ( ! is_wp_error( $brand_ids ) && ! empty( $brand_ids ) ) {
+                        $response['brand_ids'] = array_map( 'intval', $brand_ids );
+                }
 	
 		// Fetch batches (if any) for this product and SKU
 		$table_batches = $wpdb->prefix . 'inventory_batches';

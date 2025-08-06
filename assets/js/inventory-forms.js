@@ -99,7 +99,15 @@
                 if (response.product_name) {
                     $('#product_name').val(response.product_name);
                 }
-                
+
+                // Auto-select brand if available
+                if (response.brand_ids && response.brand_ids.length) {
+                    const brandSelect = $('#brand_id');
+                    const brandId = response.brand_ids[0];
+                    brandSelect.val(brandId);
+                    brandSelect.data('selected', brandId);
+                }
+
                 // Check if there are existing batches
                 if (response.batches && response.batches.length) {
                     // Show existing batches info
@@ -148,6 +156,11 @@
                         $.each(response, function(index, brand) {
                             brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
                         });
+
+                        const selected = brandSelect.data('selected');
+                        if (selected) {
+                            brandSelect.val(selected);
+                        }
                     }
                 }
             });
