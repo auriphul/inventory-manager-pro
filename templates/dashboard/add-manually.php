@@ -57,7 +57,8 @@ $transit_times  = $inventory_db->get_transit_times();
 					</div>
 					<div class="form-field">
 						<label for="expiry_date"><?php _e( 'Expiry Date', 'inventory-manager-pro' ); ?></label>
-						<input type="date" id="expiry_date" name="expiry_date" class="date-picker">
+						<input type="text" id=""  class="expiry_date">
+						<input type="hidden" id="expiry_date" name="expiry_date">
 					</div>
 				</div>
 				

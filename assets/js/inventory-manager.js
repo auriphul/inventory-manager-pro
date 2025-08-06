@@ -141,9 +141,9 @@
          */
         initDetailedLogsTab: function() {
             // Check if we're on the detailed logs tab
-            if (!$('.inventory-manager-logs').length) {
-                return;
-            }
+            // if (!$('.inventory-manager-logs').length) {
+            //     return;
+            // }
 
             // Initialize date range picker if available
             if ($.fn.daterangepicker) {
@@ -182,15 +182,28 @@
          */
         initAddManuallyTab: function() {
             // Check if we're on the add manually tab
-            if (!$('#add-manually-tab').length) {
-                return;
-            }
+            console.log('initAddManuallyTab')
 
             // Product search autocomplete
             this.initProductSearch();
 
             // Dynamic validation
             this.initFormValidation();
+            if ($.fn.daterangepicker) {
+                $('.expiry_date').daterangepicker({
+                    singleDatePicker: true,
+                    showDropdowns: true,
+                    // startDate: moment(),
+                    locale: {
+                      format: 'DD/MM/YYYY'
+                    },
+                    minYear: 2024,
+                    // maxYear: parseInt(moment().format('YYYY'),10)
+                }, function(chosen_date) {
+                    // Create a hidden field for submission in Y-m-d format
+                    $('#expiry_date').val(chosen_date.format('YYYY-MM-DD'));
+                });
+            }
         },
 
         /**
