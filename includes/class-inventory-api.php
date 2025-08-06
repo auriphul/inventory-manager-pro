@@ -489,6 +489,8 @@ class Inventory_API {
                         'search'        => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
                         'order'         => isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'ASC',
                         'expiry_filters'=> isset( $params['expiry_filters'] ) ? (array) $params['expiry_filters'] : array(),
+                        'start_date'    => isset( $params['start_date'] ) ? sanitize_text_field( $params['start_date'] ) : '',
+                        'end_date'      => isset( $params['end_date'] ) ? sanitize_text_field( $params['end_date'] ) : '',
                 );
 
 		$products = $this->db->get_detailed_logs( $args );
@@ -586,6 +588,8 @@ class Inventory_API {
                                 'batch_period'  => isset( $params['batch_period'] ) ? sanitize_text_field( $params['batch_period'] ) : '',
                                 'search'        => isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '',
                                 'expiry_filters'=> isset( $params['expiry_filters'] ) ? (array) $params['expiry_filters'] : array(),
+                                'start_date'    => isset( $params['start_date'] ) ? sanitize_text_field( $params['start_date'] ) : '',
+                                'end_date'      => isset( $params['end_date'] ) ? sanitize_text_field( $params['end_date'] ) : '',
                         );
 
 			// Get detailed logs

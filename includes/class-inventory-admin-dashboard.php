@@ -40,6 +40,13 @@ class Inventory_Admin_Dashboard {
         );
         wp_enqueue_style( 'dashicons' );
 
+        wp_enqueue_style(
+            'daterangepicker',
+            'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css',
+            array(),
+            INVENTORY_MANAGER_VERSION
+        );
+
         wp_enqueue_script(
             'inventory-tables',
             INVENTORY_MANAGER_URL . 'assets/js/inventory-tables.js',
@@ -49,9 +56,25 @@ class Inventory_Admin_Dashboard {
         );
 
         wp_enqueue_script(
+            'moment',
+            'https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js',
+            array( 'jquery' ),
+            INVENTORY_MANAGER_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'daterangepicker',
+            'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js',
+            array( 'jquery', 'moment' ),
+            INVENTORY_MANAGER_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
             'inventory-logs',
             INVENTORY_MANAGER_URL . 'assets/js/inventory-logs.js',
-            array( 'jquery' ),
+            array( 'jquery', 'daterangepicker' ),
             INVENTORY_MANAGER_VERSION,
             true
         );

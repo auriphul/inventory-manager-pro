@@ -8,13 +8,15 @@
 
     // Current state
     let state = {
-        period: 'last_30_days',
+        period: 'this_month',
         batch_period: 'all',
         search: '',
         order: 'ASC',
         expiry_filters: [],
         products: [],
-        batch_sort: 'created'
+        batch_sort: 'created',
+        start_date: null,
+        end_date: null
     };
 
     /**
@@ -39,8 +41,40 @@
         // Period filter
         $('.period-filter').on('change', function() {
             state.period = $(this).val();
-            loadLogs();
+
+            if (state.period === 'custom') {
+                $('.custom-date-range').show();
+            } else {
+                $('.custom-date-range').hide();
+                state.start_date = null;
+                state.end_date = null;
+                loadLogs();
+            }
         });
+
+        // Initialize date range picker
+        if ($('.logs-date-range').length) {
+            $('.logs-date-range').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: 'YYYY-MM-DD'
+                }
+            });
+
+            $('.logs-date-range').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+                state.start_date = picker.startDate.format('YYYY-MM-DD');
+                state.end_date = picker.endDate.format('YYYY-MM-DD');
+                loadLogs();
+            });
+
+            $('.logs-date-range').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                state.start_date = null;
+                state.end_date = null;
+            });
+        }
 
         // Expiry filters
         $('.filter-expiry').on('change', function() {
@@ -191,6 +225,11 @@
             order: state.order,
             expiry_filters: state.expiry_filters
         };
+
+        if (state.period === 'custom' && state.start_date && state.end_date) {
+            data.start_date = state.start_date;
+            data.end_date = state.end_date;
+        }
         
         // Make API request
         $.ajax({
@@ -630,6 +669,11 @@
             search: state.search,
             expiry_filters: state.expiry_filters
         };
+
+        if (state.period === 'custom' && state.start_date && state.end_date) {
+            params.start_date = state.start_date;
+            params.end_date = state.end_date;
+        }
         
         // Create form and submit it
         const form = $('<form></form>')
