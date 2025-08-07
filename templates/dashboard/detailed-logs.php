@@ -85,13 +85,13 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
             <select id="period-filter" class="period-filter">
                 <option value="all"><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
                 <option value="today"><?php _e( 'Today', 'inventory-manager-pro' ); ?></option>
-                <option value="yesterday"><?php _e( 'Yesterday', 'inventory-manager-pro' ); ?></option>
+                <!-- <option value="yesterday"><?php _e( 'Yesterday', 'inventory-manager-pro' ); ?></option> -->
                 <option value="this_week"><?php _e( 'This Week', 'inventory-manager-pro' ); ?></option>
-                <option value="last_week"><?php _e( 'Last Week', 'inventory-manager-pro' ); ?></option>
+                <!-- <option value="last_week"><?php _e( 'Last Week', 'inventory-manager-pro' ); ?></option> -->
                 <option value="this_month" selected><?php _e( 'This Month', 'inventory-manager-pro' ); ?></option>
-                <option value="last_month"><?php _e( 'Last Month', 'inventory-manager-pro' ); ?></option>
-                <option value="last_3_months"><?php _e( 'Last 3 Months', 'inventory-manager-pro' ); ?></option>
-                <option value="last_6_months"><?php _e( 'Last 6 Months', 'inventory-manager-pro' ); ?></option>
+                <!-- <option value="last_month"><?php _e( 'Last Month', 'inventory-manager-pro' ); ?></option> -->
+                <!-- <option value="last_3_months"><?php _e( 'Last 3 Months', 'inventory-manager-pro' ); ?></option>
+                <option value="last_6_months"><?php _e( 'Last 6 Months', 'inventory-manager-pro' ); ?></option> -->
                 <option value="this_year"><?php _e( 'This Year', 'inventory-manager-pro' ); ?></option>
                 <option value="custom"><?php _e( 'Custom Range', 'inventory-manager-pro' ); ?></option>
             </select>

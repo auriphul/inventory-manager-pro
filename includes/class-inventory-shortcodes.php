@@ -97,7 +97,7 @@ class Inventory_Shortcodes {
                 }
 
                 if ( ! $product_obj ) {
-                        return '';
+                        // return '';
                 }
 
                 $sku = $product_obj->get_sku();
@@ -134,7 +134,7 @@ class Inventory_Shortcodes {
                 );
 
                 if ( empty( $batches ) ) {
-                        return '';
+                        // return '';
                 }
 
                 $batches_info = array();
@@ -167,6 +167,7 @@ class Inventory_Shortcodes {
                         '',
                         $this->plugin->template_path()
                 );
+                $this->output_product_stock_badge();
 
                 return ob_get_clean();
         }
@@ -217,7 +218,7 @@ class Inventory_Shortcodes {
                 );
 
                 if ( empty( $batches ) ) {
-                        return '';
+                        // return '';
                 }
 
                 $batches_info = array();
@@ -261,7 +262,7 @@ class Inventory_Shortcodes {
                         $this->plugin->template_path()
                 );
 
-                // $this->display_stock_notes( $product, $batches_info[0] );
+                $this->output_product_stock_badge();
                 ob_start();
                 return ob_get_clean();
 	}
@@ -500,7 +501,7 @@ class Inventory_Shortcodes {
 			$this->render_stock_single_page();
 	}
 	private function inventory_manager_pro_format_transit_label( $label ) {
-		return ucwords( str_replace( '_', ' ', $label ) );
+		return ucwords( str_replace( ['_','-'], ' ', $label ) );
 	}
 	private function inventory_manager_pro_convert_transit_to_days( $label ) {
 		if ( preg_match( '/(\d+)_day(s)?/', $label, $m ) ) {

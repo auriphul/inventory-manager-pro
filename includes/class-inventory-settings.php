@@ -124,6 +124,7 @@ class Inventory_Settings {
                        $this->render_brands_settings();
                        submit_button();
                        echo '</form>';
+					   $this->inventory_manager_transit_times_page();
 
                        $this->render_brand_form( $brand_message );
                } else {
@@ -259,6 +260,8 @@ class Inventory_Settings {
         * @return array
         */
        private function get_transit_time_options() {
+		$times = get_option( 'inventory_manager_transit_times', array() );
+		if ( empty( $times ) ) {
                $times = array(
                        '3_days'  => __( '3 days', 'inventory-manager-pro' ),
                        '1_week'  => __( '1 week', 'inventory-manager-pro' ),
@@ -267,6 +270,7 @@ class Inventory_Settings {
                        '1_month' => __( '1 month', 'inventory-manager-pro' ),
                        '40_days' => __( '40 days', 'inventory-manager-pro' ),
                );
+			}
 
             //    $custom = get_option( 'inventory_manager_suppliers', array() );
             //    if ( ! empty( $custom['transit_times'] ) && is_array( $custom['transit_times'] ) ) {
@@ -275,6 +279,77 @@ class Inventory_Settings {
 
                return $times;
        }
+	   function inventory_manager_transit_times_page() {
+		if ( isset( $_POST['inventory_manager_save_transit_times'] ) && check_admin_referer( 'inventory_manager_save_transit_times_nonce' ) ) {
+			$new_times = array();
+	
+			if ( isset( $_POST['transit_keys'], $_POST['transit_labels'] ) && is_array( $_POST['transit_keys'] ) ) {
+				foreach ( $_POST['transit_keys'] as $index => $key ) {
+					$label = sanitize_text_field( $_POST['transit_labels'][ $index ] );
+	
+					if ( ! empty( $key ) && ! empty( $label ) ) {
+						$new_times[ sanitize_key( $key ) ] = $label;
+					}
+				}
+			}
+	
+			update_option( 'inventory_manager_transit_times', $new_times );
+			echo '<div class="updated"><p>Transit times saved successfully!</p></div>';
+		}
+	
+		$transit_times = get_option( 'inventory_manager_transit_times', array() );
+		?>
+		<div class="wrap">
+			<h1>Manage Transit Times</h1>
+			<form method="post">
+				<?php wp_nonce_field( 'inventory_manager_save_transit_times_nonce' ); ?>
+				<table class="widefat" id="transit-times-table">
+					<thead>
+						<tr>
+							<th style="width: 30%;">Key (e.g., `3_days`)</th>
+							<th style="width: 50%;">Label (e.g., `3 Days`)</th>
+							<th style="width: 20%;">Actions</th>
+						</tr>
+					</thead>
+					<tbody id="transit-times-body">
+						<?php foreach ( $transit_times as $key => $label ) : ?>
+							<tr>
+								<td><input type="text" name="transit_keys[]" value="<?php echo esc_attr( $key ); ?>" class="regular-text" /></td>
+								<td><input type="text" name="transit_labels[]" value="<?php echo esc_attr( $label ); ?>" class="regular-text" /></td>
+								<td><button type="button" class="button delete-row">Delete</button></td>
+							</tr>
+						<?php endforeach; ?>
+						<!-- Empty row for adding new -->
+						<tr>
+							<td><input type="text" name="transit_keys[]" value="" placeholder="new_key" class="regular-text" /></td>
+							<td><input type="text" name="transit_labels[]" value="" placeholder="New Transit Label" class="regular-text" /></td>
+							<td><button type="button" class="button delete-row">Delete</button></td>
+						</tr>
+					</tbody>
+				</table>
+				<p><button type="button" class="button" id="add-transit-row">Add New Transit Time</button></p>
+				<p><input type="submit" name="inventory_manager_save_transit_times" class="button-primary" value="Save Transit Times" /></p>
+			</form>
+		</div>
+	
+		<script>
+		(function($) {
+			$('#add-transit-row').on('click', function() {
+				var row = `<tr>
+					<td><input type="text" name="transit_keys[]" value="" placeholder="new_key" class="regular-text" /></td>
+					<td><input type="text" name="transit_labels[]" value="" placeholder="New Transit Label" class="regular-text" /></td>
+					<td><button type="button" class="button delete-row">Delete</button></td>
+				</tr>`;
+				$('#transit-times-body').append(row);
+			});
+	
+			$('#transit-times-table').on('click', '.delete-row', function() {
+				$(this).closest('tr').remove();
+			});
+		})(jQuery);
+		</script>
+		<?php
+	}
 
        /**
         * Handle supplier form submission.

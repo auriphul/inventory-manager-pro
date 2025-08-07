@@ -56,7 +56,7 @@ class Inventory_Admin_Dashboard {
         );
 
         wp_enqueue_script(
-            'moment',
+            'moment-jjs',
             'https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js',
             array( 'jquery' ),
             INVENTORY_MANAGER_VERSION,
@@ -66,7 +66,7 @@ class Inventory_Admin_Dashboard {
         wp_enqueue_script(
             'daterangepicker',
             'https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js',
-            array( 'jquery', 'moment' ),
+            array( 'jquery', 'moment-jjs' ),
             INVENTORY_MANAGER_VERSION,
             true
         );
