@@ -25,7 +25,7 @@
         visible_columns: [
             'sku', 'product_name', 'batch', 'stock_qty',
             'brand', 'expiry', 'origin', 'location',
-            'stock_cost', 'landed_cost'
+            'stock_cost', 'landed_cost', 'actions'
         ]
     };
 
@@ -35,6 +35,9 @@
     function init() {
         // Set up event listeners
         setupEventListeners();
+        
+        // Set initial per page selector value
+        $('.per-page-select').val(state.pagination.per_page);
         
         // Load initial batches
         loadBatches();
@@ -120,7 +123,7 @@
         $('.show-all-btn').on('click', function() {
             // Check all expiry filters
             $('.filter-expiry').prop('checked', true);
-            state.filters.expiry = ['6+', '3-6', '1-3', '<1', 'expired'];
+            state.filters.expiry = ['6+', '3-6', '1-3', '<1', 'expired', 'no_expiry'];
             
             // Clear search
             $('.search-box input').val('');
@@ -135,6 +138,20 @@
         // Export button
         $('.export-btn').on('click', function() {
             exportData();
+        });
+
+        // Per page selector
+        $('.per-page-select').on('change', function() {
+            const perPage = $(this).val();
+            
+            if (perPage === 'all') {
+                state.pagination.per_page = 9999; // Large number to get all records
+            } else {
+                state.pagination.per_page = parseInt(perPage);
+            }
+            
+            state.pagination.current_page = 1; // Reset to first page
+            loadBatches();
         });
         
         // Attach pagination events (will be created dynamically)
@@ -151,13 +168,84 @@
             }
         });
 
+        // Edit batch
+        $(document).on('click', '.edit-batch', function() {
+            const batchId = $(this).data('id');
+            const row = $(this).closest('tr');
+            
+            // Extract data from the table row
+            const batchData = {
+                id: batchId,
+                sku: row.find('td:nth-child(1)').text().trim(),
+                product_name: row.find('td:nth-child(2)').text().trim(),
+                batch_number: row.find('td:nth-child(3)').text().trim(),
+                stock_qty: parseFloat(row.find('td:nth-child(4)').text().trim()) || 0,
+                supplier: row.find('td:nth-child(5)').text().trim(),
+                expiry: row.find('td:nth-child(6)').text().trim(),
+                origin: row.find('td:nth-child(7)').text().trim(),
+                location: row.find('td:nth-child(8)').text().trim()
+            };
+            
+            openEditModal(batchData);
+        });
+
+        // Modal close events
+        $(document).on('click', '.modal-close, .modal-cancel, .modal-overlay', function() {
+            closeEditModal();
+        });
+
+        // Prevent modal close when clicking inside modal content
+        $(document).on('click', '.modal-content', function(e) {
+            e.stopPropagation();
+        });
+
+        // Edit form submission
+        $(document).on('submit', '#edit-batch-form', function(e) {
+            e.preventDefault();
+            submitEditBatch();
+        });
+
+        // Date format validation and auto-formatting
+        $(document).on('input', '#edit-expiry-date', function() {
+            let value = $(this).val().replace(/\D/g, ''); // Remove non-digits
+            
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            if (value.length >= 5) {
+                value = value.substring(0, 5) + '/' + value.substring(5, 9);
+            }
+            
+            $(this).val(value);
+        });
+
+        // Validate date format on blur
+        $(document).on('blur', '#edit-expiry-date', function() {
+            const dateStr = $(this).val();
+            if (dateStr && !dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                $(this).addClass('error');
+                $(this).attr('title', 'Please enter date in DD/MM/YYYY format');
+            } else {
+                $(this).removeClass('error');
+                $(this).removeAttr('title');
+            }
+        });
+
         // Delete batch
         $(document).on('click', '.delete-batch', function() {
-            if (!confirm('Are you sure you want to delete this batch?')) {
+            const $button = $(this);
+            const row = $button.closest('tr');
+            const sku = row.find('td:first').text();
+            const batchNumber = row.find('td:nth-child(3)').text();
+            
+            if (!confirm(`Are you sure you want to permanently delete batch "${batchNumber}" for SKU "${sku}"? This will permanently remove the batch and all its data from the database. This action cannot be undone.`)) {
                 return;
             }
 
-            const batchId = $(this).data('id');
+            const batchId = $button.data('id');
+            
+            // Disable button and show loading state
+            $button.prop('disabled', true).html('<span class="dashicons dashicons-update"></span>');
 
             $.ajax({
                 url: inventory_manager.api_url + '/batch/' + batchId,
@@ -165,17 +253,38 @@
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
                 },
-                success: function() {
-                    inventoryManager.showNotification('Batch deleted', 'success');
+                success: function(response) {
+                    console.log('Delete response:', response);
+                    
+                    // Show success notification
+                    if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                        inventoryManager.showNotification('Batch deleted successfully', 'success');
+                    } else {
+                        alert('Batch deleted successfully');
+                    }
+                    
+                    // Refresh the table
                     loadBatches();
                 },
                 error: function(xhr) {
-                    console.log(xhr)
+                    console.error('Delete error:', xhr);
+                    
                     let message = 'Error deleting batch';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        message = 'Error: ' + xhr.responseText;
                     }
-                    inventoryManager.showNotification(message, 'error');
+                    
+                    // Show error notification
+                    if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                        inventoryManager.showNotification(message, 'error');
+                    } else {
+                        alert(message);
+                    }
+                    
+                    // Re-enable button
+                    $button.prop('disabled', false).html('<span class="dashicons dashicons-trash"></span>');
                 }
             });
         });
@@ -188,7 +297,7 @@
         const tableBody = $('.inventory-table tbody');
         
         // Show loading
-        tableBody.html('<tr><td colspan="11" class="loading">Loading...</td></tr>');
+        tableBody.html('<tr><td colspan="12" class="loading">Loading...</td></tr>');
         
         // Prepare request data
         const data = {
@@ -226,7 +335,7 @@
                     message = xhr.responseJSON.message;
                 }
                 
-                tableBody.html('<tr><td colspan="11" class="error">' + message + '</td></tr>');
+                tableBody.html('<tr><td colspan="12" class="error">' + message + '</td></tr>');
             }
         });
     }
@@ -238,7 +347,7 @@
         const tableBody = $('.inventory-table tbody');
         
         if (state.batches.length === 0) {
-            tableBody.html('<tr><td colspan="11" class="no-results">No batches found</td></tr>');
+            tableBody.html('<tr><td colspan="12" class="no-results">No batches found</td></tr>');
             return;
         }
         
@@ -276,8 +385,14 @@
     function renderPagination() {
         const pagination = $('.pagination');
         
-        if (state.pagination.total_pages <= 1) {
-            pagination.html('');
+        // Hide pagination if "All" is selected or if only one page
+        if (state.pagination.per_page >= 9999 || state.pagination.total_pages <= 1) {
+            if (state.pagination.per_page >= 9999) {
+                // Show only the total count when "All" is selected
+                pagination.html('<div class="pagination-info">Showing all ' + state.pagination.total_batches + ' batches</div>');
+            } else {
+                pagination.html('');
+            }
             return;
         }
         
@@ -313,6 +428,159 @@
         html += '<div class="pagination-info">Page ' + state.pagination.current_page + ' of ' + state.pagination.total_pages + ' (' + state.pagination.total_batches + ' batches)</div>';
         
         pagination.html(html);
+    }
+
+    /**
+     * Open edit modal and populate with batch data
+     */
+    function openEditModal(batchData) {
+        // First, get the full batch details via API
+        $.ajax({
+            url: inventory_manager.api_url + '/batch/' + batchData.id,
+            method: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+            },
+            success: function(batch) {
+                populateEditForm(batch);
+                loadBrandsForProduct(batch.sku, batch.supplier_id);
+                $('#edit-batch-modal').fadeIn(200);
+            },
+            error: function(xhr) {
+                console.error('Error loading batch details:', xhr);
+                if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                    inventoryManager.showNotification('Error loading batch details', 'error');
+                } else {
+                    alert('Error loading batch details');
+                }
+            }
+        });
+    }
+
+    /**
+     * Populate edit form with batch data
+     */
+    function populateEditForm(batch) {
+        $('#edit-batch-id').val(batch.id);
+        $('#edit-sku').val(batch.sku);
+        $('#edit-product-name').val(batch.product_name);
+        $('#edit-batch-number').val(batch.batch_number);
+        $('#edit-stock-qty').val(batch.stock_qty);
+        $('#edit-unit-cost').val(batch.unit_cost || '');
+        $('#edit-freight-markup').val(batch.freight_markup || 1);
+        $('#edit-expiry-date').val(convertDateToDisplayFormat(batch.expiry_date || ''));
+        $('#edit-origin').val(batch.origin || '');
+        $('#edit-location').val(batch.location || '');
+    }
+
+    /**
+     * Load brands for product based on SKU
+     */
+    function loadBrandsForProduct(sku, selectedBrandId = null) {
+        $.ajax({
+            url: inventory_manager.api_url + '/product/' + encodeURIComponent(sku) + '/brands',
+            method: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+            },
+            success: function(response) {
+                const $select = $('#edit-brand');
+                $select.find('option:not(:first)').remove(); // Keep the "Select Brand" option
+                
+                const brands = response.brands || [];
+                brands.forEach(brand => {
+                    $select.append(`<option value="${brand.id}">${brand.name}</option>`);
+                });
+                
+                // Set the selected brand after loading options
+                if (selectedBrandId) {
+                    $select.val(selectedBrandId);
+                }
+            },
+            error: function(xhr) {
+                console.error('Error loading brands for product:', xhr);
+                
+                // If no brands found or error, show message in dropdown
+                const $select = $('#edit-brand');
+                $select.find('option:not(:first)').remove();
+                $select.append('<option value="" disabled>No brands assigned to this product</option>');
+            }
+        });
+    }
+
+    /**
+     * Close edit modal
+     */
+    function closeEditModal() {
+        $('#edit-batch-modal').fadeOut(200);
+        $('#edit-batch-form')[0].reset();
+    }
+
+    /**
+     * Submit edit batch form
+     */
+    function submitEditBatch() {
+        const formData = {
+            batch_number: $('#edit-batch-number').val(),
+            stock_qty: parseFloat($('#edit-stock-qty').val()),
+            unit_cost: parseFloat($('#edit-unit-cost').val()) || null,
+            freight_markup: parseFloat($('#edit-freight-markup').val()) || 1,
+            expiry_date: convertDateToApiFormat($('#edit-expiry-date').val()) || null,
+            supplier_id: $('#edit-brand').val() || null,
+            origin: $('#edit-origin').val() || null,
+            location: $('#edit-location').val() || null
+        };
+
+        const batchId = $('#edit-batch-id').val();
+        const $submitBtn = $('.modal-footer .button-primary');
+        
+        // Disable submit button and show loading
+        $submitBtn.prop('disabled', true).text('Updating...');
+
+        $.ajax({
+            url: inventory_manager.api_url + '/batch/' + batchId,
+            method: 'PUT',
+            data: JSON.stringify(formData),
+            contentType: 'application/json',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+            },
+            success: function(response) {
+                console.log('Edit response:', response);
+                
+                // Show success notification
+                if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                    inventoryManager.showNotification('Batch updated successfully', 'success');
+                } else {
+                    alert('Batch updated successfully');
+                }
+                
+                // Close modal and refresh table
+                closeEditModal();
+                loadBatches();
+            },
+            error: function(xhr) {
+                console.error('Edit error:', xhr);
+                
+                let message = 'Error updating batch';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    message = 'Error: ' + xhr.responseText;
+                }
+                
+                // Show error notification
+                if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                    inventoryManager.showNotification(message, 'error');
+                } else {
+                    alert(message);
+                }
+            },
+            complete: function() {
+                // Re-enable submit button
+                $submitBtn.prop('disabled', false).text('Update Batch');
+            }
+        });
     }
     
     /**
@@ -364,6 +632,49 @@
         form.remove();
     }
     
+    /**
+     * Convert date from YYYY-MM-DD to DD/MM/YYYY format
+     */
+    function convertDateToDisplayFormat(dateStr) {
+        if (!dateStr) return '';
+        
+        // Check if already in DD/MM/YYYY format
+        if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            return dateStr;
+        }
+        
+        // Convert from YYYY-MM-DD to DD/MM/YYYY
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        
+        return dateStr;
+    }
+    
+    /**
+     * Convert date from DD/MM/YYYY to YYYY-MM-DD format for API
+     */
+    function convertDateToApiFormat(dateStr) {
+        if (!dateStr) return null;
+        
+        // Check if already in YYYY-MM-DD format
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dateStr;
+        }
+        
+        // Convert from DD/MM/YYYY to YYYY-MM-DD
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const year = parts[2];
+            return year + '-' + month + '-' + day;
+        }
+        
+        return null;
+    }
+
     // Initialize on document ready
     $(document).ready(function() {
         init();

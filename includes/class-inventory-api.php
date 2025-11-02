@@ -62,10 +62,30 @@ class Inventory_API {
 
                 register_rest_route(
                         'inventory-manager-pro/v1',
+                        '/batch/(?P<id>\d+)',
+                        array(
+                                'methods'             => 'PUT',
+                                'callback'            => array( $this, 'update_batch' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager-pro/v1',
                         '/movement/(?P<id>\d+)',
                         array(
                                 'methods'             => 'DELETE',
                                 'callback'            => array( $this, 'delete_movement' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager-pro/v1',
+                        '/movement/(?P<id>\d+)',
+                        array(
+                                'methods'             => 'PUT',
+                                'callback'            => array( $this, 'update_movement' ),
                                 'permission_callback' => array( $this, 'check_api_permissions' ),
                         )
                 );
@@ -110,6 +130,16 @@ class Inventory_API {
                         array(
                                 'methods'             => 'GET',
                                 'callback'            => array( $this, 'get_suppliers' ),
+                                'permission_callback' => array( $this, 'check_api_permissions' ),
+                        )
+                );
+
+                register_rest_route(
+                        'inventory-manager-pro/v1',
+                        '/product/(?P<sku>[^/]+)/brands',
+                        array(
+                                'methods'             => 'GET',
+                                'callback'            => array( $this, 'get_product_brands' ),
                                 'permission_callback' => array( $this, 'check_api_permissions' ),
                         )
                 );
@@ -415,8 +445,8 @@ class Inventory_API {
 		$adjustment_reference = sanitize_text_field( $params['adjustment_reference'] );
 
 		// Get adjustment type label
-                // Fetch adjustment types with defaults in case none are saved
-                $default_types     = array(
+                // Get adjustment types (merge defaults with custom types)
+                $default_types = array(
                         'damages'       => array(
                                 'label'       => __( 'Damages', 'inventory-manager-pro' ),
                                 'calculation' => 'deduct',
@@ -435,7 +465,8 @@ class Inventory_API {
                         ),
                 );
 
-                $adjustment_types = get_option( 'inventory_manager_adjustment_types', $default_types );
+                $custom_types = get_option( 'inventory_manager_adjustment_types', array() );
+                $adjustment_types = array_merge( $default_types, $custom_types );
                 $adjustment_label  = '';
                 $calculation       = 'add';
 
@@ -775,6 +806,101 @@ class Inventory_API {
         }
 
         /**
+         * Get brands assigned to a specific product by SKU.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response The response object.
+         */
+        public function get_product_brands( $request ) {
+                $sku = sanitize_text_field( $request['sku'] );
+                
+                if ( empty( $sku ) ) {
+                        return new WP_Error( 'missing_sku', __( 'SKU is required', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+                
+                // Get product by SKU
+                $product_id = wc_get_product_id_by_sku( $sku );
+                
+                if ( ! $product_id ) {
+                        return new WP_Error( 'product_not_found', __( 'Product not found for this SKU', 'inventory-manager-pro' ), array( 'status' => 404 ) );
+                }
+                
+                // Get brands assigned to this product
+                $brand_terms = wp_get_post_terms( $product_id, 'product_brand' );
+                
+                if ( is_wp_error( $brand_terms ) ) {
+                        return new WP_Error( 'error_fetching_brands', __( 'Error fetching brands for product', 'inventory-manager-pro' ), array( 'status' => 500 ) );
+                }
+                
+                $brands = array();
+                foreach ( $brand_terms as $brand ) {
+                        $brands[] = array(
+                                'id'   => intval( $brand->term_id ),
+                                'name' => sanitize_text_field( $brand->name ),
+                                'slug' => sanitize_text_field( $brand->slug )
+                        );
+                }
+                
+                return rest_ensure_response( array(
+                        'brands' => $brands,
+                        'product_id' => $product_id,
+                        'sku' => $sku
+                ) );
+        }
+
+        /**
+         * Update a batch.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response|WP_Error The response object or error.
+         */
+        public function update_batch( $request ) {
+                $batch_id = intval( $request['id'] );
+                
+                // Get the JSON body
+                $body = $request->get_body();
+                $data = json_decode( $body, true );
+                
+                if ( json_last_error() !== JSON_ERROR_NONE ) {
+                        return new WP_Error( 'invalid_json', __( 'Invalid JSON data', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+                
+                // Validate required fields
+                if ( empty( $data['batch_number'] ) ) {
+                        return new WP_Error( 'missing_batch_number', __( 'Batch number is required', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+                
+                if ( ! isset( $data['stock_qty'] ) || ! is_numeric( $data['stock_qty'] ) ) {
+                        return new WP_Error( 'invalid_stock_qty', __( 'Valid stock quantity is required', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+                // Prepare update data
+                $update_data = array(
+                        'batch_number'    => sanitize_text_field( $data['batch_number'] ),
+                        'stock_qty'       => floatval( $data['stock_qty'] ),
+                        'unit_cost'       => isset( $data['unit_cost'] ) ? floatval( $data['unit_cost'] ) : null,
+                        'freight_markup'  => isset( $data['freight_markup'] ) ? floatval( $data['freight_markup'] ) : 1,
+                        'expiry_date'     => ! empty( $data['expiry_date'] ) ? sanitize_text_field( $data['expiry_date'] ) : '',
+                        'supplier_id'     => ! empty( $data['supplier_id'] ) ? intval( $data['supplier_id'] ) : null,
+                        'origin'          => ! empty( $data['origin'] ) ? sanitize_text_field( $data['origin'] ) : null,
+                        'location'        => ! empty( $data['location'] ) ? sanitize_text_field( $data['location'] ) : null,
+                );
+                
+                $result = $this->db->update_batch( $batch_id, $update_data );
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+                
+                // Get the updated batch
+                $updated_batch = $this->db->get_batch( $batch_id );
+                
+                if ( ! $updated_batch ) {
+                        return new WP_Error( 'batch_not_found', __( 'Batch not found after update', 'inventory-manager-pro' ), array( 'status' => 404 ) );
+                }
+                
+                return rest_ensure_response( $updated_batch );
+        }
+
+        /**
          * Delete a stock movement entry.
          *
          * @param WP_REST_Request $request The request object.
@@ -790,6 +916,44 @@ class Inventory_API {
                 }
 
                 return rest_ensure_response( array( 'success' => true ) );
+        }
+
+        /**
+         * Update a stock movement entry.
+         *
+         * @param WP_REST_Request $request The request object.
+         * @return WP_REST_Response|WP_Error The response object or error.
+         */
+        public function update_movement( $request ) {
+                $movement_id = intval( $request['id'] );
+                
+                // Get JSON body
+                $body = $request->get_body();
+                $data = json_decode( $body, true );
+                
+                if ( ! $data ) {
+                        return new WP_Error( 'invalid_json', __( 'Invalid JSON data.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+                
+                // Validate required fields
+                if ( empty( $data['movement_type'] ) || empty( $data['quantity'] ) || empty( $data['reference'] ) ) {
+                        return new WP_Error( 'missing_data', __( 'Movement type, quantity, and reference are required.', 'inventory-manager-pro' ), array( 'status' => 400 ) );
+                }
+                
+                // Sanitize input data
+                $movement_data = array(
+                        'movement_type' => sanitize_text_field( $data['movement_type'] ),
+                        'quantity'      => floatval( $data['quantity'] ),
+                        'reference'     => sanitize_text_field( $data['reference'] )
+                );
+                
+                $result = $this->db->update_movement( $movement_id, $movement_data );
+                
+                if ( is_wp_error( $result ) ) {
+                        return $result;
+                }
+                
+                return rest_ensure_response( array( 'success' => true, 'movement' => $result ) );
         }
 
 	/**
@@ -966,40 +1130,37 @@ class Inventory_API {
 	 */
 	public function get_adjustment_types() {
 		$adjustment_types = get_option( 'inventory_manager_adjustment_types', array() );
-		$types            = array();
+		
+		// Default types (always included)
+		$default_types = array(
+			'damages'       => array(
+				'label'       => __( 'Damages', 'inventory-manager-pro' ),
+				'calculation' => 'deduct',
+			),
+			'received_more' => array(
+				'label'       => __( 'Received MORE', 'inventory-manager-pro' ),
+				'calculation' => 'add',
+			),
+			'received_less' => array(
+				'label'       => __( 'Received LESS', 'inventory-manager-pro' ),
+				'calculation' => 'deduct',
+			),
+			'free_samples'  => array(
+				'label'       => __( 'Free Samples', 'inventory-manager-pro' ),
+				'calculation' => 'deduct',
+			),
+		);
 
-		if ( empty( $adjustment_types ) ) {
-			// Default types
-			$types = array(
-				array(
-					'id'          => 'damages',
-					'name'        => __( 'Damages', 'inventory-manager-pro' ),
-					'calculation' => 'deduct',
-				),
-				array(
-					'id'          => 'received_more',
-					'name'        => __( 'Received MORE', 'inventory-manager-pro' ),
-					'calculation' => 'add',
-				),
-				array(
-					'id'          => 'received_less',
-					'name'        => __( 'Received LESS', 'inventory-manager-pro' ),
-					'calculation' => 'deduct',
-				),
-				array(
-					'id'          => 'free_samples',
-					'name'        => __( 'Free Samples', 'inventory-manager-pro' ),
-					'calculation' => 'deduct',
-				),
+		// Merge with saved types
+		$all_types = array_merge( $default_types, $adjustment_types );
+		$types     = array();
+
+		foreach ( $all_types as $key => $type ) {
+			$types[] = array(
+				'id'          => $key,
+				'name'        => $type['label'],
+				'calculation' => $type['calculation'],
 			);
-		} else {
-			foreach ( $adjustment_types as $key => $type ) {
-				$types[] = array(
-					'id'          => $key,
-					'name'        => $type['label'],
-					'calculation' => $type['calculation'],
-				);
-			}
 		}
 
 		return $types;

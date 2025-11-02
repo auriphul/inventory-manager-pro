@@ -28,18 +28,23 @@ class Inventory_Manager_WooCommerce {
                $this->plugin = $plugin;
                $this->db     = new Inventory_Database();
 
-               // Order processing
-               add_action( 'woocommerce_checkout_order_processed', array( $this, 'checkout_order_stock_reduction' ), 10, 3 );
+               // Order processing - only deduct stock on valid completion statuses
                add_action( 'woocommerce_order_status_processing', array( $this, 'process_order_stock_reduction' ), 10, 2 );
                add_action( 'woocommerce_order_status_completed', array( $this, 'process_order_stock_reduction' ), 10, 2 );
-               add_action( 'woocommerce_order_status_cancelled', array( $this, 'process_order_stock_restoration' ), 10, 2 );
-               add_action( 'woocommerce_order_status_refunded', array( $this, 'process_order_stock_restoration' ), 10, 2 );
+               // Handle pending orders via new_order hook to catch all pending variations
+               add_action( 'woocommerce_new_order', array( $this, 'process_new_order_stock_reduction' ), 10, 2 );
+        //        add_action( 'woocommerce_order_status_cancelled', array( $this, 'process_order_stock_restoration' ), 10, 2 );
+        //        add_action( 'woocommerce_order_status_refunded', array( $this, 'process_order_stock_restoration' ), 10, 2 );
+        //        add_action( 'woocommerce_order_status_failed', array( $this, 'process_order_stock_restoration' ), 10, 2 );
                add_action( 'woocommerce_order_status_invoice', array( $this, 'admin_order_invoice_status' ), 10, 2 );
                add_action( 'woocommerce_order_status_credit-note', array( $this, 'admin_order_credit_note_status' ), 10, 2 );
 
 		// Product display.
         //        add_action( 'woocommerce_before_add_to_cart_form', array( $this, 'display_batch_info_single_product' ) );
         //        add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_batch_info_archive' ) );
+
+        // Archive badge on product images - use JavaScript approach for better positioning
+        add_action( 'wp_footer', array( $this, 'add_badge_via_javascript' ), 99 );
 
                // Assign expiring products to special offers category
                add_action( 'init', array( $this, 'assign_special_offers_category' ) );
@@ -110,22 +115,51 @@ class Inventory_Manager_WooCommerce {
                         <?php
                 // }
         }
-       /**
-        * Reduce stock when an order is placed during checkout.
-        *
-        * @param int        $order_id The order ID.
-        * @param array      $posted_data Posted checkout data.
-        * @param WC_Order   $order     Order object.
-        */
-       public function checkout_order_stock_reduction( $order_id, $posted_data, $order ) {
-               $this->process_order_stock_reduction( $order_id, $order );
-       }
+
+	/**
+	 * Handle stock reduction for new orders (only for pending status orders).
+	 */
+	public function process_new_order_stock_reduction( $order_id, $order = null ) {
+		if ( ! $order ) {
+			$order = wc_get_order( $order_id );
+		}
+
+		if ( ! $order ) {
+			return;
+		}
+
+		// Only process pending orders from this hook to avoid duplicates
+		$order_status = $order->get_status();
+		if ( strpos( $order_status, 'pending' ) === 0 ) {
+			$this->process_order_stock_reduction( $order_id, $order );
+		}
+	}
 
 	/**
 	 * Reduce stock when order is processed.
 	 */
        public function process_order_stock_reduction( $order_id, $order ) {
                global $wpdb;
+		// Check if stock has already been deducted for this order
+		$existing_movements = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements 
+				WHERE movement_type = 'wc_order_placed' 
+				AND reference LIKE %s",
+				$wpdb->esc_like( $order_id ) . '%'
+			)
+		);
+
+		// If movements already exist, don't process again unless this is an admin order
+		if ( $existing_movements > 0 && $order->get_created_via() !== 'admin' ) {
+			return;
+		}
+
+		// Only deduct stock for valid order statuses
+		$valid_statuses = array('processing', 'completed', 'invoice', 'pending', 'pending-payment');
+		if ( ! in_array( $order->get_status(), $valid_statuses ) ) {
+			return;
+		}
 
 		// Get settings
 		$stock_deduction_method = get_option( 'inventory_manager_frontend_deduction_method', 'closest_expiry' );
@@ -299,7 +333,7 @@ class Inventory_Manager_WooCommerce {
 			$batches = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}inventory_batches 
-                WHERE sku = %s AND stock_qty > 0 
+                WHERE sku = %s AND stock_qty > 0
                 ORDER BY expiry_date ASC, id ASC",
 					$sku
 				)
@@ -309,7 +343,7 @@ class Inventory_Manager_WooCommerce {
 			$batches = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}inventory_batches 
-                WHERE sku = %s AND stock_qty > 0 
+                WHERE sku = %s AND stock_qty > 0
                 ORDER BY date_created ASC, id ASC",
 					$sku
 				)
@@ -723,6 +757,287 @@ class Inventory_Manager_WooCommerce {
 	 */
 	public function display_batch_info_archive() {
 		do_shortcode( '[inventory_batch_archive]' );
+	}
+
+	/**
+	 * Display stock badge on product archive images.
+	 */
+	public function display_archive_stock_badge() {
+		global $product;
+
+		// Check if badge is enabled
+		$archive_badge = get_option( 'inventory_manager_archive_badge', array() );
+		if ( ! isset( $archive_badge['enable'] ) || $archive_badge['enable'] !== 'yes' ) {
+			return;
+		}
+
+		if ( ! $product ) {
+			return;
+		}
+
+		$product_id = $product->get_id();
+		$sku = $product->get_sku();
+
+		if ( empty( $sku ) ) {
+			return;
+		}
+
+		// Get stock information
+		global $wpdb;
+		$total_stock = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT SUM(stock_qty) FROM {$wpdb->prefix}inventory_batches WHERE sku = %s",
+				$sku
+			)
+		);
+
+		$is_in_stock = $total_stock && $total_stock > 0;
+
+		// Get badge settings
+		$position = isset( $archive_badge['position'] ) ? $archive_badge['position'] : 'top-right';
+		$badge_type = isset( $archive_badge['type'] ) ? $archive_badge['type'] : 'text';
+
+		// Position classes
+		$position_class = 'inventory-badge-' . str_replace( '-', '-', $position );
+
+		// Start wrapper with absolute positioning - add class based on badge type
+		$wrapper_class = 'inventory-archive-badge-wrapper';
+		if ( $badge_type === 'image' ) {
+			$wrapper_class .= ' has-image-badge';
+		}
+		echo '<div class="' . esc_attr( $wrapper_class ) . '" style="position: relative; display: block; z-index: 1;">';
+
+		if ( $badge_type === 'image' ) {
+			// Image badge
+			$image_url = $is_in_stock 
+				? ( isset( $archive_badge['in_stock_image'] ) ? $archive_badge['in_stock_image'] : '' )
+				: ( isset( $archive_badge['out_of_stock_image'] ) ? $archive_badge['out_of_stock_image'] : '' );
+
+			if ( $image_url ) {
+				echo '<div class="inventory-archive-badge inventory-badge-image ' . esc_attr( $position_class ) . '">';
+				echo '<img src="' . esc_url( $image_url ) . '" alt="' . ( $is_in_stock ? __( 'In Stock', 'inventory-manager-pro' ) : __( 'Out of Stock', 'inventory-manager-pro' ) ) . '" />';
+				echo '</div>';
+			}
+		} else {
+			// Text badge
+			$text = $is_in_stock 
+				? ( isset( $archive_badge['in_stock_text'] ) ? $archive_badge['in_stock_text'] : __( 'IN STOCK', 'inventory-manager-pro' ) )
+				: ( isset( $archive_badge['out_of_stock_text'] ) ? $archive_badge['out_of_stock_text'] : __( 'OUT OF STOCK', 'inventory-manager-pro' ) );
+
+			$bg_color = $is_in_stock 
+				? ( isset( $archive_badge['in_stock_bg_color'] ) ? $archive_badge['in_stock_bg_color'] : '#28a745' )
+				: ( isset( $archive_badge['out_of_stock_bg_color'] ) ? $archive_badge['out_of_stock_bg_color'] : '#dc3545' );
+
+			$text_color = $is_in_stock 
+				? ( isset( $archive_badge['in_stock_text_color'] ) ? $archive_badge['in_stock_text_color'] : '#ffffff' )
+				: ( isset( $archive_badge['out_of_stock_text_color'] ) ? $archive_badge['out_of_stock_text_color'] : '#ffffff' );
+
+			echo '<div class="inventory-archive-badge inventory-badge-text ' . esc_attr( $position_class ) . '" style="background-color: ' . esc_attr( $bg_color ) . '; color: ' . esc_attr( $text_color ) . ';">';
+			echo esc_html( $text );
+			echo '</div>';
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * Add badge via JavaScript for all products on archive pages.
+	 */
+	public function add_badge_via_javascript() {
+		// Only run on shop/archive pages
+		if ( ! is_shop() && ! is_product_category() && ! is_product_tag() && ! is_product_taxonomy() ) {
+			return;
+		}
+
+		// Check if badge is enabled
+		$archive_badge = get_option( 'inventory_manager_archive_badge', array() );
+		if ( ! isset( $archive_badge['enable'] ) || $archive_badge['enable'] !== 'yes' ) {
+			return;
+		}
+
+		// Get all products with their stock data
+		global $wpdb;
+		$products_stock = $wpdb->get_results(
+			"SELECT p.ID, p.post_title, pm.meta_value as sku, 
+			COALESCE(SUM(ib.stock_qty), 0) as total_stock
+			FROM {$wpdb->posts} p
+			LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_sku'
+			LEFT JOIN {$wpdb->prefix}inventory_batches ib ON pm.meta_value = ib.sku
+			WHERE p.post_type = 'product' 
+			AND p.post_status = 'publish'
+			AND pm.meta_value IS NOT NULL 
+			AND pm.meta_value != ''
+			GROUP BY p.ID, pm.meta_value",
+			ARRAY_A
+		);
+
+		if ( empty( $products_stock ) ) {
+			return;
+		}
+
+		// Prepare badge settings
+		$position = isset( $archive_badge['position'] ) ? $archive_badge['position'] : 'top-right';
+		$badge_type = isset( $archive_badge['type'] ) ? $archive_badge['type'] : 'text';
+
+		$badge_settings = array(
+			'position' => $position,
+			'type' => $badge_type
+		);
+
+		if ( $badge_type === 'text' ) {
+			$badge_settings['in_stock_text'] = isset( $archive_badge['in_stock_text'] ) ? $archive_badge['in_stock_text'] : __( 'IN STOCK', 'inventory-manager-pro' );
+			$badge_settings['out_of_stock_text'] = isset( $archive_badge['out_of_stock_text'] ) ? $archive_badge['out_of_stock_text'] : __( 'OUT OF STOCK', 'inventory-manager-pro' );
+			$badge_settings['in_stock_bg_color'] = isset( $archive_badge['in_stock_bg_color'] ) ? $archive_badge['in_stock_bg_color'] : '#28a745';
+			$badge_settings['out_of_stock_bg_color'] = isset( $archive_badge['out_of_stock_bg_color'] ) ? $archive_badge['out_of_stock_bg_color'] : '#dc3545';
+			$badge_settings['in_stock_text_color'] = isset( $archive_badge['in_stock_text_color'] ) ? $archive_badge['in_stock_text_color'] : '#ffffff';
+			$badge_settings['out_of_stock_text_color'] = isset( $archive_badge['out_of_stock_text_color'] ) ? $archive_badge['out_of_stock_text_color'] : '#ffffff';
+		} else {
+			$badge_settings['in_stock_image'] = isset( $archive_badge['in_stock_image'] ) ? $archive_badge['in_stock_image'] : '';
+			$badge_settings['out_of_stock_image'] = isset( $archive_badge['out_of_stock_image'] ) ? $archive_badge['out_of_stock_image'] : '';
+		}
+
+		echo '<script type="text/javascript">
+		(function($) {
+			$(document).ready(function() {
+				var productsData = ' . wp_json_encode( $products_stock ) . ';
+				var badgeSettings = ' . wp_json_encode( $badge_settings ) . ';
+				
+				// Create a lookup map for faster access
+				var stockMap = {};
+				$.each(productsData, function(index, productData) {
+					stockMap[productData.ID] = {
+						sku: productData.sku,
+						totalStock: parseFloat(productData.total_stock),
+						isInStock: parseFloat(productData.total_stock) > 0
+					};
+				});
+				
+				// Find all product containers on the page and add badges
+				$(".product, .wc-block-grid__product, .product-item, li.product, .type-product").each(function() {
+					var $productContainer = $(this);
+					var productId = null;
+					var sku = null;
+					
+					// Method 1: Try to find product ID by data attributes
+					productId = $productContainer.attr("data-product-id") || 
+								$productContainer.find("[data-product-id]").attr("data-product-id") ||
+								$productContainer.data("product-id");
+					
+					// Method 2: Try class-based ID extraction
+					if (!productId) {
+						var classes = $productContainer.attr("class") || "";
+						var classMatch = classes.match(/post-(\d+)/);
+						if (classMatch) {
+							productId = classMatch[1];
+						}
+					}
+					
+					// Method 3: Try to extract from links
+					if (!productId) {
+						var $link = $productContainer.find("a").first();
+						if ($link.length) {
+							var href = $link.attr("href");
+							// Extract product ID from URL patterns
+							var matches = href.match(/[\?&]p=([0-9]+)/);
+							if (matches) {
+								productId = matches[1];
+							} else {
+								matches = href.match(/\/product\/([^\/]+)\//);
+								if (matches) {
+									sku = matches[1];
+								}
+							}
+						}
+					}
+					
+					// Method 4: Try button data attributes
+					if (!productId) {
+						var $addToCartBtn = $productContainer.find(".add_to_cart_button, [data-product_id]");
+						if ($addToCartBtn.length) {
+							productId = $addToCartBtn.attr("data-product_id") || $addToCartBtn.data("product_id");
+						}
+					}
+					
+					// Method 5: Try to get SKU from add to cart button
+					if (!sku && !productId) {
+						var $addToCartBtn = $productContainer.find(".add_to_cart_button");
+						if ($addToCartBtn.length) {
+							sku = $addToCartBtn.attr("data-product_sku") || $addToCartBtn.data("product_sku");
+						}
+					}
+					
+					// Find product data
+					var productData = null;
+					if (productId && stockMap[productId]) {
+						productData = stockMap[productId];
+					} else if (sku) {
+						// Find by SKU
+						$.each(stockMap, function(id, data) {
+							if (data.sku === sku) {
+								productData = data;
+								return false;
+							}
+						});
+					}
+					
+					if (productData) {
+						// Find the image container within this product
+						var $imageContainer = $productContainer.find("img").first().parent();
+						
+						// If we can\'t find img parent, try different selectors
+						if ($imageContainer.length === 0) {
+							$imageContainer = $productContainer.find(".woocommerce-loop-product__link, .wc-block-grid__product-link, .product-image, .wp-post-image").first();
+						}
+						
+						// Additional fallback: try to find any link containing an image
+						if ($imageContainer.length === 0) {
+							$imageContainer = $productContainer.find("a:has(img)").first();
+						}
+						
+						// Final fallback: use the product container itself if it has position relative
+						if ($imageContainer.length === 0) {
+							$imageContainer = $productContainer;
+						}
+						
+						if ($imageContainer.length > 0) {
+							// Check if badge already exists
+							if ($imageContainer.find(".inventory-archive-badge").length > 0) {
+								return; // Skip if badge already exists
+							}
+							
+							// Make sure container is relatively positioned
+							$imageContainer.css({
+								"position": "relative",
+								"display": "block"
+							});
+							
+							// Create badge HTML
+							var positionClass = "inventory-badge-" + badgeSettings.position;
+							var badgeHtml = "";
+							var isInStock = productData.isInStock;
+							
+							if (badgeSettings.type === "image") {
+								var imageUrl = isInStock ? badgeSettings.in_stock_image : badgeSettings.out_of_stock_image;
+								if (imageUrl) {
+									badgeHtml = \'<div class="inventory-archive-badge inventory-badge-image \' + positionClass + \'"><img src="\' + imageUrl + \'" style="max-width: 60px; max-height: 60px;" /></div>\';
+								}
+							} else {
+								var text = isInStock ? badgeSettings.in_stock_text : badgeSettings.out_of_stock_text;
+								var bgColor = isInStock ? badgeSettings.in_stock_bg_color : badgeSettings.out_of_stock_bg_color;
+								var textColor = isInStock ? badgeSettings.in_stock_text_color : badgeSettings.out_of_stock_text_color;
+								
+								badgeHtml = \'<div class="inventory-archive-badge inventory-badge-text \' + positionClass + \'" style="background-color: \' + bgColor + \'; color: \' + textColor + \';">\' + text + \'</div>\';
+							}
+							
+							if (badgeHtml) {
+								$imageContainer.append(badgeHtml);
+							}
+						}
+					}
+				});
+			});
+		})(jQuery);
+		</script>';
 	}
 
 	/**
@@ -1257,6 +1572,7 @@ class Inventory_Manager_WooCommerce {
                return $bulk_actions;
        }
        function inv_reduction_per_item($product){
+        return 1;
                 if ( $product && $product->is_type( 'variation' ) ) {
                         $variation_id = $product->get_id();
                         $quantity	=	get_post_meta( $variation_id, 'wsvi_multiplier', true );

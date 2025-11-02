@@ -190,6 +190,7 @@ class Inventory_Shortcodes {
 		if ( empty( $sku ) ) {
 			return '';
 		}
+		$this->output_product_stock_badge();
 
 		// Get batch info settings.
 		$show_fields      = get_option( 'inventory_manager_frontend_fields', array() );
@@ -262,7 +263,6 @@ class Inventory_Shortcodes {
                         $this->plugin->template_path()
                 );
 
-                $this->output_product_stock_badge();
                 ob_start();
                 return ob_get_clean();
 	}
@@ -497,8 +497,18 @@ class Inventory_Shortcodes {
 			// echo '</pre>';print_r($transit_labels);echo '</pre>';
 			$transit_time 	=	$transit_labels;
 			// $transit_time = ucwords( str_replace( '_', ' ', $transit_time ) );
-			$this->render_stock_badge_for_single_product_page( $product->get_id(), $qty, $transit_time );
-			$this->render_stock_single_page();
+			
+			// Check stock breakdown to determine which note to show
+			$info = $this->iwc->fetch_stock_breakdown( $product->get_id(), $qty );
+			
+			// Show in-stock note if there's any stock available (supports decimal quantities)
+			if ( $info['total_stock'] > 0 ) {
+				// Show in-stock note when there's any stock available
+				$this->render_stock_single_page();
+			} else {
+				// Only show backorder note if there's no stock at all
+				$this->render_stock_badge_for_single_product_page( $product->get_id(), $qty, $transit_time );
+			}
 	}
 	private function inventory_manager_pro_format_transit_label( $label ) {
 		return ucwords( str_replace( ['_','-'], ' ', $label ) );

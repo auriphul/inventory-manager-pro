@@ -8,7 +8,7 @@
 
     // Current state
     let state = {
-        period: 'this_month',
+        period: 'all',
         batch_period: 'all',
         search: '',
         order: 'ASC',
@@ -26,6 +26,10 @@
         if (!$('.inventory-manager-logs').length) {
             return; // Not on logs page
         }
+
+        // Initialize state from dropdown values
+        state.period = $('.period-filter').val() || 'all';
+        state.batch_period = $('.batch-period-filter').val() || 'all';
 
         // Set up event listeners
         setupEventListeners();
@@ -179,6 +183,12 @@
             openAdjustmentModal(batchId);
         });
 
+        // Edit movement entry
+        $(document).on('click', '.edit-movement-btn', function() {
+            const movementId = $(this).data('id');
+            openEditMovementModal(movementId);
+        });
+
         // Delete movement entry
         $(document).on('click', '.delete-entry-btn', function() {
             if (!confirm('Are you sure you want to delete this entry?')) {
@@ -186,6 +196,7 @@
             }
 
             const entryId = $(this).data('id');
+            const $entryRow = $(this).closest('.log-entry');
 
             $.ajax({
                 url: inventory_manager.api_url + '/movement/' + entryId,
@@ -194,15 +205,37 @@
                     xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
                 },
                 success: function() {
-                    inventoryManager.showNotification('Entry deleted', 'success');
-                    loadLogs();
+                    if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                        inventoryManager.showNotification('Entry deleted', 'success');
+                    } else {
+                        alert('Entry deleted successfully');
+                    }
+                    
+                    // Remove the deleted entry from DOM with animation
+                    $entryRow.fadeOut(300, function() {
+                        $(this).remove();
+                        
+                        // Check if this was the last movement in the batch
+                        const $logEntries = $entryRow.closest('.log-entries');
+                        const remainingEntries = $logEntries.find('.log-entry').not($entryRow).length;
+                        
+                        if (remainingEntries === 1) { // Only the "Add Adjustment" row remains
+                            // Replace with "No movements recorded" message
+                            $logEntries.closest('.movement-log').find('.log-header, .log-entries').hide();
+                            $logEntries.closest('.movement-log').append('<div class="no-movements">No movements recorded</div>');
+                        }
+                    });
                 },
                 error: function(xhr) {
                     let message = 'Error deleting entry';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         message = xhr.responseJSON.message;
                     }
-                    inventoryManager.showNotification(message, 'error');
+                    if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                        inventoryManager.showNotification(message, 'error');
+                    } else {
+                        alert(message);
+                    }
                 }
             });
         });
@@ -456,7 +489,12 @@
                 html += '<div class="log-reference">' + movement.reference + '</div>';
                 html += '<div class="log-in">' + (movement.stock_in || '') + '</div>';
                 html += '<div class="log-out">' + (movement.stock_out || '') + '</div>';
-                html += '<div class="log-actions"><button class="button delete-entry-btn" data-id="' + movement.id + '">Delete</button></div>';
+                html += '<div class="log-actions">';
+                html += '<button class="button button-small edit-movement-btn" data-id="' + movement.id + '" title="Edit Movement">';
+                html += '<span class="dashicons dashicons-edit"></span>';
+                html += '</button>';
+                html += '<button class="button delete-entry-btn" data-id="' + movement.id + '">Delete</button>';
+                html += '</div>';
                 html += '</div>';
             });
             html += '<div class="log-entry">';
@@ -651,6 +689,165 @@
                     }
                     
                     alert(message);
+                }
+            });
+        });
+    }
+
+    /**
+     * Open edit movement modal
+     */
+    function openEditMovementModal(movementId) {
+        // Find the movement data from the current state
+        let movement = null;
+        let batch = null;
+        
+        $.each(state.products, function(i, product) {
+            $.each(product.batches, function(j, b) {
+                $.each(b.movements || [], function(k, m) {
+                    if (m.id == movementId) {
+                        movement = m;
+                        batch = b;
+                        return false;
+                    }
+                });
+                if (movement) return false;
+            });
+            if (movement) return false;
+        });
+        
+        if (!movement) {
+            alert('Movement not found');
+            return;
+        }
+        
+        // Fetch movement types from adjustment types (they're the same)
+        $.ajax({
+            url: inventory_manager.api_url + '/adjustment-types',
+            method: 'GET',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+            },
+            success: function(response) {
+                createEditMovementModal(movement, batch, response);
+            },
+            error: function() {
+                alert('Error loading movement types');
+            }
+        });
+    }
+    
+    /**
+     * Create edit movement modal
+     */
+    function createEditMovementModal(movement, batch, movementTypes) {
+        // Create modal HTML
+        let html = '<div class="inventory-modal edit-movement-modal">';
+        html += '<div class="modal-content">';
+        
+        html += '<div class="modal-header">';
+        html += '<h3>Edit Movement</h3>';
+        html += '<button class="close-modal">&times;</button>';
+        html += '</div>';
+        
+        html += '<div class="modal-body">';
+        
+        html += '<form id="edit-movement-form">';
+        html += '<input type="hidden" name="movement_id" value="' + movement.id + '">';
+        html += '<input type="hidden" name="batch_id" value="' + batch.id + '">';
+        
+        // Movement type (read-only display)
+        html += '<div class="form-field">';
+        html += '<label>Movement Type</label>';
+        html += '<p class="description"><strong>' + movement.movement_type + '</strong> - Movement type cannot be changed during edit. Only quantity and reference can be updated.</p>';
+        html += '<input type="hidden" name="movement_type" value="' + movement.movement_type + '">';
+        html += '</div>';
+        
+        // Quantity (calculated from stock_in or stock_out)
+        const quantity = movement.stock_in || movement.stock_out || '';
+        html += '<div class="form-field required">';
+        html += '<label for="edit_movement_qty">Quantity</label>';
+        html += '<input type="number" name="quantity" id="edit_movement_qty" step="0.01" min="0.01" value="' + quantity + '" required>';
+        html += '</div>';
+        
+        // Reference
+        html += '<div class="form-field required">';
+        html += '<label for="edit_movement_reference">Reference</label>';
+        html += '<input type="text" name="reference" id="edit_movement_reference" value="' + (movement.reference || '') + '" required>';
+        html += '<p class="description">Reference for this movement (e.g., invoice number, order number).</p>';
+        html += '</div>';
+        
+        html += '<div class="form-actions">';
+        html += '<button type="submit" class="button submit-edit-movement">Update Movement</button>';
+        html += '<button type="button" class="button secondary cancel-edit-movement">Cancel</button>';
+        html += '</div>';
+        
+        html += '</form>';
+        html += '</div>'; // End modal-body
+        
+        html += '</div>'; // End modal-content
+        html += '</div>'; // End inventory-modal
+        
+        // Append modal to body
+        $('body').append(html);
+        
+        // Set up modal events
+        $('.close-modal, .cancel-edit-movement').on('click', function() {
+            $('.inventory-modal').remove();
+        });
+        
+        // Form submission
+        $('#edit-movement-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                movement_type: $('input[name="movement_type"]').val(),
+                quantity: $('#edit_movement_qty').val(),
+                reference: $('#edit_movement_reference').val()
+            };
+            
+            // Validate form
+            if (!formData.quantity || !formData.reference) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const movementId = movement.id;
+            
+            // Submit movement update
+            $.ajax({
+                url: inventory_manager.api_url + '/movement/' + movementId,
+                method: 'PUT',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', inventory_manager.nonce);
+                },
+                success: function(response) {
+                    $('.inventory-modal').remove();
+                    
+                    // Show success notification
+                    if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                        inventoryManager.showNotification('Movement updated successfully', 'success');
+                    } else {
+                        alert('Movement updated successfully');
+                    }
+                    
+                    loadLogs(); // Reload logs
+                },
+                error: function(xhr) {
+                    let message = 'Error updating movement';
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    
+                    // Show error notification
+                    if (typeof inventoryManager !== 'undefined' && inventoryManager.showNotification) {
+                        inventoryManager.showNotification(message, 'error');
+                    } else {
+                        alert(message);
+                    }
                 }
             });
         });

@@ -60,6 +60,7 @@ class Inventory_Settings {
 		register_setting( 'inventory_manager_frontend', 'inventory_manager_frontend_fields' );
 		register_setting( 'inventory_manager_frontend', 'inventory_manager_frontend_deduction_method' );
 		register_setting( 'inventory_manager_frontend', 'inventory_manager_frontend_notes' );
+		register_setting( 'inventory_manager_frontend', 'inventory_manager_archive_badge' );
 
                // Supplier settings
                register_setting( 'inventory_manager_suppliers', 'inventory_manager_suppliers' );
@@ -67,9 +68,11 @@ class Inventory_Settings {
                // Brand transit time settings
                register_setting( 'inventory_manager_brands', 'inventory_manager_brand_transit' );
 
+		// Adjustment types settings
+		register_setting( 'inventory_manager_adjustment_types', 'inventory_manager_adjustment_types' );
+
 		// Detailed logs settings
 		register_setting( 'inventory_manager_logs', 'inventory_manager_expiry_ranges' );
-		register_setting( 'inventory_manager_logs', 'inventory_manager_adjustment_types' );
                 register_setting( 'inventory_manager_logs', 'inventory_manager_email_notifications' );
                 register_setting( 'inventory_manager_logs', 'inventory_manager_currency' );
         }
@@ -103,6 +106,7 @@ class Inventory_Settings {
 		echo '<a href="?page=inventory-manager-settings&tab=frontend" class="nav-tab ' . ( $tab === 'frontend' ? 'nav-tab-active' : '' ) . '">' . __( 'Frontend Settings', 'inventory-manager-pro' ) . '</a>';
             //    echo '<a href="?page=inventory-manager-settings&tab=suppliers" class="nav-tab ' . ( $tab === 'suppliers' ? 'nav-tab-active' : '' ) . '">' . __( 'Suppliers & Transit Time', 'inventory-manager-pro' ) . '</a>';
                echo '<a href="?page=inventory-manager-settings&tab=brands" class="nav-tab ' . ( $tab === 'brands' ? 'nav-tab-active' : '' ) . '">' . __( 'WooCommerce Brands', 'inventory-manager-pro' ) . '</a>';
+               echo '<a href="?page=inventory-manager-settings&tab=adjustment-types" class="nav-tab ' . ( $tab === 'adjustment-types' ? 'nav-tab-active' : '' ) . '">' . __( 'Adjustment Types', 'inventory-manager-pro' ) . '</a>';
                echo '<a href="?page=inventory-manager-settings&tab=logs" class="nav-tab ' . ( $tab === 'logs' ? 'nav-tab-active' : '' ) . '">' . __( 'Detailed Logs Settings', 'inventory-manager-pro' ) . '</a>';
 		echo '</h2>';
 
@@ -127,6 +131,9 @@ class Inventory_Settings {
 					   $this->inventory_manager_transit_times_page();
 
                        $this->render_brand_form( $brand_message );
+               } elseif ( 'adjustment-types' === $tab ) {
+                       $adjustment_message = $this->handle_adjustment_types_form_submission();
+                       $this->render_adjustment_types_page( $adjustment_message );
                } else {
                         echo '<form method="post" action="options.php">';
 
@@ -675,7 +682,7 @@ class Inventory_Settings {
 		echo '<td>';
                 echo '<p>' . __( 'Show selected Frontend Fields on Product Archive Page by adding this shortcode:', 'inventory-manager-pro' ) . ' <code>[inventory_batch_archive]</code></p>';
                 echo '<p>' . __( 'Optionally pass <code>sku</code> or <code>product_id</code> to target a specific product.', 'inventory-manager-pro' ) . '</p>';
-		echo '<p>' . __( 'Show selected Frontend Fields on Single Product Page by adding this shortcode:', 'inventory-manager-pro' ) . ' <code>[inventory_batch_single]</code></p>';
+		echo '<p>' . __( 'Show selected Frontend Fields on Single Product Page by adding this shortcode:', 'inventory-manager-pro' ) . ' <code>[inventory_pro_batch_info]</code></p>';
 		echo '</td>';
 		echo '</tr>';
 
@@ -699,6 +706,91 @@ class Inventory_Settings {
 		echo __( 'FIFO (first in, first out)', 'inventory-manager-pro' );
 		echo '</label>';
 		echo '<p class="description">' . __( 'Stock deducted from oldest entry, and when depleted, deduction will move on to next oldest entry.', 'inventory-manager-pro' ) . '</p>';
+		echo '</td>';
+		echo '</tr>';
+
+		echo '</table>';
+
+		// Archive Badge Settings
+		echo '<h3>' . __( 'Product Archive Stock Badge Settings', 'inventory-manager-pro' ) . '</h3>';
+		$archive_badge = get_option( 'inventory_manager_archive_badge', array() );
+		echo '<table class="form-table">';
+
+		// Enable archive badge
+		echo '<tr>';
+		echo '<th scope="row">' . __( 'Enable Archive Badge', 'inventory-manager-pro' ) . '</th>';
+		echo '<td>';
+		$enable_badge = isset( $archive_badge['enable'] ) && $archive_badge['enable'] === 'yes' ? 'checked' : '';
+		echo '<label>';
+		echo '<input type="checkbox" name="inventory_manager_archive_badge[enable]" value="yes" ' . $enable_badge . '>';
+		echo __( 'Show stock badge on product archive images', 'inventory-manager-pro' );
+		echo '</label>';
+		echo '</td>';
+		echo '</tr>';
+
+		// Badge Position
+		echo '<tr>';
+		echo '<th scope="row">' . __( 'Badge Position', 'inventory-manager-pro' ) . '</th>';
+		echo '<td>';
+		$position = isset( $archive_badge['position'] ) ? $archive_badge['position'] : 'top-right';
+		$positions = array(
+			'top-left'     => __( 'Top Left', 'inventory-manager-pro' ),
+			'top-right'    => __( 'Top Right', 'inventory-manager-pro' ),
+			'bottom-left'  => __( 'Bottom Left', 'inventory-manager-pro' ),
+			'bottom-right' => __( 'Bottom Right', 'inventory-manager-pro' )
+		);
+		echo '<select name="inventory_manager_archive_badge[position]">';
+		foreach ( $positions as $pos_key => $pos_label ) {
+			$selected = $position === $pos_key ? 'selected' : '';
+			echo '<option value="' . esc_attr( $pos_key ) . '" ' . $selected . '>' . esc_html( $pos_label ) . '</option>';
+		}
+		echo '</select>';
+		echo '</td>';
+		echo '</tr>';
+
+		// Badge Type
+		echo '<tr>';
+		echo '<th scope="row">' . __( 'Badge Type', 'inventory-manager-pro' ) . '</th>';
+		echo '<td>';
+		$badge_type = isset( $archive_badge['type'] ) ? $archive_badge['type'] : 'text';
+		echo '<label>';
+		echo '<input type="radio" name="inventory_manager_archive_badge[type]" value="text" ' . checked( $badge_type, 'text', false ) . '>';
+		echo __( 'Text Badge', 'inventory-manager-pro' );
+		echo '</label><br>';
+		echo '<label>';
+		echo '<input type="radio" name="inventory_manager_archive_badge[type]" value="image" ' . checked( $badge_type, 'image', false ) . '>';
+		echo __( 'Image Badge', 'inventory-manager-pro' );
+		echo '</label>';
+		echo '</td>';
+		echo '</tr>';
+
+		// Text Badge Settings
+		echo '<tr class="badge-text-settings">';
+		echo '<th scope="row">' . __( 'Text Badge Settings', 'inventory-manager-pro' ) . '</th>';
+		echo '<td>';
+		echo '<label>' . __( 'In Stock Text:', 'inventory-manager-pro' ) . '</label><br>';
+		echo '<input type="text" name="inventory_manager_archive_badge[in_stock_text]" value="' . esc_attr( isset( $archive_badge['in_stock_text'] ) ? $archive_badge['in_stock_text'] : __( 'IN STOCK', 'inventory-manager-pro' ) ) . '" class="regular-text">';
+		echo '<input type="color" name="inventory_manager_archive_badge[in_stock_bg_color]" value="' . esc_attr( isset( $archive_badge['in_stock_bg_color'] ) ? $archive_badge['in_stock_bg_color'] : '#28a745' ) . '">';
+		echo '<input type="color" name="inventory_manager_archive_badge[in_stock_text_color]" value="' . esc_attr( isset( $archive_badge['in_stock_text_color'] ) ? $archive_badge['in_stock_text_color'] : '#ffffff' ) . '">';
+		echo '<br><br>';
+		echo '<label>' . __( 'Out of Stock Text:', 'inventory-manager-pro' ) . '</label><br>';
+		echo '<input type="text" name="inventory_manager_archive_badge[out_of_stock_text]" value="' . esc_attr( isset( $archive_badge['out_of_stock_text'] ) ? $archive_badge['out_of_stock_text'] : __( 'OUT OF STOCK', 'inventory-manager-pro' ) ) . '" class="regular-text">';
+		echo '<input type="color" name="inventory_manager_archive_badge[out_of_stock_bg_color]" value="' . esc_attr( isset( $archive_badge['out_of_stock_bg_color'] ) ? $archive_badge['out_of_stock_bg_color'] : '#dc3545' ) . '">';
+		echo '<input type="color" name="inventory_manager_archive_badge[out_of_stock_text_color]" value="' . esc_attr( isset( $archive_badge['out_of_stock_text_color'] ) ? $archive_badge['out_of_stock_text_color'] : '#ffffff' ) . '">';
+		echo '</td>';
+		echo '</tr>';
+
+		// Image Badge Settings
+		echo '<tr class="badge-image-settings">';
+		echo '<th scope="row">' . __( 'Image Badge Settings', 'inventory-manager-pro' ) . '</th>';
+		echo '<td>';
+		echo '<label>' . __( 'In Stock Image URL:', 'inventory-manager-pro' ) . '</label><br>';
+		echo '<input type="url" name="inventory_manager_archive_badge[in_stock_image]" value="' . esc_attr( isset( $archive_badge['in_stock_image'] ) ? $archive_badge['in_stock_image'] : '' ) . '" class="regular-text">';
+		echo '<button type="button" class="button upload-image-btn" data-target="inventory_manager_archive_badge[in_stock_image]">' . __( 'Upload Image', 'inventory-manager-pro' ) . '</button>';
+		echo '<br><br>';
+		echo '<label>' . __( 'Out of Stock Image URL:', 'inventory-manager-pro' ) . '</label><br>';
+		echo '<input type="url" name="inventory_manager_archive_badge[out_of_stock_image]" value="' . esc_attr( isset( $archive_badge['out_of_stock_image'] ) ? $archive_badge['out_of_stock_image'] : '' ) . '" class="regular-text">';
+		echo '<button type="button" class="button upload-image-btn" data-target="inventory_manager_archive_badge[out_of_stock_image]">' . __( 'Upload Image', 'inventory-manager-pro' ) . '</button>';
 		echo '</td>';
 		echo '</tr>';
 
@@ -779,7 +871,6 @@ class Inventory_Settings {
 	 */
 	private function render_logs_settings() {
 		$expiry_ranges       = get_option( 'inventory_manager_expiry_ranges', array() );
-		$adjustment_types    = get_option( 'inventory_manager_adjustment_types', array() );
 		$email_notifications = get_option( 'inventory_manager_email_notifications', array() );
 
 		echo '<h2>' . __( 'Detailed Logs Settings', 'inventory-manager-pro' ) . '</h2>';
@@ -789,11 +880,12 @@ class Inventory_Settings {
 		echo '<table class="form-table">';
 
 		$range_options = array(
-			'6_plus'  => __( '6+ months', 'inventory-manager-pro' ),
-			'3_6'     => __( '3-6 months', 'inventory-manager-pro' ),
-			'1_3'     => __( '1-3 months', 'inventory-manager-pro' ),
-			'less_1'  => __( '< 1 month', 'inventory-manager-pro' ),
-			'expired' => __( 'expired', 'inventory-manager-pro' ),
+			'6_plus'    => __( '6+ months', 'inventory-manager-pro' ),
+			'3_6'       => __( '3-6 months', 'inventory-manager-pro' ),
+			'1_3'       => __( '1-3 months', 'inventory-manager-pro' ),
+			'less_1'    => __( '< 1 month', 'inventory-manager-pro' ),
+			'expired'   => __( 'expired', 'inventory-manager-pro' ),
+			'no_expiry' => __( 'no expiry date', 'inventory-manager-pro' ),
 		);
 
 		foreach ( $range_options as $range_key => $range_label ) {
@@ -843,14 +935,106 @@ class Inventory_Settings {
                 echo '</tr>';
                 echo '</table>';
 
-                // Adjustment types
+                // Adjustment types note
 		echo '<h3>' . __( 'Options for Adjustments', 'inventory-manager-pro' ) . '</h3>';
 		echo '<table class="form-table">';
 
 		echo '<tr>';
 		echo '<th scope="row">' . __( 'Adjustment Types', 'inventory-manager-pro' ) . '</th>';
 		echo '<td>';
+		echo '<p>' . __( 'Adjustment types are now managed in a dedicated settings tab.', 'inventory-manager-pro' ) . '</p>';
+		echo '<a href="' . admin_url( 'admin.php?page=inventory-manager-settings&tab=adjustment-types' ) . '" class="button button-secondary">' . __( 'Manage Adjustment Types', 'inventory-manager-pro' ) . '</a>';
+		echo '<p class="description">' . __( 'Use the dedicated Adjustment Types tab to add, edit, and delete adjustment types with their respective operations (add or deduct stock).', 'inventory-manager-pro' ) . '</p>';
+		echo '</td>';
+		echo '</tr>';
 
+		echo '</table>';
+
+		// Additional note
+		echo '<h3>' . __( 'Additional Notes', 'inventory-manager-pro' ) . '</h3>';
+		echo '<table class="form-table">';
+
+		echo '<tr>';
+		echo '<th scope="row">' . __( 'Date Format', 'inventory-manager-pro' ) . '</th>';
+		echo '<td>';
+		echo '<p>' . __( 'Dates throughout the Plugin will be referred to in format DD/MM/YYYY', 'inventory-manager-pro' ) . '</p>';
+		echo '</td>';
+		echo '</tr>';
+
+		echo '</table>';
+	}
+
+	/**
+	 * Handle adjustment types form submission.
+	 */
+	public function handle_adjustment_types_form_submission() {
+		$message = '';
+
+		if ( isset( $_POST['action'] ) && isset( $_POST['adjustment_types_nonce'] ) && wp_verify_nonce( $_POST['adjustment_types_nonce'], 'adjustment_types_action' ) ) {
+			$adjustment_types = get_option( 'inventory_manager_adjustment_types', array() );
+
+			if ( $_POST['action'] === 'add' && ! empty( $_POST['type_name'] ) && ! empty( $_POST['type_operation'] ) ) {
+				$type_key = sanitize_key( $_POST['type_name'] );
+				$type_name = sanitize_text_field( $_POST['type_name'] );
+				$type_operation = sanitize_text_field( $_POST['type_operation'] );
+
+				if ( ! isset( $adjustment_types[ $type_key ] ) ) {
+					$adjustment_types[ $type_key ] = array(
+						'label'       => $type_name,
+						'calculation' => $type_operation,
+					);
+					update_option( 'inventory_manager_adjustment_types', $adjustment_types );
+					$message = __( 'Adjustment type added successfully.', 'inventory-manager-pro' );
+				} else {
+					$message = __( 'Adjustment type already exists.', 'inventory-manager-pro' );
+				}
+			} elseif ( $_POST['action'] === 'edit' && ! empty( $_POST['edit_type_key'] ) && ! empty( $_POST['edit_type_name'] ) && ! empty( $_POST['edit_type_operation'] ) ) {
+				$type_key = sanitize_key( $_POST['edit_type_key'] );
+				$type_name = sanitize_text_field( $_POST['edit_type_name'] );
+				$type_operation = sanitize_text_field( $_POST['edit_type_operation'] );
+
+				if ( isset( $adjustment_types[ $type_key ] ) ) {
+					$adjustment_types[ $type_key ] = array(
+						'label'       => $type_name,
+						'calculation' => $type_operation,
+					);
+					update_option( 'inventory_manager_adjustment_types', $adjustment_types );
+					$message = __( 'Adjustment type updated successfully.', 'inventory-manager-pro' );
+				} else {
+					$message = __( 'Adjustment type not found.', 'inventory-manager-pro' );
+				}
+			} elseif ( $_POST['action'] === 'delete' && ! empty( $_POST['delete_type_key'] ) ) {
+				$type_key = sanitize_key( $_POST['delete_type_key'] );
+
+				if ( isset( $adjustment_types[ $type_key ] ) ) {
+					unset( $adjustment_types[ $type_key ] );
+					update_option( 'inventory_manager_adjustment_types', $adjustment_types );
+					$message = __( 'Adjustment type deleted successfully.', 'inventory-manager-pro' );
+				} else {
+					$message = __( 'Adjustment type not found.', 'inventory-manager-pro' );
+				}
+			}
+		}
+
+		return $message;
+	}
+
+	/**
+	 * Render adjustment types management page.
+	 */
+	public function render_adjustment_types_page( $message = '' ) {
+		if ( $message ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+		}
+
+		echo '<div class="wrap">';
+		echo '<h3>' . __( 'Adjustment Types Management', 'inventory-manager-pro' ) . '</h3>';
+		echo '<p>' . __( 'Manage adjustment types used for inventory adjustments. You can add, edit, or delete adjustment types as needed.', 'inventory-manager-pro' ) . '</p>';
+
+		// Get current adjustment types
+		$adjustment_types = get_option( 'inventory_manager_adjustment_types', array() );
+
+		// Default types (cannot be deleted but can be edited)
 		$default_types = array(
 			'damages'       => array(
 				'label'       => __( 'Damages', 'inventory-manager-pro' ),
@@ -871,37 +1055,133 @@ class Inventory_Settings {
 		);
 
 		// Merge with saved types
-		$types = array_merge( $default_types, $adjustment_types );
+		$all_types = array_merge( $default_types, $adjustment_types );
 
-		// Display types
-		foreach ( $types as $type_key => $type ) {
-			echo '<div class="adjustment-type-row">';
-			echo '<input type="text" name="inventory_manager_adjustment_types[' . esc_attr( $type_key ) . '][label]" value="' . esc_attr( $type['label'] ) . '" class="regular-text">';
-			echo '<select name="inventory_manager_adjustment_types[' . esc_attr( $type_key ) . '][calculation]">';
-			echo '<option value="add" ' . selected( $type['calculation'], 'add', false ) . '>' . __( 'ADD', 'inventory-manager-pro' ) . '</option>';
-			echo '<option value="deduct" ' . selected( $type['calculation'], 'deduct', false ) . '>' . __( 'DEDUCT', 'inventory-manager-pro' ) . '</option>';
-			echo '</select>';
-			echo '</div>';
+		// Display existing adjustment types
+		echo '<h4>' . __( 'Existing Adjustment Types', 'inventory-manager-pro' ) . '</h4>';
+		echo '<table class="wp-list-table widefat fixed striped">';
+		echo '<thead>';
+		echo '<tr>';
+		echo '<th>' . __( 'Name', 'inventory-manager-pro' ) . '</th>';
+		echo '<th>' . __( 'Operation', 'inventory-manager-pro' ) . '</th>';
+		echo '<th>' . __( 'Type', 'inventory-manager-pro' ) . '</th>';
+		echo '<th>' . __( 'Actions', 'inventory-manager-pro' ) . '</th>';
+		echo '</tr>';
+		echo '</thead>';
+		echo '<tbody>';
+
+		if ( ! empty( $all_types ) ) {
+			foreach ( $all_types as $type_key => $type ) {
+				$is_default = isset( $default_types[ $type_key ] );
+				echo '<tr>';
+				echo '<td>' . esc_html( $type['label'] ) . '</td>';
+				echo '<td>' . esc_html( ucfirst( $type['calculation'] ) ) . '</td>';
+				echo '<td>' . ( $is_default ? __( 'Default', 'inventory-manager-pro' ) : __( 'Custom', 'inventory-manager-pro' ) ) . '</td>';
+				echo '<td>';
+				echo '<button type="button" class="button edit-adjustment-type" data-key="' . esc_attr( $type_key ) . '" data-name="' . esc_attr( $type['label'] ) . '" data-operation="' . esc_attr( $type['calculation'] ) . '">' . __( 'Edit', 'inventory-manager-pro' ) . '</button>';
+				if ( ! $is_default ) {
+					echo ' <button type="button" class="button button-secondary delete-adjustment-type" data-key="' . esc_attr( $type_key ) . '">' . __( 'Delete', 'inventory-manager-pro' ) . '</button>';
+				}
+				echo '</td>';
+				echo '</tr>';
+			}
+		} else {
+			echo '<tr><td colspan="4">' . __( 'No adjustment types found.', 'inventory-manager-pro' ) . '</td></tr>';
 		}
 
-		echo '<p class="description">' . __( 'If ADD is selected, the quantity entered will be added to stock. If DEDUCT is selected, the quantity will be subtracted from stock.', 'inventory-manager-pro' ) . '</p>';
-
-		echo '</td>';
-		echo '</tr>';
-
+		echo '</tbody>';
 		echo '</table>';
 
-		// Additional note
-		echo '<h3>' . __( 'Additional Notes', 'inventory-manager-pro' ) . '</h3>';
+		// Add new adjustment type form
+		echo '<h4>' . __( 'Add New Adjustment Type', 'inventory-manager-pro' ) . '</h4>';
+		echo '<form method="post" action="">';
+		wp_nonce_field( 'adjustment_types_action', 'adjustment_types_nonce' );
+		echo '<input type="hidden" name="action" value="add">';
 		echo '<table class="form-table">';
-
 		echo '<tr>';
-		echo '<th scope="row">' . __( 'Date Format', 'inventory-manager-pro' ) . '</th>';
+		echo '<th scope="row"><label for="type_name">' . __( 'Type Name', 'inventory-manager-pro' ) . '</label></th>';
+		echo '<td><input type="text" id="type_name" name="type_name" class="regular-text" required></td>';
+		echo '</tr>';
+		echo '<tr>';
+		echo '<th scope="row"><label for="type_operation">' . __( 'Operation', 'inventory-manager-pro' ) . '</label></th>';
 		echo '<td>';
-		echo '<p>' . __( 'Dates throughout the Plugin will be referred to in format DD/MM/YYYY', 'inventory-manager-pro' ) . '</p>';
+		echo '<select id="type_operation" name="type_operation" required>';
+		echo '<option value="">' . __( 'Select Operation', 'inventory-manager-pro' ) . '</option>';
+		echo '<option value="add">' . __( 'Add (Increase Stock)', 'inventory-manager-pro' ) . '</option>';
+		echo '<option value="deduct">' . __( 'Deduct (Decrease Stock)', 'inventory-manager-pro' ) . '</option>';
+		echo '</select>';
 		echo '</td>';
 		echo '</tr>';
-
 		echo '</table>';
+		submit_button( __( 'Add Adjustment Type', 'inventory-manager-pro' ) );
+		echo '</form>';
+
+		// Edit form (hidden by default)
+		echo '<div id="edit-adjustment-type-form" style="display: none;">';
+		echo '<h4>' . __( 'Edit Adjustment Type', 'inventory-manager-pro' ) . '</h4>';
+		echo '<form method="post" action="">';
+		wp_nonce_field( 'adjustment_types_action', 'adjustment_types_nonce' );
+		echo '<input type="hidden" name="action" value="edit">';
+		echo '<input type="hidden" id="edit_type_key" name="edit_type_key">';
+		echo '<table class="form-table">';
+		echo '<tr>';
+		echo '<th scope="row"><label for="edit_type_name">' . __( 'Type Name', 'inventory-manager-pro' ) . '</label></th>';
+		echo '<td><input type="text" id="edit_type_name" name="edit_type_name" class="regular-text" required></td>';
+		echo '</tr>';
+		echo '<tr>';
+		echo '<th scope="row"><label for="edit_type_operation">' . __( 'Operation', 'inventory-manager-pro' ) . '</label></th>';
+		echo '<td>';
+		echo '<select id="edit_type_operation" name="edit_type_operation" required>';
+		echo '<option value="add">' . __( 'Add (Increase Stock)', 'inventory-manager-pro' ) . '</option>';
+		echo '<option value="deduct">' . __( 'Deduct (Decrease Stock)', 'inventory-manager-pro' ) . '</option>';
+		echo '</select>';
+		echo '</td>';
+		echo '</tr>';
+		echo '</table>';
+		submit_button( __( 'Update Adjustment Type', 'inventory-manager-pro' ) );
+		echo '<button type="button" id="cancel-edit" class="button">' . __( 'Cancel', 'inventory-manager-pro' ) . '</button>';
+		echo '</form>';
+		echo '</div>';
+
+		// Delete form (hidden)
+		echo '<form id="delete-adjustment-type-form" method="post" action="" style="display: none;">';
+		wp_nonce_field( 'adjustment_types_action', 'adjustment_types_nonce' );
+		echo '<input type="hidden" name="action" value="delete">';
+		echo '<input type="hidden" id="delete_type_key" name="delete_type_key">';
+		echo '</form>';
+
+		// JavaScript for handling edit and delete actions
+		echo '<script>
+		jQuery(document).ready(function($) {
+			$(".edit-adjustment-type").click(function() {
+				var key = $(this).data("key");
+				var name = $(this).data("name");
+				var operation = $(this).data("operation");
+				
+				$("#edit_type_key").val(key);
+				$("#edit_type_name").val(name);
+				$("#edit_type_operation").val(operation);
+				$("#edit-adjustment-type-form").show();
+				
+				$("html, body").animate({
+					scrollTop: $("#edit-adjustment-type-form").offset().top
+				}, 500);
+			});
+			
+			$("#cancel-edit").click(function() {
+				$("#edit-adjustment-type-form").hide();
+			});
+			
+			$(".delete-adjustment-type").click(function() {
+				var key = $(this).data("key");
+				if (confirm("' . __( 'Are you sure you want to delete this adjustment type?', 'inventory-manager-pro' ) . '")) {
+					$("#delete_type_key").val(key);
+					$("#delete-adjustment-type-form").submit();
+				}
+			});
+		});
+		</script>';
+
+		echo '</div>';
 	}
 }

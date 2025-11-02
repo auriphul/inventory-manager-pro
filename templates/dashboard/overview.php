@@ -34,6 +34,10 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 		background-color:<?php echo $expiry_ranges['6_plus']['color'];?> !important;
 		color:<?php echo $expiry_ranges['6_plus']['text_color'];?> !important;
 	}
+	.expiry-no_expiry{
+		background-color:<?php echo isset($expiry_ranges['no_expiry']['color']) ? $expiry_ranges['no_expiry']['color'] : '#f0f0f0';?> !important;
+		color:<?php echo isset($expiry_ranges['no_expiry']['text_color']) ? $expiry_ranges['no_expiry']['text_color'] : '#666666';?> !important;
+	}
 </style>
 
 <div class="inventory-manager-overview">
@@ -58,6 +62,10 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                         <label>
                                 <input type="checkbox" class="filter-expiry" data-range="expired" >
                                 <span class="expiry-expired"><?php echo isset( $expiry_ranges['expired']['label'] ) ? esc_html( $expiry_ranges['expired']['label'] ) : __( 'expired', 'inventory-manager-pro' ); ?></span>
+                        </label>
+                        <label>
+                                <input type="checkbox" class="filter-expiry" data-range="no_expiry" >
+                                <span class="expiry-no_expiry"><?php echo isset( $expiry_ranges['no_expiry']['label'] ) ? esc_html( $expiry_ranges['no_expiry']['label'] ) : __( 'no expiry date', 'inventory-manager-pro' ); ?></span>
                         </label>
 						<span>click/unclick here to filter by expiry ranges</span>
                 </div>
@@ -103,18 +111,110 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
 				<th data-sort="location" class="column-location"><?php _e( 'LOCATION', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
 				<th data-sort="stock_cost" class="column-stock_cost"><?php _e( 'STOCK COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
                                 <th data-sort="landed_cost" class="column-landed_cost"><?php _e( 'LANDED COST', 'inventory-manager-pro' ); ?> <span class="sort-icon"></span></th>
-                                <!-- <th><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th> -->
+                                <th class="column-actions"><?php _e( 'ACTIONS', 'inventory-manager-pro' ); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr>
-                                <td colspan="11" class="loading"><?php _e( 'Loading...', 'inventory-manager-pro' ); ?></td>
+                                <td colspan="12" class="loading"><?php _e( 'Loading...', 'inventory-manager-pro' ); ?></td>
 			</tr>
 		</tbody>
 	</table>
-	
-	<div class="pagination">
-		<!-- Pagination will be added via JavaScript -->
+
+	<div class="pagination-controls">
+		<div class="per-page-selector">
+			<label for="per-page-select"><?php _e( 'Show:', 'inventory-manager-pro' ); ?></label>
+			<select id="per-page-select" class="per-page-select">
+				<option value="10">10</option>
+				<option value="20" selected>20</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+				<option value="all"><?php _e( 'All', 'inventory-manager-pro' ); ?></option>
+			</select>
+			<span><?php _e( 'per page', 'inventory-manager-pro' ); ?></span>
+		</div>
+		
+		<div class="pagination">
+			<!-- Pagination will be added via JavaScript -->
+		</div>
+	</div>
+
+	<!-- Edit Batch Modal -->
+	<div id="edit-batch-modal" class="inventory-modal" style="display: none;">
+		<div class="modal-overlay"></div>
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3><?php _e( 'Edit Batch', 'inventory-manager-pro' ); ?></h3>
+				<button class="modal-close">&times;</button>
+			</div>
+			<div class="modal-body">
+				<form id="edit-batch-form">
+					<input type="hidden" id="edit-batch-id" name="batch_id" value="">
+					
+					<div class="form-row">
+						<div class="form-group">
+							<label for="edit-sku"><?php _e( 'SKU', 'inventory-manager-pro' ); ?></label>
+							<input type="text" id="edit-sku" name="sku" readonly class="readonly-field">
+						</div>
+						<div class="form-group">
+							<label for="edit-product-name"><?php _e( 'Product', 'inventory-manager-pro' ); ?></label>
+							<input type="text" id="edit-product-name" name="product_name" readonly class="readonly-field">
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="edit-batch-number"><?php _e( 'Batch Number', 'inventory-manager-pro' ); ?> *</label>
+							<input type="text" id="edit-batch-number" name="batch_number" required>
+						</div>
+						<div class="form-group">
+							<label for="edit-stock-qty"><?php _e( 'Stock Quantity', 'inventory-manager-pro' ); ?> *</label>
+							<input type="number" id="edit-stock-qty" name="stock_qty" step="0.01" min="0" required>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="edit-unit-cost"><?php _e( 'Unit Cost', 'inventory-manager-pro' ); ?></label>
+							<input type="number" id="edit-unit-cost" name="unit_cost" step="0.01" min="0">
+						</div>
+						<div class="form-group">
+							<label for="edit-freight-markup"><?php _e( 'Freight Markup', 'inventory-manager-pro' ); ?></label>
+							<input type="number" id="edit-freight-markup" name="freight_markup" step="0.01" min="1" value="1">
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="edit-expiry-date"><?php _e( 'Expiry Date (Optional)', 'inventory-manager-pro' ); ?></label>
+							<input type="text" id="edit-expiry-date" name="expiry_date" placeholder="DD/MM/YYYY" pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/([0-9]{4})$">
+						</div>
+						<div class="form-group">
+							<label for="edit-brand"><?php _e( 'Brand', 'inventory-manager-pro' ); ?></label>
+							<select id="edit-brand" name="brand_id">
+								<option value=""><?php _e( 'Select Brand', 'inventory-manager-pro' ); ?></option>
+								<!-- Options will be populated via JavaScript -->
+							</select>
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-group">
+							<label for="edit-origin"><?php _e( 'Origin', 'inventory-manager-pro' ); ?></label>
+							<input type="text" id="edit-origin" name="origin">
+						</div>
+						<div class="form-group">
+							<label for="edit-location"><?php _e( 'Location', 'inventory-manager-pro' ); ?></label>
+							<input type="text" id="edit-location" name="location">
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="button button-secondary modal-cancel"><?php _e( 'Cancel', 'inventory-manager-pro' ); ?></button>
+				<button type="submit" form="edit-batch-form" class="button button-primary"><?php _e( 'Update Batch', 'inventory-manager-pro' ); ?></button>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -130,6 +230,13 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                 <td class="column-location">{{location}}</td>
                 <td class="column-stock_cost">{{stock_cost_formatted}}</td>
                 <td class="column-landed_cost">{{landed_cost_formatted}}</td>
-                <!-- <td><button class="button delete-batch" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></td> -->
+                <td class="column-actions">
+                    <button class="button button-small edit-batch" data-id="{{id}}" title="<?php _e( 'Edit Batch', 'inventory-manager-pro' ); ?>">
+                        <span class="dashicons dashicons-edit"></span>
+                    </button>
+                    <button class="button button-small delete-batch" data-id="{{id}}" title="<?php _e( 'Delete Batch', 'inventory-manager-pro' ); ?>">
+                        <span class="dashicons dashicons-trash"></span>
+                    </button>
+                </td>
         </tr>
 </script>

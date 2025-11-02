@@ -38,6 +38,10 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         background-color:<?php echo $expiry_ranges['6_plus']['color']; ?> !important;
         color:<?php echo $expiry_ranges['6_plus']['text_color']; ?> !important;
     }
+    .batch-header.expiry-no_expiry,.expiry-no_expiry,.expiry-no_expiry span,.expiry-no_expiry span.value,.expiry-no_expiry span.label {
+        background-color:<?php echo isset($expiry_ranges['no_expiry']['color']) ? $expiry_ranges['no_expiry']['color'] : '#f0f0f0'; ?> !important;
+        color:<?php echo isset($expiry_ranges['no_expiry']['text_color']) ? $expiry_ranges['no_expiry']['text_color'] : '#666666'; ?> !important;
+    }
     .inventory-manager .batch-header{
         background-color:transparent !important;
     }
@@ -75,6 +79,10 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                 <input type="checkbox" class="filter-expiry" data-range="expired">
                 <span class="expiry-expired"><?php echo isset( $expiry_ranges['expired']['label'] ) ? esc_html( $expiry_ranges['expired']['label'] ) : __( 'expired', 'inventory-manager-pro' ); ?></span>
             </label>
+            <label>
+                <input type="checkbox" class="filter-expiry" data-range="no_expiry">
+                <span class="expiry-no_expiry"><?php echo isset( $expiry_ranges['no_expiry']['label'] ) ? esc_html( $expiry_ranges['no_expiry']['label'] ) : __( 'no expiry date', 'inventory-manager-pro' ); ?></span>
+            </label>
             <span>click/unclick here to filter by expiry ranges</span>
         </div>
     </div>
@@ -83,12 +91,12 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         <div class="period-filter-container">
             <label for="period-filter"><?php _e( 'Time Period:', 'inventory-manager-pro' ); ?></label>
             <select id="period-filter" class="period-filter">
-                <option value="all"><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
+                <option value="all" selected><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
                 <option value="today"><?php _e( 'Today', 'inventory-manager-pro' ); ?></option>
                 <!-- <option value="yesterday"><?php _e( 'Yesterday', 'inventory-manager-pro' ); ?></option> -->
                 <option value="this_week"><?php _e( 'This Week', 'inventory-manager-pro' ); ?></option>
                 <!-- <option value="last_week"><?php _e( 'Last Week', 'inventory-manager-pro' ); ?></option> -->
-                <option value="this_month" selected><?php _e( 'This Month', 'inventory-manager-pro' ); ?></option>
+                <option value="this_month" ><?php _e( 'This Month', 'inventory-manager-pro' ); ?></option>
                 <!-- <option value="last_month"><?php _e( 'Last Month', 'inventory-manager-pro' ); ?></option> -->
                 <!-- <option value="last_3_months"><?php _e( 'Last 3 Months', 'inventory-manager-pro' ); ?></option>
                 <option value="last_6_months"><?php _e( 'Last 6 Months', 'inventory-manager-pro' ); ?></option> -->
@@ -104,7 +112,7 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         <div class="batch-period-filter-container d-none">
             <label for="batch-period-filter"><?php _e( 'Batch Period:', 'inventory-manager-pro' ); ?></label>
             <select id="batch-period-filter" class="batch-period-filter">
-                <option value="all"><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
+                <option value="all" selected><?php _e( 'All Time', 'inventory-manager-pro' ); ?></option>
                 <option value="today"><?php _e( 'Today', 'inventory-manager-pro' ); ?></option>
                 <option value="yesterday"><?php _e( 'Yesterday', 'inventory-manager-pro' ); ?></option>
                 <option value="this_week"><?php _e( 'This Week', 'inventory-manager-pro' ); ?></option>
@@ -273,7 +281,12 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
         <div class="log-reference">{{reference}}</div>
         <div class="log-in">{{stock_in}}</div>
         <div class="log-out">{{stock_out}}</div>
-        <div class="log-actions"><button class="button delete-entry-btn" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button></div>
+        <div class="log-actions">
+            <button class="button button-small edit-movement-btn" data-id="{{id}}" title="<?php _e( 'Edit Movement', 'inventory-manager-pro' ); ?>">
+                <span class="dashicons dashicons-edit"></span>
+            </button>
+            <button class="button delete-entry-btn" data-id="{{id}}"><?php _e( 'Delete', 'inventory-manager-pro' ); ?></button>
+        </div>
     </div>
 </script>
 
@@ -317,6 +330,46 @@ $expiry_ranges = get_option( 'inventory_manager_expiry_ranges', array() );
                     <div class="form-actions">
                         <button type="submit" class="button submit-adjustment"><?php _e( 'Save Adjustment', 'inventory-manager-pro' ); ?></button>
                         <button type="button" class="button secondary cancel-adjustment"><?php _e( 'Cancel', 'inventory-manager-pro' ); ?></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="edit-movement-modal-template">
+    <div class="inventory-modal edit-movement-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><?php _e( 'Edit Movement', 'inventory-manager-pro' ); ?></h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="edit-movement-form">
+                    <input type="hidden" name="movement_id" value="{{id}}">
+                    <input type="hidden" name="batch_id" value="{{batch_id}}">
+                    
+                    <div class="form-field">
+                        <label><?php _e( 'Movement Type', 'inventory-manager-pro' ); ?></label>
+                        <p class="description"><strong>{{movement_type_label}}</strong> - <?php _e( 'Movement type cannot be changed during edit. Only quantity and reference can be updated.', 'inventory-manager-pro' ); ?></p>
+                        <input type="hidden" name="movement_type" value="{{movement_type}}">
+                    </div>
+                    
+                    <div class="form-field required">
+                        <label for="edit_movement_qty"><?php _e( 'Quantity', 'inventory-manager-pro' ); ?></label>
+                        <input type="number" name="quantity" id="edit_movement_qty" step="0.01" min="0.01" value="{{quantity}}" required>
+                    </div>
+                    
+                    <div class="form-field required">
+                        <label for="edit_movement_reference"><?php _e( 'Reference', 'inventory-manager-pro' ); ?></label>
+                        <input type="text" name="reference" id="edit_movement_reference" value="{{reference}}" required>
+                        <p class="description"><?php _e( 'Reference for this movement (e.g., invoice number, order number).', 'inventory-manager-pro' ); ?></p>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="button submit-edit-movement"><?php _e( 'Update Movement', 'inventory-manager-pro' ); ?></button>
+                        <button type="button" class="button secondary cancel-edit-movement"><?php _e( 'Cancel', 'inventory-manager-pro' ); ?></button>
                     </div>
                 </form>
             </div>

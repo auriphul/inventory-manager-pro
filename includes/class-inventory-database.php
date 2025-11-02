@@ -111,7 +111,7 @@ class Inventory_Database {
         }
 
         // Only batches with stock
-        $query .= " AND b.stock_qty > 0";
+        // $query .= " AND b.stock_qty > 0";
 
         // Ordering
         if (!empty($args['orderby'])) {
@@ -286,7 +286,7 @@ class Inventory_Database {
             $query_args[] = $search_term;
         }
 
-        $query .= " AND b.stock_qty > 0";
+        // $query .= " AND b.stock_qty > 0";
 
         // Prepare and execute query
         $sql = empty($query_args) ? $query : $wpdb->prepare($query, $query_args);
@@ -856,7 +856,7 @@ class Inventory_Database {
                 // Period filter
                 $movements_args = array($batch->id);
 
-                if (!empty($args['period'])) {
+                if (!empty($args['period']) && $args['period'] !== 'all') {
                     if ('custom' === $args['period'] && !empty($args['start_date']) && !empty($args['end_date'])) {
                         $movements_query .= $wpdb->prepare(
                             " AND DATE(m.date_created) BETWEEN %s AND %s",
@@ -1175,7 +1175,7 @@ class Inventory_Database {
     }
 
     /**
-     * Delete a batch.
+     * Delete a batch (hard delete).
      *
      * @param int $batch_id Batch ID.
      * @return bool|WP_Error True on success or WP_Error on failure.
@@ -1190,19 +1190,14 @@ class Inventory_Database {
             return new WP_Error('batch_not_found', __('Batch not found.', 'inventory-manager-pro'));
         }
 
-        // Check if there are movements for this batch
-        $movements = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->prefix}inventory_stock_movements WHERE batch_id = %d",
-                $batch_id
-            )
+        // First, delete all associated stock movements
+        $wpdb->delete(
+            $wpdb->prefix . 'inventory_stock_movements',
+            array('batch_id' => $batch_id),
+            array('%d')
         );
 
-        if ($movements > 0) {
-            return new WP_Error('has_movements', __('Cannot delete batch with movements. Please adjust stock to zero first.', 'inventory-manager-pro'));
-        }
-
-        // Delete batch
+        // Hard delete: remove batch from database permanently
         $result = $wpdb->delete(
             $wpdb->prefix . 'inventory_batches',
             array('id' => $batch_id),
@@ -1262,34 +1257,43 @@ class Inventory_Database {
             $batch_data['batch_number'] = sanitize_text_field($data['batch_number']);
             $formats[] = '%s';
         }
+        if (isset($data['supplier_id'])) {
+            $batch_data['supplier_id'] = !empty($data['supplier_id']) ? intval($data['supplier_id']) : null;
+            $formats[] = '%d';
+        }
 
         if (isset($data['brand_id'])) {
-            $batch_data['supplier_id'] = intval($data['brand_id']);
+            $batch_data['supplier_id'] = !empty($data['brand_id']) ? intval($data['brand_id']) : null;
             $formats[] = '%d';
         }
 
         if (isset($data['expiry_date'])) {
-            $batch_data['expiry_date'] = sanitize_text_field($data['expiry_date']);
+            $batch_data['expiry_date'] = !empty($data['expiry_date']) ? sanitize_text_field($data['expiry_date']) : null;
             $formats[] = '%s';
         }
 
         if (isset($data['origin'])) {
-            $batch_data['origin'] = sanitize_text_field($data['origin']);
+            $batch_data['origin'] = !empty($data['origin']) ? sanitize_text_field($data['origin']) : null;
             $formats[] = '%s';
         }
 
         if (isset($data['location'])) {
-            $batch_data['location'] = sanitize_text_field($data['location']);
+            $batch_data['location'] = !empty($data['location']) ? sanitize_text_field($data['location']) : null;
             $formats[] = '%s';
         }
 
         if (isset($data['unit_cost'])) {
-            $batch_data['unit_cost'] = floatval($data['unit_cost']);
+            $batch_data['unit_cost'] = $data['unit_cost'] !== null ? floatval($data['unit_cost']) : null;
             $formats[] = '%f';
         }
 
         if (isset($data['freight_markup'])) {
             $batch_data['freight_markup'] = floatval($data['freight_markup']);
+            $formats[] = '%f';
+        }
+
+        if (isset($data['stock_qty'])) {
+            $batch_data['stock_qty'] = floatval($data['stock_qty']);
             $formats[] = '%f';
         }
 
@@ -1305,6 +1309,33 @@ class Inventory_Database {
 
             if ($result === false) {
                 return new WP_Error('db_error', __('Error updating batch.', 'inventory-manager-pro'));
+            }
+
+            // Update product stock and log movement if stock quantity was changed
+            if (isset($data['stock_qty'])) {
+                $old_qty = floatval($batch->stock_qty);
+                $new_qty = floatval($data['stock_qty']);
+                
+                // Log stock movement if quantity changed
+                if ($old_qty !== $new_qty) {
+                    $quantity_change = $new_qty - $old_qty;
+                    
+                    // Insert stock movement record
+                    $wpdb->insert(
+                        $wpdb->prefix . 'inventory_stock_movements',
+                        array(
+                            'batch_id'      => $batch_id,
+                            'movement_type' => 'adjustment',
+                            'quantity'      => $quantity_change,
+                            'reference'     => 'Manual batch edit - quantity changed from ' . $old_qty . ' to ' . $new_qty,
+                            'date_created'  => current_time('mysql'),
+                            'created_by'    => get_current_user_id()
+                        ),
+                        array('%d', '%s', '%f', '%s', '%s', '%d')
+                    );
+                }
+                
+                $this->update_product_stock($batch->product_id);
             }
         }
 
@@ -1453,7 +1484,6 @@ class Inventory_Database {
                 AND p.post_status = 'publish'
                 AND b.expiry_date IS NOT NULL 
                 AND b.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL %d DAY)
-                AND b.stock_qty > 0
                 ORDER BY b.expiry_date ASC, p.post_title ASC",
                 $days
             )
@@ -1508,6 +1538,79 @@ class Inventory_Database {
         $this->update_product_stock( $batch->product_id );
 
         return true;
+    }
+
+    /**
+     * Update a stock movement entry.
+     *
+     * @param int $movement_id Movement entry ID.
+     * @param array $movement_data Updated movement data.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function update_movement( $movement_id, $movement_data ) {
+        global $wpdb;
+
+        // Get the current movement
+        $current_movement = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}inventory_stock_movements WHERE id = %d",
+                $movement_id
+            )
+        );
+
+        if ( ! $current_movement ) {
+            return new WP_Error( 'movement_not_found', __( 'Movement not found.', 'inventory-manager-pro' ) );
+        }
+
+        // Get the batch
+        $batch = $this->get_batch( $current_movement->batch_id );
+        if ( ! $batch ) {
+            return new WP_Error( 'batch_not_found', __( 'Batch not found.', 'inventory-manager-pro' ) );
+        }
+
+        // Calculate stock adjustment
+        $old_quantity = floatval( $current_movement->quantity );
+        $new_quantity = floatval( $movement_data['quantity'] );
+        $quantity_diff = $new_quantity - $old_quantity;
+
+        // Update batch stock quantity
+        $new_batch_qty = $batch->stock_qty + $quantity_diff;
+        
+        $wpdb->update(
+            $wpdb->prefix . 'inventory_batches',
+            array( 'stock_qty' => $new_batch_qty ),
+            array( 'id' => $batch->id ),
+            array( '%f' ),
+            array( '%d' )
+        );
+
+        // Update the movement record
+        $result = $wpdb->update(
+            $wpdb->prefix . 'inventory_stock_movements',
+            array(
+                'movement_type' => $movement_data['movement_type'],
+                'quantity'      => $new_quantity,
+                'reference'     => $movement_data['reference']
+            ),
+            array( 'id' => $movement_id ),
+            array( '%s', '%f', '%s' ),
+            array( '%d' )
+        );
+
+        if ( $result === false ) {
+            return new WP_Error( 'db_error', __( 'Error updating movement.', 'inventory-manager-pro' ) );
+        }
+
+        // Update product stock total
+        $this->update_product_stock( $batch->product_id );
+
+        // Return updated movement
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}inventory_stock_movements WHERE id = %d",
+                $movement_id
+            )
+        );
     }
 
 	public function normalize_date($date_str) {

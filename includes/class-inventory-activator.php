@@ -72,6 +72,9 @@ class Inventory_Activator {
 		dbDelta( $sql_movements );
 		dbDelta( $sql_suppliers );
 
+		// Remove deleted_at column if it exists (cleanup from soft delete feature)
+		self::maybe_remove_deleted_at_column();
+
 		self::add_capabilities();
 
 		self::create_dashboard_page();
@@ -110,6 +113,33 @@ class Inventory_Activator {
 
 			$page_id = wp_insert_post( $page_data );
 			update_option( 'inventory_dashboard_page_id', $page_id );
+		}
+	}
+
+	/**
+	 * Remove deleted_at column if it exists (cleanup from soft delete feature).
+	 */
+	private static function maybe_remove_deleted_at_column() {
+		global $wpdb;
+		
+		$table_name = $wpdb->prefix . 'inventory_batches';
+		
+		// Check if column exists
+		$column_exists = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+				WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s AND COLUMN_NAME = 'deleted_at'",
+				DB_NAME,
+				$table_name
+			)
+		);
+		
+		if ( ! empty( $column_exists ) ) {
+			// First drop the index if it exists
+			$wpdb->query( "ALTER TABLE {$table_name} DROP INDEX IF EXISTS deleted_at" );
+			
+			// Then drop the column
+			$wpdb->query( "ALTER TABLE {$table_name} DROP COLUMN deleted_at" );
 		}
 	}
 

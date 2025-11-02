@@ -29,6 +29,54 @@
                 });
             }
 
+            // Color picker initialization for all admin pages
+            if ($.fn.wpColorPicker) {
+                $('input[type="color"]').wpColorPicker({
+                    defaultColor: false,
+                    change: function() {},
+                    clear: function() {},
+                    hide: true,
+                    palettes: true
+                });
+                
+                // Force hex format using global event delegation
+                $(document).on('click', '.wp-color-result', function() {
+                    setTimeout(function() {
+                        const $picker = $('.iris-picker:visible');
+                        if ($picker.length) {
+                            // Try multiple possible selectors for the format toggle
+                            let $formatButton = $picker.find('.iris-square-value');
+                            
+                            // If not found, try other possible selectors
+                            if (!$formatButton.length) {
+                                $formatButton = $picker.find('[data-current]');
+                            }
+                            
+                            // If still not found, look for any element containing "rgb" or "hex"
+                            if (!$formatButton.length) {
+                                $picker.find('*').each(function() {
+                                    const text = $(this).text().toLowerCase();
+                                    if (text.indexOf('rgb') !== -1 || text.indexOf('hex') !== -1) {
+                                        $formatButton = $(this);
+                                        return false;
+                                    }
+                                });
+                            }
+                            
+                            // Click to switch to hex if currently showing RGB
+                            if ($formatButton.length) {
+                                const currentText = $formatButton.text().toLowerCase();
+                                const currentAttr = $formatButton.attr('data-current');
+                                
+                                if (currentText.indexOf('rgb') !== -1 || currentAttr === 'rgb') {
+                                    $formatButton.click();
+                                }
+                            }
+                        }
+                    }, 200);
+                });
+            }
+
             // Tooltips
             this.initTooltips();
 
@@ -226,9 +274,15 @@
                 return;
             }
 
-            // Color picker initialization
+            // Color picker initialization (global handler will manage hex format)
             if ($.fn.wpColorPicker) {
-                $('.color-picker').wpColorPicker();
+                $('input[type="color"]').wpColorPicker({
+                    defaultColor: false,
+                    change: function() {},
+                    clear: function() {},
+                    hide: true,
+                    palettes: true
+                });
             }
 
             // Sortable lists
@@ -239,6 +293,15 @@
 
             // Initialize brand dropdowns
             this.initBrandSelect();
+
+            // Initialize archive badge settings
+            this.initArchiveBadgeSettings();
+
+            // Force hex format for all color pickers (including new ones)
+            this.forceHexFormatOnAllColorPickers();
+
+            // Debug color picker structure
+            this.debugColorPicker();
         },
 
         /**
@@ -706,9 +769,15 @@
                 
                 container.append(newField);
                 
-                // Initialize color picker for new field
+                // Initialize color picker for new field (global handler will manage hex format)
                 if ($.fn.wpColorPicker) {
-                    container.find('.color-picker').wpColorPicker();
+                    container.find('input[type="color"]').wpColorPicker({
+                        defaultColor: false,
+                        change: function() {},
+                        clear: function() {},
+                        hide: true,
+                        palettes: true
+                    });
                 }
             });
             
@@ -770,6 +839,70 @@
         },
 
         /**
+         * Initialize archive badge settings
+         */
+        initArchiveBadgeSettings: function() {
+            // Toggle badge type settings visibility
+            $(document).on('change', 'input[name="inventory_manager_archive_badge[type]"]', function() {
+                const badgeType = $(this).val();
+                
+                if (badgeType === 'text') {
+                    $('.badge-text-settings').show();
+                    $('.badge-image-settings').hide();
+                } else if (badgeType === 'image') {
+                    $('.badge-text-settings').hide();
+                    $('.badge-image-settings').show();
+                }
+            });
+
+            // Initialize on page load
+            const selectedType = $('input[name="inventory_manager_archive_badge[type]"]:checked').val();
+            if (selectedType === 'text') {
+                $('.badge-text-settings').show();
+                $('.badge-image-settings').hide();
+            } else if (selectedType === 'image') {
+                $('.badge-text-settings').hide();
+                $('.badge-image-settings').show();
+            }
+
+            // Image upload functionality
+            $(document).on('click', '.upload-image-btn', function(e) {
+                e.preventDefault();
+                
+                const button = $(this);
+                const targetField = button.data('target');
+                const targetInput = $('input[name="' + targetField + '"]');
+                
+                // WordPress media uploader
+                if (typeof wp !== 'undefined' && wp.media) {
+                    const mediaUploader = wp.media({
+                        title: 'Select Badge Image',
+                        button: {
+                            text: 'Use This Image'
+                        },
+                        multiple: false,
+                        library: {
+                            type: 'image'
+                        }
+                    });
+                    
+                    mediaUploader.on('select', function() {
+                        const attachment = mediaUploader.state().get('selection').first().toJSON();
+                        targetInput.val(attachment.url);
+                    });
+                    
+                    mediaUploader.open();
+                } else {
+                    // Fallback to prompt if media uploader not available
+                    const imageUrl = prompt('Enter image URL:');
+                    if (imageUrl) {
+                        targetInput.val(imageUrl);
+                    }
+                }
+            });
+        },
+
+        /**
          * Show notification
          */
         showNotification: function(message, type = 'success', duration = 3000) {
@@ -785,6 +918,137 @@
             setTimeout(function() {
                 notification.fadeOut();
             }, duration);
+        },
+
+        /**
+         * Force hex format for all color pickers on the page
+         */
+        forceHexFormatOnAllColorPickers: function() {
+            // More aggressive approach - monitor for any color picker opening
+            $(document).on('click', '.wp-color-result', function() {
+                const $this = $(this);
+                setTimeout(function() {
+                    // Find the currently visible picker
+                    const $activePicker = $('.iris-picker:visible');
+                    if ($activePicker.length) {
+                        // Force to hex format
+                        inventoryManager.switchToHexFormat($activePicker);
+                    }
+                }, 50);
+            });
+            
+            // Also try when iris opens
+            $(document).on('irisopen', function(event, ui) {
+                setTimeout(function() {
+                    const $activePicker = $('.iris-picker:visible');
+                    if ($activePicker.length) {
+                        inventoryManager.switchToHexFormat($activePicker);
+                    }
+                }, 50);
+            });
+        },
+
+        /**
+         * Switch color picker to hex format
+         */
+        switchToHexFormat: function($picker) {
+            // Try multiple selectors to find the format toggle
+            let $formatToggle = $picker.find('.iris-square-value');
+            
+            // If that doesn't work, try other possible selectors
+            if (!$formatToggle.length) {
+                $formatToggle = $picker.find('[data-current]');
+            }
+            
+            // Try clicking any element that might switch format
+            if (!$formatToggle.length) {
+                $picker.find('*').each(function() {
+                    const $el = $(this);
+                    const text = $el.text().toLowerCase();
+                    if (text.includes('rgb') || text.includes('HSL')) {
+                        $formatToggle = $el;
+                        return false;
+                    }
+                });
+            }
+            
+            // Click to switch format if found
+            if ($formatToggle.length) {
+                const currentText = $formatToggle.text().toLowerCase();
+                const currentAttr = $formatToggle.attr('data-current');
+                
+                // Only click if currently showing RGB or HSL
+                if (currentText.includes('rgb') || currentText.includes('HSL') || 
+                    currentAttr === 'rgb' || currentAttr === 'HSL') {
+                    $formatToggle.click();
+                }
+            }
+        },
+
+        /**
+         * Aggressively remove non-hex format elements
+         */
+        removeNonHexElements: function($picker) {
+            // Remove elements containing RGB or HSL text
+            $picker.find('*').each(function() {
+                const $el = $(this);
+                const text = $el.text().toLowerCase();
+                
+                if (text.includes('rgb') || text.includes('hsl') || 
+                    text === 'rgb' || text === 'hsl' ||
+                    $el.attr('data-current') === 'rgb' || 
+                    $el.attr('data-current') === 'hsl') {
+                    
+                    // Don't remove if it contains hex value or is the hex input
+                    if (!text.includes('#') && !$el.hasClass('iris-square-value')) {
+                        $el.hide().css({
+                            'display': 'none',
+                            'visibility': 'hidden',
+                            'opacity': '0',
+                            'pointer-events': 'none'
+                        });
+                    }
+                }
+            });
+            
+            // Specifically target known RGB/HSL format elements
+            $picker.find('[data-current="rgb"], [data-current="hsl"], .iris-square:not(.iris-square-value)').hide();
+            
+            // Force show hex elements
+            $picker.find('.iris-square-value, [data-current="hex"]').show().css({
+                'display': 'block',
+                'visibility': 'visible',
+                'opacity': '1'
+            });
+        },
+
+        /**
+         * Debug color picker structure
+         */
+        debugColorPicker: function() {
+            $(document).on('click', '.wp-color-result', function() {
+                setTimeout(function() {
+                    const $picker = $('.iris-picker:visible');
+                    if ($picker.length) {
+                        console.log('Color Picker Structure:', $picker[0]);
+                        console.log('All elements in picker:', $picker.find('*'));
+                        $picker.find('*').each(function() {
+                            const $el = $(this);
+                            const text = $el.text();
+                            const classes = $el.attr('class');
+                            const dataAttrs = $el.data();
+                            if (text.toLowerCase().includes('rgb') || text.toLowerCase().includes('hsl')) {
+                                console.log('Found RGB/HSL element:', {
+                                    element: this,
+                                    text: text,
+                                    classes: classes,
+                                    data: dataAttrs
+                                });
+                            }
+                        });
+                    }
+                }, 100);
+            });
         }
     };
 

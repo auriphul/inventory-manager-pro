@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="inventory-manager-import">
     <div class="section-header">
         <h2><?php _e( 'Import Inventory', 'inventory-manager-pro' ); ?></h2>
-        <p><?php _e( 'Import batches from a CSV or Excel file', 'inventory-manager-pro' ); ?></p>
+        <p><?php _e( 'Import batches from a CSV file', 'inventory-manager-pro' ); ?></p>
     </div>
 
     <div class="inventory-form" style="max-width:100%;">
@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <span id="file-name"><?php _e( 'No file selected', 'inventory-manager-pro' ); ?></span>
                             </div> -->
                         </div>
-                        <p class="description"><?php _e( 'Upload a CSV or Excel file with batch information', 'inventory-manager-pro' ); ?></p>
+                        <p class="description"><?php _e( 'Upload a CSV file with batch information', 'inventory-manager-pro' ); ?></p>
                     </div>
                 </div>
                 

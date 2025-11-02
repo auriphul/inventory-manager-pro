@@ -1,0 +1,297 @@
+
+/* Batch display layout */
+.batch-container{display:flex;flex-wrap:wrap;gap:15px;margin-top: 10px;}
+.batch-column{flex:1 1 30%;min-width:220px;}
+
+/* Edit Movement Button Styles */
+.edit-movement-btn {
+    background-color: #0073aa !important;
+    border-color: #0073aa !important;
+    color: white !important;
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    min-height: auto !important;
+    height: auto !important;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+    transition: all 0.2s ease !important;
+    margin-right: 5px !important;
+}
+
+.edit-movement-btn:hover {
+    background-color: #005a87 !important;
+    border-color: #005a87 !important;
+    color: white !important;
+}
+
+.edit-movement-btn .dashicons {
+    font-size: 14px !important;
+    line-height: 1 !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Log actions spacing */
+.log-actions {
+    display: flex !important;
+    gap: 5px !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+}
+
+.log-actions .button {
+    margin: 0 !important;
+}
+
+/* Delete entry button consistency */
+.delete-entry-btn {
+    background-color: #dc3232 !important;
+    border-color: #dc3232 !important;
+    color: white !important;
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    min-height: auto !important;
+    height: auto !important;
+    line-height: 1 !important;
+    border-radius: 3px !important;
+    transition: all 0.2s ease !important;
+}
+
+.delete-entry-btn:hover {
+    background-color: #c62d2d !important;
+    border-color: #c62d2d !important;
+    color: white !important;
+}
+
+/* Pagination Controls */
+.pagination-controls {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-top: 20px !important;
+    padding: 15px 0 !important;
+    border-top: 1px solid #ddd !important;
+}
+
+.per-page-selector {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+}
+
+.per-page-selector label {
+    margin: 0 !important;
+    font-weight: 500 !important;
+}
+
+.per-page-select {
+    padding: 5px 8px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    background: white !important;
+    font-size: 14px !important;
+    min-width: 60px !important;
+}
+
+.per-page-select:focus {
+    border-color: #0073aa !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1) !important;
+}
+
+.pagination {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 10px !important;
+}
+
+.pagination-links {
+    display: flex !important;
+    gap: 5px !important;
+    align-items: center !important;
+}
+
+.pagination-links a,
+.pagination-links .current-page {
+    padding: 8px 12px !important;
+    text-decoration: none !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    color: #0073aa !important;
+    background: white !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.pagination-links a:hover {
+    background: #f5f5f5 !important;
+    border-color: #0073aa !important;
+}
+
+.pagination-links .current-page {
+    background: #0073aa !important;
+    color: white !important;
+    border-color: #0073aa !important;
+}
+
+.pagination-info {
+    font-size: 13px !important;
+    color: #666 !important;
+    margin: 0 !important;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+    .pagination-controls {
+        flex-direction: column !important;
+        gap: 15px !important;
+        align-items: flex-start !important;
+    }
+    
+    .pagination {
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+    
+    .pagination-links {
+        flex-wrap: wrap !important;
+    }
+}
+
+/* Date input styling */
+#edit-expiry-date {
+    font-family: monospace !important;
+    letter-spacing: 1px !important;
+}
+
+#edit-expiry-date.error {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 2px rgba(220, 50, 50, 0.3) !important;
+    background-color: rgba(220, 50, 50, 0.05) !important;
+}
+
+#edit-expiry-date::placeholder {
+    color: #999 !important;
+    font-style: italic !important;
+}
+
+/* Archive Badge Styles */
+.inventory-archive-badge-wrapper {
+    position: relative !important;
+    display: inline-block !important;
+}
+
+.inventory-archive-badge {
+    position: absolute !important;
+    z-index: 10 !important;
+    border-radius: 3px !important;
+}
+
+.inventory-badge-text {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+}
+
+.inventory-badge-image img {
+    max-width: 60px !important;
+    height: auto !important;
+}
+
+/* Badge Positioning */
+.inventory-badge-top-left {
+    top: 5px !important;
+    left: 5px !important;
+}
+
+.inventory-badge-top-right {
+    top: 5px !important;
+    right: 5px !important;
+}
+
+.inventory-badge-bottom-left {
+    bottom: 5px !important;
+    left: 5px !important;
+}
+
+.inventory-badge-bottom-right {
+    bottom: 5px !important;
+    right: 5px !important;
+}
+
+/* Settings Page Badge Options */
+.badge-text-settings,
+.badge-image-settings {
+    display: table-row !important;
+}
+
+.badge-text-settings input[type="text"],
+.badge-image-settings input[type="url"] {
+    margin-bottom: 5px !important;
+}
+
+.badge-text-settings input[type="color"],
+.badge-image-settings .upload-image-btn {
+    margin-left: 5px !important;
+}
+
+/* Hide/show badge type specific settings */
+input[name="inventory_manager_archive_badge[type]"][value="text"]:checked ~ .badge-image-settings,
+input[name="inventory_manager_archive_badge[type]"][value="image"]:checked ~ .badge-text-settings {
+    display: none !important;
+}
+
+/* Force color picker to show only hex format - more comprehensive */
+.iris-picker .iris-palette-container .iris-square:not(.iris-square-value) {
+    display: none !important;
+}
+
+/* Hide RGB/HSL format toggles - try multiple selectors */
+.iris-picker [data-current="rgb"],
+.iris-picker [data-current="hsl"],
+.iris-picker [data-current="RGB"], 
+.iris-picker [data-current="HSL"],
+.iris-picker .iris-format-toggle:not([data-current="hex"]),
+.iris-picker .iris-square:contains("rgb"),
+.iris-picker .iris-square:contains("RGB"),
+.iris-picker .iris-square:contains("hsl"),
+.iris-picker .iris-square:contains("HSL") {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* More aggressive hiding - hide common RGB/HSL elements */
+.iris-picker .iris-square:not(.iris-square-value):not([data-current="hex"]) {
+    display: none !important;
+}
+
+.iris-picker .iris-square:not(.iris-square-value),
+.iris-picker .iris-palette:not(.iris-palette-hex) {
+    display: none !important;
+}
+
+/* Force hex input to be visible */
+.iris-picker .iris-square-value,
+.iris-picker [data-current="hex"],
+.iris-picker .iris-palette-hex {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Override any WordPress core styles that might be showing RGB/HSL */
+body .iris-picker .iris-square:not(.iris-square-value) {
+    display: none !important;
+}
+
+/* Additional safety - hide any clickable areas that aren't hex */
+.iris-picker .iris-square[data-current]:not([data-current="hex"]) {
+    display: none !important;
+}
+
