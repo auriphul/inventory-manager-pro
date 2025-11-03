@@ -161,6 +161,20 @@ class Inventory_Manager_WooCommerce {
 			return;
 		}
 
+               if ( ! $order instanceof WC_Order ) {
+                       $order = wc_get_order( $order_id );
+
+                       if ( ! $order ) {
+                               return;
+                       }
+               }
+
+               // For orders created in the admin, only deduct stock once the
+               // order is marked completed. This guards the processing hook.
+               if ( 'admin' === $order->get_created_via() && 'completed' !== $order->get_status() ) {
+                       return;
+               }
+
 		// Get settings
 		$stock_deduction_method = get_option( 'inventory_manager_frontend_deduction_method', 'closest_expiry' );
 
