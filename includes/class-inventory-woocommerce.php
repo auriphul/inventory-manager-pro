@@ -1631,6 +1631,49 @@ class Inventory_Manager_WooCommerce {
        }
 
        /**
+        * Append batch stock availability info to add-to-cart messages.
+        *
+        * @param string $message  Original cart message HTML.
+        * @param array  $products Array of product IDs and quantities added.
+        * @return string Modified message with batch info appended.
+        */
+       public function add_batch_stock_cart_message( $message, $products ) {
+               if ( ! is_array( $products ) ) {
+                       $products = array( $products => 1 );
+               }
+
+               $details = array();
+
+               foreach ( $products as $product_id => $qty ) {
+                       $info    = $this->get_stock_breakdown( $product_id, $qty );
+
+                       if ( $info['backorder_qty'] <= 0 ) {
+                               continue;
+                       }
+
+                       $product = wc_get_product( $product_id );
+
+                       if ( ! $product ) {
+                               continue;
+                       }
+
+                       $details[] = sprintf(
+                               /* translators: 1: immediate qty 2: product name 3: backorder qty */
+                               __( '%1$d items of %2$s available now, %3$d on backorder due to batch limits.', 'inventory-manager-pro' ),
+                               $info['immediate_qty'],
+                               $product->get_name(),
+                               $info['backorder_qty']
+                       );
+               }
+
+               if ( ! empty( $details ) ) {
+                       $message .= '<br /><span class="inventory-batch-message">' . implode( '<br />', array_map( 'esc_html', $details ) ) . '</span>';
+               }
+
+               return $message;
+       }
+
+       /**
         * Retrieve collected checkout stock messages.
         *
         * Allows themes to display notices in custom contexts like modals.
